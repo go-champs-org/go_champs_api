@@ -1,8 +1,0 @@
-{
-  "name": "VSCode Remote",
-  "dockerComposeFile": ["./docker-compose.yml"],
-  "service": "vs-code",
-  "workspaceFolder": "/app",
-  "shutdownAction": "stopCompose",
-  "forwardPorts": [4000]
-}
