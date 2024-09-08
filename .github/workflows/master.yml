@@ -1,0 +1,116 @@
+name: Main CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+jobs:
+  unit_tests:
+    name: Build and tests
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:10-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: go_champs_db
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: '24.3.4'
+        elixir-version: '1.14.3'
+    - name: Restore dependencies cache
+      uses: actions/cache@v3
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: ${{ runner.os }}-mix-
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Run migration
+      run: mix ecto.migrate
+      env:
+        DATABASE_USERNAME: postgres
+        DATABASE_PASSWORD: admin
+        DATABASE_NAME: go_champs_db
+        DATABASE_HOST: localhost
+    - name: Run tests
+      run: mix test
+      env:
+        DATABASE_USERNAME: postgres
+        DATABASE_PASSWORD: admin
+        DATABASE_NAME: go_champs_db
+        DATABASE_HOST: localhost
+      
+  contract_tests:
+    name: Contract tests
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:10-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: go_champs_db
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: '24.3.4'
+        elixir-version: '1.14.3'
+    - name: Restore dependencies cache
+      uses: actions/cache@v3
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: ${{ runner.os }}-mix-
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Run migration
+      run: mix ecto.migrate
+      env:
+        DATABASE_USERNAME: postgres
+        DATABASE_PASSWORD: admin
+        DATABASE_NAME: go_champs_db
+        DATABASE_HOST: localhost
+    - name: Run application
+      run: mix phx.server &
+      env:
+        DATABASE_USERNAME: postgres
+        DATABASE_PASSWORD: admin
+        DATABASE_NAME: go_champs_db
+        DATABASE_HOST: localhost
+    - uses: actions/setup-node@v4
+      with:
+        node-version: latest
+    - name: Install yarn
+      run: npm install yarn -g
+    - name: Build and run e2e
+      run: |
+        cd e2e
+        yarn
+        yarn test
