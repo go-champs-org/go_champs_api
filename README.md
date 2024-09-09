@@ -1,4 +1,4 @@
-# Go Champs Web API ![build status](https://github.com/lairjr/go_champs_api/actions/workflows/docker-image.yml/badge.svg)
+# Go Champs Web API ![build status](https://github.com/lairjr/go_champs_api/actions/workflows/master.yml/badge.svg)
 
 *This is the Go Champs Web API repository.*
 
