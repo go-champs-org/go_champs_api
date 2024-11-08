@@ -50,7 +50,9 @@ defmodule GoChampsApi.MixProject do
       {:comeonin, "~> 5.3.1"},
       {:bcrypt_elixir, "~> 2.2.0"},
       {:recaptcha, "~> 3.0"},
-      {:quantum, "~> 3.0"}
+      {:quantum, "~> 3.0"},
+      {:amqp, "~> 3.3"},
+      {:amqp_client, "~> 3.12"}
     ]
   end
 
