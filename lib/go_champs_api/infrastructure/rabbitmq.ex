@@ -2,9 +2,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
   use GenServer
   require Logger
 
-  @exchange "game-events"
-  @queue "game-events"
-  @routing_key "game-events"
+  @queue "game-events-live-mode"
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -18,6 +16,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
         case AMQP.Channel.open(conn) do
           {:ok, chan} ->
             AMQP.Queue.declare(chan, @queue, durable: true)
+            AMQP.Basic.consume(chan, @queue, nil, no_ack: true)
             Logger.info("Connected to RabbitMQ")
             {:ok, %{channel: chan}}
 
@@ -32,12 +31,13 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
     end
   end
 
-  def publish(message) do
-    GenServer.call(__MODULE__, {:publish, message})
+  def handle_info({:basic_deliver, payload, _meta}, state) do
+    Logger.info("Received message: #{inspect(payload)}")
+    # Process the message here
+    {:noreply, state}
   end
 
-  def handle_call({:publish, message}, _from, %{channel: chan} = state) do
-    AMQP.Basic.publish(chan, @exchange, @routing_key, message)
-    {:reply, :ok, state}
+  def handle_info({:basic_consume_ok, %{consumer_tag: consumer_tag}}, chan) do
+    {:noreply, chan}
   end
 end
