@@ -37,7 +37,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
     {:noreply, state}
   end
 
-  def handle_info({:basic_consume_ok, %{consumer_tag: consumer_tag}}, chan) do
+  def handle_info({:basic_consume_ok, %{consumer_tag: _consumer_tag}}, chan) do
     {:noreply, chan}
   end
 end
