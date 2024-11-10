@@ -20,12 +20,12 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
             {:ok, %{channel: chan}}
 
           {:error, reason} ->
-            Logger.error("Failed to open channel: #{inspect(reason)}")
+            IO.inspect("Failed to open channel: #{inspect(reason)}")
             {:stop, reason}
         end
 
       {:error, reason} ->
-        Logger.error("Failed to open connection: #{inspect(reason)}")
+        IO.inspect("Failed to open connection: #{inspect(reason)}")
         {:stop, reason}
     end
   end
