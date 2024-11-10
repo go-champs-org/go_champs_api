@@ -16,7 +16,7 @@ config :go_champs_api, GoChampsApiWeb.Endpoint,
   secret_key_base: "imta0fFj1/DTKBsA9UFU4NP9/3U2KQAAi9TqID70AdjSC1sBxS8D1ddhrkRAHP5X",
   render_errors: [view: GoChampsApiWeb.ErrorView, accepts: ~w(json)],
   pubsub_server: GoChampsApi.PubSub,
-  http: [:inet6, port: System.get_env("PORT")]
+  http: [:inet6, port: System.get_env("PORT") || 4000]
 
 config :go_champs_api, GoChampsApiWeb.Auth.Guardian,
   issuer: "go_champs_api",
