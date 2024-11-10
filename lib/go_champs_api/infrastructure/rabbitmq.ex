@@ -1,6 +1,5 @@
 defmodule GoChampsApi.Infrastructure.RabbitMQ do
   use GenServer
-  require Logger
 
   @queue "game-events-live-mode"
 
@@ -17,7 +16,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
           {:ok, chan} ->
             AMQP.Queue.declare(chan, @queue, durable: true)
             AMQP.Basic.consume(chan, @queue, nil, no_ack: true)
-            Logger.info("Connected to RabbitMQ")
+            IO.inspect("Connected to RabbitMQ")
             {:ok, %{channel: chan}}
 
           {:error, reason} ->
@@ -32,7 +31,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
   end
 
   def handle_info({:basic_deliver, payload, _meta}, state) do
-    Logger.info("Received message: #{inspect(payload)}")
+    IO.inspect("Received message: #{inspect(payload)}")
     # Process the message here
     {:noreply, state}
   end
