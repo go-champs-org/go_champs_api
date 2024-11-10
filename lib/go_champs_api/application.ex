@@ -17,7 +17,8 @@ defmodule GoChampsApi.Application do
       GoChampsApiWeb.Endpoint,
       # Starts a worker by calling: GoChampsApi.Worker.start_link(arg)
       # {GoChampsApi.Worker, arg},
-      GoChampsApi.Scheduler
+      GoChampsApi.Scheduler,
+      GoChampsApi.Infrastructure.RabbitMQ
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

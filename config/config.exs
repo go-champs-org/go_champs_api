@@ -26,10 +26,17 @@ config :go_champs_api, GoChampsApiWeb.Auth.Guardian,
 # config :go_champs_api, :phoenix_swagger,
 #   swagger_files: %{
 #     "priv/static/swagger.json" => [
-#       router: GoChampsApiWeb.Router,    
-#       endpoint: GoChampsApiWeb.Endpoint 
+#       router: GoChampsApiWeb.Router,
+#       endpoint: GoChampsApiWeb.Endpoint
 #     ]
 #   }
+
+config :go_champs_api, GoChampsApi.Infrastructure.RabbitMQ,
+  host: System.get_env("RABBIT_MQ_HOST") || "moose-01.rmq.cloudamqp.com",
+  port: System.get_env("RABBIT_MQ_PORT") || 5672,
+  username: System.get_env("RABBIT_MQ_USERNAME") || "viezbksg",
+  password: System.get_env("RABBIT_MQ_PASSWORD") || "lgwUC_UNeUXz-FyHEM9vcl9ItOvLx_47",
+  virtual_host: System.get_env("RABBIT_MQ_VHOST") || "viezbksg"
 
 # Configures Elixir's Logger
 config :logger, :console,
