@@ -5,7 +5,7 @@
 # is restricted to this project.
 
 # General application configuration
-use Mix.Config
+import Config
 
 config :go_champs_api,
   ecto_repos: [GoChampsApi.Repo]
