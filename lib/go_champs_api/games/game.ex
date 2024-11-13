@@ -14,6 +14,7 @@ defmodule GoChampsApi.Games.Game do
     field :info, :string
     field :is_finished, :boolean
     field :location, :string
+    field :live_state, Ecto.Enum, values: [:not_started, :running, :ended]
 
     belongs_to :phase, Phase
     belongs_to :away_team, Team
@@ -35,9 +36,11 @@ defmodule GoChampsApi.Games.Game do
       :phase_id,
       :info,
       :is_finished,
+      :live_state,
       :away_team_id,
       :home_team_id
     ])
-    |> validate_required([:phase_id])
+    |> validate_required([:phase_id, :live_state])
+    |> validate_inclusion(:live_state, [:not_started, :running, :ended])
   end
 end
