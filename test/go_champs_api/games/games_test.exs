@@ -55,7 +55,7 @@ defmodule GoChampsApi.GamesTest do
     test "create_game/1 with valid data creates a game" do
       attrs = PhaseHelpers.map_phase_id(@valid_attrs)
 
-      assert {:ok, %Game{} = game} = Games.create_game(attrs)
+      assert {:ok, %Game{} = _game} = Games.create_game(attrs)
     end
 
     test "create_game/1 with invalid data returns error changeset" do
@@ -72,6 +72,47 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.away_score == attrs.away_score
       assert updated_game.home_score == attrs.home_score
       assert updated_game.location == attrs.location
+    end
+
+    test "update_game/2 with valid data but current game live_state is :in_progress returns error changeset" do
+      game = game_fixture(%{live_state: :in_progress})
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id})
+
+      assert {:error, %Ecto.Changeset{}} = Games.update_game(game, attrs)
+    end
+
+    test "update_game/2 with live_state :ended but current game live_state is :in_progress updates the game" do
+      game = game_fixture(%{live_state: :in_progress})
+
+      attrs = %{live_state: :ended}
+
+      {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
+
+      assert updated_game.is_finished == true
+      assert updated_game.live_state == :ended
+      assert updated_game.live_ended_at != nil
+    end
+
+    test "update_game/2 with is_progress live_state updates the live_started_at" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :in_progress})
+
+      {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
+
+      assert updated_game.live_started_at != nil
+    end
+
+    test "update_game/2 with ended live_state updates the is_finished field to true and live_ended_at" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :ended})
+
+      {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
+
+      assert updated_game.is_finished == true
+      assert updated_game.live_ended_at != nil
     end
 
     test "update_game/2 with invalid data returns error changeset" do

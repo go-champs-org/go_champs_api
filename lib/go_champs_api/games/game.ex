@@ -14,6 +14,9 @@ defmodule GoChampsApi.Games.Game do
     field :info, :string
     field :is_finished, :boolean
     field :location, :string
+    field :live_state, Ecto.Enum, values: [:not_started, :in_progress, :ended]
+    field :live_started_at, :utc_datetime
+    field :live_ended_at, :utc_datetime
 
     belongs_to :phase, Phase
     belongs_to :away_team, Team
@@ -35,9 +38,59 @@ defmodule GoChampsApi.Games.Game do
       :phase_id,
       :info,
       :is_finished,
+      :live_state,
+      :live_started_at,
+      :live_ended_at,
       :away_team_id,
       :home_team_id
     ])
     |> validate_required([:phase_id])
+    |> validate_inclusion(:live_state, [:not_started, :in_progress, :ended])
+    |> restrict_changes_if_in_progress(game)
+    |> update_fields_related_to_live_state()
+  end
+
+  defp restrict_changes_if_in_progress(changeset, game) do
+    if game.live_state == :in_progress do
+      changeset
+      |> validate_no_changes_except_live_state()
+    else
+      changeset
+    end
+  end
+
+  defp validate_no_changes_except_live_state(changeset) do
+    allowed_fields = [:live_state]
+    changes = changeset.changes |> Map.keys()
+
+    changes
+    |> Enum.reject(&(&1 in allowed_fields))
+    |> Enum.reduce(changeset, fn field, acc ->
+      add_error(acc, field, "cannot be changed while game is in progress")
+    end)
+  end
+
+  defp update_fields_related_to_live_state(changeset) do
+    case get_field(changeset, :live_state) do
+      :in_progress ->
+        changeset
+        |> put_change(
+          :live_started_at,
+          DateTime.utc_now()
+          |> DateTime.truncate(:second)
+        )
+
+      :ended ->
+        changeset
+        |> put_change(:is_finished, true)
+        |> put_change(
+          :live_ended_at,
+          DateTime.utc_now()
+          |> DateTime.truncate(:second)
+        )
+
+      _ ->
+        changeset
+    end
   end
 end
