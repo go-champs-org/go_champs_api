@@ -69,6 +69,14 @@ defmodule GoChampsApi.Games.Game do
           :ended
         )
 
+      false ->
+        changeset
+        |> put_change(
+          :live_state,
+          :not_started
+        )
+        |> put_change(:live_ended_at, nil)
+
       _ ->
         changeset
     end
