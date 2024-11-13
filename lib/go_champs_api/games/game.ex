@@ -46,7 +46,28 @@ defmodule GoChampsApi.Games.Game do
     ])
     |> validate_required([:phase_id])
     |> validate_inclusion(:live_state, [:not_started, :in_progress, :ended])
+    |> restrict_changes_if_in_progress(game)
     |> update_fields_related_to_live_state()
+  end
+
+  defp restrict_changes_if_in_progress(changeset, game) do
+    if game.live_state == :in_progress do
+      changeset
+      |> validate_no_changes_except_live_state()
+    else
+      changeset
+    end
+  end
+
+  defp validate_no_changes_except_live_state(changeset) do
+    allowed_fields = [:live_state]
+    changes = changeset.changes |> Map.keys()
+
+    changes
+    |> Enum.reject(&(&1 in allowed_fields))
+    |> Enum.reduce(changeset, fn field, acc ->
+      add_error(acc, field, "cannot be changed while game is in progress")
+    end)
   end
 
   defp update_fields_related_to_live_state(changeset) do

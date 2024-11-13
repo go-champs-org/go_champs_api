@@ -211,12 +211,18 @@
           "description": "Live state of the game, it could be 'not_started', 'in_progress', 'finished'"
         },
         "live_started_at": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "datetime",
           "description": "Live started timestamp"
         },
         "live_ended_at": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "datetime",
           "description": "Live ended timestamp"
         },
