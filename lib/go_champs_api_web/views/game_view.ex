@@ -25,6 +25,8 @@ defmodule GoChampsApiWeb.GameView do
       info: game.info,
       is_finished: game.is_finished,
       live_state: game.live_state,
+      live_started_at: game.live_started_at,
+      live_ended_at: game.live_ended_at,
       location: game.location
     }
   end

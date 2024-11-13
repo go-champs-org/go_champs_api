@@ -15,6 +15,8 @@ defmodule GoChampsApi.Games.Game do
     field :is_finished, :boolean
     field :location, :string
     field :live_state, Ecto.Enum, values: [:not_started, :in_progress, :ended]
+    field :live_started_at, :utc_datetime
+    field :live_ended_at, :utc_datetime
 
     belongs_to :phase, Phase
     belongs_to :away_team, Team
@@ -37,18 +39,37 @@ defmodule GoChampsApi.Games.Game do
       :info,
       :is_finished,
       :live_state,
+      :live_started_at,
+      :live_ended_at,
       :away_team_id,
       :home_team_id
     ])
     |> validate_required([:phase_id])
     |> validate_inclusion(:live_state, [:not_started, :in_progress, :ended])
-    |> update_is_finished()
+    |> update_fields_related_to_live_state()
   end
 
-  defp update_is_finished(changeset) do
+  defp update_fields_related_to_live_state(changeset) do
     case get_field(changeset, :live_state) do
-      :ended -> put_change(changeset, :is_finished, true)
-      _ -> changeset
+      :in_progress ->
+        changeset
+        |> put_change(
+          :live_started_at,
+          DateTime.utc_now()
+          |> DateTime.truncate(:second)
+        )
+
+      :ended ->
+        changeset
+        |> put_change(:is_finished, true)
+        |> put_change(
+          :live_ended_at,
+          DateTime.utc_now()
+          |> DateTime.truncate(:second)
+        )
+
+      _ ->
+        changeset
     end
   end
 end

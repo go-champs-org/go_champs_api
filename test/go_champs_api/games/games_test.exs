@@ -55,7 +55,7 @@ defmodule GoChampsApi.GamesTest do
     test "create_game/1 with valid data creates a game" do
       attrs = PhaseHelpers.map_phase_id(@valid_attrs)
 
-      assert {:ok, %Game{} = game} = Games.create_game(attrs)
+      assert {:ok, %Game{} = _game} = Games.create_game(attrs)
     end
 
     test "create_game/1 with invalid data returns error changeset" do
@@ -74,7 +74,17 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.location == attrs.location
     end
 
-    test "update_game/2 with ended live_state updates the is_finished field to true" do
+    test "update_game/2 with is_progress live_state updates the live_started_at" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :in_progress})
+
+      {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
+
+      assert updated_game.live_started_at != nil
+    end
+
+    test "update_game/2 with ended live_state updates the is_finished field to true and live_ended_at" do
       game = game_fixture()
 
       attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :ended})
@@ -82,6 +92,7 @@ defmodule GoChampsApi.GamesTest do
       {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
 
       assert updated_game.is_finished == true
+      assert updated_game.live_ended_at != nil
     end
 
     test "update_game/2 with invalid data returns error changeset" do
