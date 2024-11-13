@@ -47,6 +47,7 @@ defmodule GoChampsApi.Games.Game do
     |> validate_required([:phase_id])
     |> validate_inclusion(:live_state, [:not_started, :in_progress, :ended])
     |> restrict_changes_if_in_progress(game)
+    |> update_fields_related_to_is_finished()
     |> update_fields_related_to_live_state()
   end
 
@@ -56,6 +57,20 @@ defmodule GoChampsApi.Games.Game do
       |> validate_no_changes_except_live_state()
     else
       changeset
+    end
+  end
+
+  defp update_fields_related_to_is_finished(changeset) do
+    case get_field(changeset, :is_finished) do
+      true ->
+        changeset
+        |> put_change(
+          :live_state,
+          :ended
+        )
+
+      _ ->
+        changeset
     end
   end
 
