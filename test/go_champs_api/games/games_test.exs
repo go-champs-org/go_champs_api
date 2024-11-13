@@ -74,6 +74,16 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.location == attrs.location
     end
 
+    test "update_game/2 with ended live_state updates the is_finished field to true" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :ended})
+
+      {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
+
+      assert updated_game.is_finished == true
+    end
+
     test "update_game/2 with invalid data returns error changeset" do
       game = game_fixture()
 

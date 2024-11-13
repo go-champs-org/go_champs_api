@@ -20,7 +20,7 @@ defmodule GoChampsApiWeb.GameControllerTest do
     datetime: "2019-08-25T16:59:27.116Z",
     home_placeholder: "home placeholder updated",
     home_score: 30,
-    is_finished: true,
+    live_state: "ended",
     location: "another location"
   }
 
@@ -97,6 +97,7 @@ defmodule GoChampsApiWeb.GameControllerTest do
                "home_team" => nil,
                "id" => id,
                "is_finished" => false,
+               "live_state" => "not_started",
                "location" => "some location"
              } = json_response(conn, 200)["data"]
     end
@@ -133,6 +134,7 @@ defmodule GoChampsApiWeb.GameControllerTest do
                "home_team" => nil,
                "id" => id,
                "is_finished" => true,
+               "live_state" => "ended",
                "location" => "another location"
              } = json_response(conn, 200)["data"]
     end

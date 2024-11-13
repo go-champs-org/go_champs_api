@@ -24,6 +24,7 @@ defmodule GoChampsApiWeb.GameView do
       home_team: render_one(game.home_team, TeamView, "team.json"),
       info: game.info,
       is_finished: game.is_finished,
+      live_state: game.live_state,
       location: game.location
     }
   end
