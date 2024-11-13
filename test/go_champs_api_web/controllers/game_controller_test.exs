@@ -141,6 +141,7 @@ defmodule GoChampsApiWeb.GameControllerTest do
                "live_started_at" => nil,
                "location" => "another location"
              } = json_response(conn, 200)["data"]
+
       assert live_ended_at != nil
     end
   end
