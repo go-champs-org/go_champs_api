@@ -125,6 +125,17 @@ defmodule GoChampsApi.GamesTest do
       assert result_game.id == game.id
     end
 
+    test "update_game/2 with is_finished true updates live_state to :ended and live_ended_at" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, is_finished: true})
+
+      {:ok, %Game{} = updated_game} = Games.update_game(game, attrs)
+
+      assert updated_game.live_state == :ended
+      assert updated_game.live_ended_at != nil
+    end
+
     test "delete_game/1 deletes the game" do
       game = game_fixture()
       assert {:ok, %Game{}} = Games.delete_game(game)
