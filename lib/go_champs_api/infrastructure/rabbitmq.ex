@@ -18,12 +18,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
       {:ok, conn} ->
         case AMQP.Channel.open(conn) do
           {:ok, chan} ->
-            {:ok, _} = AMQP.Queue.declare(chan, @queue_error, durable: true)
             {:ok, _} = AMQP.Queue.declare(chan, @queue, durable: true)
-            # {:ok, _} = AMQP.Queue.declare(chan, @queue, durable: true, arguments: [
-            #   {"x-dead-letter-exchange", :longstr, ""},
-            #   {"x-dead-letter-routing-key", :longstr, @queue_error}
-            # ])
 
             AMQP.Basic.consume(chan, @queue)
             Logger.info("Connected to RabbitMQ")
