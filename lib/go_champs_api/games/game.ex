@@ -61,7 +61,7 @@ defmodule GoChampsApi.Games.Game do
   end
 
   defp update_fields_related_to_is_finished(changeset) do
-    case get_field(changeset, :is_finished) do
+    case get_change(changeset, :is_finished) do
       true ->
         changeset
         |> put_change(
