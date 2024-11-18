@@ -6,7 +6,6 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
   @queue "game-events-live-mode"
   @queue_error "#{@queue}_error"
   @accepted_sender "go-champs-scoreboard"
-  @accepted_env System.get_env("APP_ENV")
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -26,21 +25,22 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
             {:ok, %{channel: chan}}
 
           {:error, reason} ->
-            Logger.error("Failed to open channel: #{inspect(reason)}")
+            Logger.error("Failed to open channel with RabbitMQ: #{inspect(reason)}")
             {:stop, reason}
         end
 
       {:error, reason} ->
-        Logger.error("Failed to open connection: #{inspect(reason)}")
-        {:stop, reason}
+        Logger.error("Failed to open connection with RabbitMQ: #{inspect(reason)}")
+        {:ok, %{}}
     end
   end
 
   def handle_info({:basic_deliver, payload, %{delivery_tag: tag}}, state) do
     decoded_payload = Poison.decode!(payload)
+    accepted_env = System.get_env("APP_ENV") || "development"
 
     if decoded_payload["metadata"]["sender"] == @accepted_sender &&
-         decoded_payload["metadata"]["env"] == @accepted_env do
+         decoded_payload["metadata"]["env"] == accepted_env do
       Logger.info("Received message from accepted sender")
 
       case GameEventsLiveModeProcessor.process(decoded_payload) do
