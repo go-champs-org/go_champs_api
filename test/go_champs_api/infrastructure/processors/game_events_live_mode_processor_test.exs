@@ -1,5 +1,7 @@
 defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest do
   use GoChampsApi.DataCase
+  import ExUnit.CaptureLog
+
   alias GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor
   alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Games
@@ -79,6 +81,15 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       assert updated_game.live_state == :ended
       assert updated_game.live_ended_at != nil
     end
+  end
+
+  describe "process/1 with not found game" do
+    log =
+      capture_log(fn ->
+        assert :error == GameEventsLiveModeProcessor.process(@valid_start_message)
+      end)
+
+    assert log =~ "Error processing event"
   end
 
   describe "process/1 with invalid message" do

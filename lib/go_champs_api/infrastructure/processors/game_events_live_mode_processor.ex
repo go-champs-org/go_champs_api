@@ -5,14 +5,20 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
 
   @spec process(message :: String.t()) :: :ok | :error
   def process(message) do
-    parsed_event =
-      Poison.encode!(message["body"]["event"])
-      |> Poison.decode!(as: %Event{})
+    try do
+      parsed_event =
+        Poison.encode!(message["body"]["event"])
+        |> Poison.decode!(as: %Event{})
 
-    case parsed_event do
-      %Event{key: "start-game-live-mode", game_id: game_id} -> start_game_live_mode(game_id)
-      %Event{key: "end-game-live-mode", game_id: game_id} -> end_game_live_mode(game_id)
-      _ -> :error
+      case parsed_event do
+        %Event{key: "start-game-live-mode", game_id: game_id} -> start_game_live_mode(game_id)
+        %Event{key: "end-game-live-mode", game_id: game_id} -> end_game_live_mode(game_id)
+        _ -> :error
+      end
+    rescue
+      exception ->
+        Logger.error("Error processing event: #{inspect(exception)}")
+        :error
     end
   end
 

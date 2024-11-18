@@ -1,4 +1,5 @@
 defmodule GoChampsApi.Infrastructure.RabbitMQ do
+  alias GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor
   use GenServer
   require Logger
 
@@ -41,7 +42,12 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
     if decoded_payload["metadata"]["sender"] == @accepted_sender &&
          decoded_payload["metadata"]["env"] == @accepted_env do
       Logger.info("Received message from accepted sender")
-      :ok = AMQP.Basic.ack(state.channel, tag)
+
+      case GameEventsLiveModeProcessor.process(decoded_payload) do
+        :ok -> :ok = AMQP.Basic.ack(state.channel, tag)
+        :error -> :ok = AMQP.Basic.reject(state.channel, tag, requeue: true)
+      end
+
       {:noreply, state}
     else
       Logger.info("Received message from unaccepted sender")
