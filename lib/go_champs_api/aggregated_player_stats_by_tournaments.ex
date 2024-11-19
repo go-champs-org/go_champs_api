@@ -166,9 +166,18 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
         |> Enum.reduce(%{}, fn player_stats_log, aggregated_stats ->
           tournament.player_stats
           |> Enum.reduce(aggregated_stats, fn player_stats, player_stats_map ->
-            {current_stat_value, _} =
+            # Get the current stat value from the player stats log
+            # Remove all non-numeric characters and empty strings
+            string_stat_value =
               Map.get(player_stats_log.stats, player_stats.id, "0")
-              |> Float.parse()
+              |> String.replace(~r/\D/, "")
+              |> String.trim()
+
+            {current_stat_value, _} =
+              case string_stat_value do
+                "" -> {0, ""}
+                _ -> Float.parse(string_stat_value)
+              end
 
             aggregated_stat_value = Map.get(aggregated_stats, player_stats.id, 0)
 
