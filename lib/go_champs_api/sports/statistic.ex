@@ -9,11 +9,11 @@ defmodule GoChampsApi.Sports.Statistic do
 
   defstruct [:slug, :name, :calculation_function]
 
-  @spec new(String.t(), type(), calculation_function()) :: t()
-  def new(slug, type, calculation_function \\ nil) do
+  @spec new(String.t(), String.t(), calculation_function()) :: t()
+  def new(slug, name, calculation_function \\ nil) do
     %__MODULE__{
       slug: slug,
-      type: type,
+      name: name,
       calculation_function: calculation_function
     }
   end

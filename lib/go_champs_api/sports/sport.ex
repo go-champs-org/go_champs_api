@@ -1,13 +1,7 @@
 defmodule GoChampsApi.Sports.Sport do
-  alias GoChampsApi.Sports.Statistic
-
   @type t :: %__MODULE__{
           slug: String.t(),
-          name: String.t(),
-          player_log_statistics: [Statistic.t()],
-          player_tournament_statistics: [Statistic.t()],
-          team_log_statistics: [Statistic.t()],
-          team_tournament_statistics: [Statistic.t()]
+          name: String.t()
         }
 
   defstruct [:slug, :name]
