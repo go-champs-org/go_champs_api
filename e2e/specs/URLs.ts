@@ -8,6 +8,7 @@ export const ORGANIZATIONS_URL = `${API_HOST}/organizations`;
 export const PHASES_URL = `${API_HOST}/phases`;
 export const PLAYER_STATS_LOGS_URL = `${API_HOST}/player-stats-logs`;
 export const PLAYERS_URL = `${API_HOST}/players`;
+export const SPORTS_URL = `${API_HOST}/sports`;
 export const TEAMS_URL = `${API_HOST}/teams`;
 export const TOURNAMENTS_URL = `${API_HOST}/tournaments`;
 export const USERS_URL = `${API_HOST}/accounts`;
