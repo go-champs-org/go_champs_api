@@ -82,20 +82,12 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("turnovers_per_game", "Turnovers Per Game")
   ]
 
-  @team_log_statistics []
-
-  @team_tournament_statistics []
-
   @sport Sport.new(
            "basketball_5x5",
-           "Basketball 5x5"
+           "Basketball 5x5",
+           @player_log_statistics ++ @player_average_statistics
          )
 
   @spec sport() :: Sport.t()
   def sport(), do: @sport
-
-  @spec all_player_statistics() :: [Statistic.t()]
-  def all_player_statistics() do
-    @player_log_statistics ++ @player_average_statistics
-  end
 end

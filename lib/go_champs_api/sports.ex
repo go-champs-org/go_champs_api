@@ -9,4 +9,9 @@ defmodule GoChampsApi.Sports do
   def list_sports() do
     Registry.sports()
   end
+
+  @spec get_sport(String.t()) :: Sport.t() | nil
+  def get_sport(slug) do
+    Registry.get_sport(slug)
+  end
 end

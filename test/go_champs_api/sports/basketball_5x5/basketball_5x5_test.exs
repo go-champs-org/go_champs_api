@@ -5,16 +5,12 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
 
   describe "sport/0" do
     test "returns basketball 5x5 sport" do
-      sport = %Sport{
-        slug: "basketball_5x5",
-        name: "Basketball 5x5"
-      }
+      sport = Basketball5x5.sport()
 
-      assert Basketball5x5.sport() == sport
+      assert sport.name == "Basketball 5x5"
+      assert sport.slug == "basketball_5x5"
     end
-  end
 
-  describe "all_player_statistics/0" do
     test "returns all player statistics" do
       expected_statistics = [
         "assists",
@@ -82,7 +78,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       ]
 
       resulted_statistics_slugs =
-        Basketball5x5.all_player_statistics()
+        Basketball5x5.sport().player_statistics
         |> Enum.map(fn statistic -> statistic.slug end)
 
       assert resulted_statistics_slugs == expected_statistics
