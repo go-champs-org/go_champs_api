@@ -30,7 +30,6 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       }
     }
   }
-  @invalid_start_message %{}
   @game_attrs %{
     away_score: 10,
     datetime: "2019-08-25T16:59:27.116Z",

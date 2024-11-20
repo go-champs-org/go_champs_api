@@ -6,7 +6,7 @@ defmodule GoChampsApiWeb.SportsControllerTest do
       conn = get(conn, Routes.v1_sports_path(conn, :index))
 
       assert json_response(conn, 200)["data"] == [
-               %{"name" => "Basketball 5x5", "slug" => "basketball-5x5"}
+               %{"name" => "Basketball 5x5", "slug" => "basketball_5x5"}
              ]
     end
   end

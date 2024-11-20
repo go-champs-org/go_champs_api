@@ -42,7 +42,9 @@ defmodule GoChampsApi.TournamentsTest do
           title: "team source stat",
           source: "player-stat-id"
         }
-      ]
+      ],
+      sport_slug: "basketball_5x5",
+      sport_name: "Basketball 5x5"
     }
     @update_attrs %{
       name: "some updated name",
@@ -125,6 +127,8 @@ defmodule GoChampsApi.TournamentsTest do
       assert tournament.instagram == "instagram"
       assert tournament.site_url == "site url"
       assert tournament.twitter == "twitter"
+      assert tournament.sport_slug == "basketball_5x5"
+      assert tournament.sport_name == "Basketball 5x5"
 
       [fixed_stat, sum_stat, average_stat] = tournament.player_stats
 
@@ -138,6 +142,16 @@ defmodule GoChampsApi.TournamentsTest do
       assert fixed_team_stat.is_default_order == true
       assert fixed_source_stat.title == "team source stat"
       assert fixed_source_stat.source == "player-stat-id"
+    end
+
+    test "create_tournament/1 with nil sport slug creates a tournament" do
+      attrs = %{@valid_attrs | sport_slug: nil, sport_name: "Basketball"}
+      valid_tournament = OrganizationHelpers.map_organization_id(attrs)
+
+      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
+
+      assert tournament.sport_slug == nil
+      assert tournament.sport_name == "Basketball"
     end
 
     test "create_tournament/1 with invalid data returns error changeset" do
@@ -162,6 +176,16 @@ defmodule GoChampsApi.TournamentsTest do
       assert changeset.errors[:slug] ==
                {"has already been taken",
                 [constraint: :unique, constraint_name: "tournaments_slug_organization_id_index"]}
+    end
+
+    test "create_tournament/1 with invalid sport slug returns error changeset" do
+      invalid_attrs = %{@valid_attrs | sport_slug: "invalid_sport"}
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Tournaments.create_tournament(invalid_attrs)
+
+      assert changeset.errors[:sport_slug] ==
+               {"is invalid", [{:validation, :inclusion}, {:enum, ["basketball_5x5"]}]}
     end
 
     test "update_tournament/2 with valid data updates the tournament" do

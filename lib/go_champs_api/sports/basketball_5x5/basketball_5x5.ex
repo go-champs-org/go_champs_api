@@ -87,7 +87,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   @team_tournament_statistics []
 
   @sport Sport.new(
-           "basketball-5x5",
+           "basketball_5x5",
            "Basketball 5x5"
          )
 

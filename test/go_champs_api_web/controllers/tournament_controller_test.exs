@@ -32,7 +32,9 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
         title: "team source stat",
         source: "player-stat-id"
       }
-    ]
+    ],
+    sport_slug: "basketball_5x5",
+    sport_name: "Basketball 5x5"
   }
   @update_attrs %{
     name: "some updated name",
@@ -99,7 +101,7 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
       conn = get(conn, Routes.v1_tournament_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "name" => result_name,
                "slug" => result_slug,
                "facebook" => result_facebook,
@@ -108,7 +110,9 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
                "twitter" => result_twitter,
                "player_stats" => result_player_stats,
                "team_stats" => result_team_stats,
-               "has_aggregated_player_stats" => result_has_aggregated_player_stats
+               "has_aggregated_player_stats" => result_has_aggregated_player_stats,
+               "sport_slug" => result_sport_slug,
+               "sport_name" => result_sport_name
              } = json_response(conn, 200)["data"]
 
       assert result_name == "some name"
@@ -118,6 +122,8 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
       assert result_site == "site url"
       assert result_twitter == "twitter"
       assert result_has_aggregated_player_stats == false
+      assert result_sport_slug == "basketball_5x5"
+      assert result_sport_name == "Basketball 5x5"
 
       [fixed_stat, sum_stat, average_stat] = result_player_stats
 
@@ -182,7 +188,7 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
       conn = get(conn, Routes.v1_tournament_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "name" => result_name,
                "slug" => result_slug,
                "facebook" => result_facebook,

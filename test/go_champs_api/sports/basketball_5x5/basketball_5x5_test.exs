@@ -6,7 +6,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
   describe "sport/0" do
     test "returns basketball 5x5 sport" do
       sport = %Sport{
-        slug: "basketball-5x5",
+        slug: "basketball_5x5",
         name: "Basketball 5x5"
       }
 
