@@ -6,6 +6,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
   alias GoChampsApi.Phases.Phase
   alias GoChampsApi.Players.Player
   alias GoChampsApi.Teams.Team
+  alias GoChampsApi.Sports
 
   schema "tournaments" do
     field :name, :string
@@ -16,9 +17,12 @@ defmodule GoChampsApi.Tournaments.Tournament do
     field :site_url, :string
     field :twitter, :string
     field :has_aggregated_player_stats, :boolean
+    field :sport_slug, :string
+    field :sport_name, :string
 
     embeds_many :player_stats, PlayerStats, on_replace: :delete do
       field :title, :string
+      field :slug, :string
       field :is_default_order, :boolean
     end
 
@@ -47,18 +51,21 @@ defmodule GoChampsApi.Tournaments.Tournament do
       :instagram,
       :site_url,
       :twitter,
-      :organization_slug
+      :organization_slug,
+      :sport_slug,
+      :sport_name
     ])
     |> cast_embed(:player_stats, with: &player_stats_changeset/2)
     |> cast_embed(:team_stats, with: &team_stats_changeset/2)
     |> validate_required([:name, :slug, :organization_id])
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     |> unique_constraint(:slug, name: :tournaments_slug_organization_id_index)
+    |> validate_sport_slug()
   end
 
   defp player_stats_changeset(schema, params) do
     schema
-    |> cast(params, [:title, :is_default_order])
+    |> cast(params, [:title, :slug, :is_default_order])
     |> validate_required([:title])
   end
 
@@ -66,5 +73,10 @@ defmodule GoChampsApi.Tournaments.Tournament do
     schema
     |> cast(params, [:title, :source, :is_default_order])
     |> validate_required([:title])
+  end
+
+  defp validate_sport_slug(changeset) do
+    sports_slug = Enum.map(Sports.list_sports(), & &1.slug)
+    validate_inclusion(changeset, :sport_slug, sports_slug)
   end
 end

@@ -199,6 +199,10 @@
                 "type": "string",
                 "description": "Stat id"
               },
+              "slug": {
+                "type": ["string", "null"],
+                "description": "Stat slug"
+              },
               "title": {
                 "type": "string",
                 "description": "Stat title"

@@ -1,0 +1,138 @@
+{
+  "swagger": "2.0",
+  "paths": {
+    "/api/sports/{sportSlug}": {
+      "get": {
+        "tags": [
+          "Sport"
+        ],
+        "summary": "List sports",
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/SportsResponse"
+            }
+          }
+        },
+        "produces": [
+          "application/json"
+        ]
+      }
+    }
+  },
+  "info": {
+    "version": "1.0",
+    "title": "Go Champs API Docs"
+  },
+  "host": "localhost:4000",
+  "definitions": {
+    "SportsResponse": {
+      "type": "object",
+      "title": "SportsResponse",
+      "required": [
+        "data"
+      ],
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Sport"
+          },
+          "description": "The sports details"
+        }
+      },
+      "description": "Response schema for multiple sports"
+    },
+    "SportResponse": {
+      "type": "object",
+      "title": "SportResponse",
+      "properties": {
+        "data": {
+          "description": "The sports details",
+          "$ref": "#/definitions/Sport"
+        }
+      },
+      "description": "Response schema for single sports"
+    },
+    "SportRequest": {
+      "type": "object",
+      "title": "SportRequest",
+      "required": [
+        "sport"
+      ],
+      "properties": {
+        "sport": {
+          "description": "The sports details",
+          "$ref": "#/definitions/Sport"
+        }
+      },
+      "example": {
+        "sport": {
+          "name": "Basketball",
+          "slug": "basketball"
+        }
+      },
+      "description": "GET body a sport"
+    },
+    "Sport": {
+      "type": "object",
+      "title": "Sport",
+      "required": [
+        "name",
+        "slug",
+        "player_statistics"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Sport name"
+        },
+        "slug": {
+          "type": "string",
+          "description": "Sport slug"
+        },
+        "player_statistics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PlayerStatistic"
+          },
+          "description": "The player statistics"
+        }
+      },
+      "example": {
+        "name": "Basketball",
+        "slug": "basketball",
+        "player_statistics": [
+          {
+            "slug": "points",
+            "name": "Points"
+          }
+        ]
+      },
+      "description": "A sports of the app"
+    },
+    "PlayerStatistic": {
+      "type": "object",
+      "title": "PlayerStatistic",
+      "required": [
+        "slug",
+        "name"
+      ],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "description": "points"
+        },
+        "name": {
+          "type": "string",
+          "description": "Points"
+        }
+      },
+      "example": {
+        "slug": "points",
+        "name": "Points"
+      },
+      "description": "A player statistic"
+    }
+  }
+}

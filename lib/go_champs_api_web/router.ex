@@ -66,6 +66,8 @@ defmodule GoChampsApiWeb.Router do
 
     get "/search", SearchController, :index
 
+    resources "/sports", SportsController, only: [:index, :show]
+
     resources "/teams", TeamController, only: [:show]
 
     resources "/team-stats-logs", TeamStatsLogController, only: [:index, :show]

@@ -21,6 +21,8 @@ defmodule GoChampsApiWeb.TournamentView do
         site_url: tournament.site_url,
         twitter: tournament.twitter,
         has_aggregated_player_stats: tournament.has_aggregated_player_stats,
+        sport_slug: tournament.sport_slug,
+        sport_name: tournament.sport_name,
         organization: render_one(tournament.organization, OrganizationView, "organization.json"),
         phases: render_many(tournament.phases, PhaseView, "phase.json"),
         players: render_many(tournament.players, PlayerView, "player.json"),
@@ -42,6 +44,7 @@ defmodule GoChampsApiWeb.TournamentView do
   def render("player_stats.json", %{tournament: player_stats}) do
     %{
       id: player_stats.id,
+      slug: player_stats.slug,
       title: player_stats.title,
       is_default_order: player_stats.is_default_order
     }
