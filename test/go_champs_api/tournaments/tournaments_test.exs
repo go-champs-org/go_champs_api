@@ -24,10 +24,12 @@ defmodule GoChampsApi.TournamentsTest do
       twitter: "twitter",
       player_stats: [
         %{
-          title: "fixed stat"
+          title: "fixed stat",
+          slug: "fixed_stat"
         },
         %{
-          title: "sum stat"
+          title: "sum stat",
+          slug: "fixed_stat"
         },
         %{
           title: "average stat"
@@ -132,9 +134,13 @@ defmodule GoChampsApi.TournamentsTest do
 
       [fixed_stat, sum_stat, average_stat] = tournament.player_stats
 
+      assert fixed_stat.id != sum_stat.id
       assert fixed_stat.title == "fixed stat"
+      assert fixed_stat.slug == "fixed_stat"
       assert sum_stat.title == "sum stat"
+      assert sum_stat.slug == "fixed_stat"
       assert average_stat.title == "average stat"
+      assert average_stat.slug == nil
 
       [fixed_team_stat, fixed_source_stat] = tournament.team_stats
 

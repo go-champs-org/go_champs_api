@@ -20,6 +20,7 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
         title: "sum stat"
       },
       %{
+        slug: "average_stat",
         title: "average stat"
       }
     ],
@@ -127,8 +128,11 @@ defmodule GoChampsApiWeb.TournamentControllerTest do
 
       [fixed_stat, sum_stat, average_stat] = result_player_stats
 
+      assert fixed_stat["slug"] == nil
       assert fixed_stat["title"] == "fixed stat"
+      assert sum_stat["slug"] == nil
       assert sum_stat["title"] == "sum stat"
+      assert average_stat["slug"] == "average_stat"
       assert average_stat["title"] == "average stat"
 
       [fixed_team_stat, source_team_stat] = result_team_stats

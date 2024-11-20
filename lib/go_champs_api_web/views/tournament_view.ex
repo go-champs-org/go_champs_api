@@ -44,6 +44,7 @@ defmodule GoChampsApiWeb.TournamentView do
   def render("player_stats.json", %{tournament: player_stats}) do
     %{
       id: player_stats.id,
+      slug: player_stats.slug,
       title: player_stats.title,
       is_default_order: player_stats.is_default_order
     }
