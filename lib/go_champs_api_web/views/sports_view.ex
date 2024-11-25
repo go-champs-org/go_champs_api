@@ -8,19 +8,19 @@ defmodule GoChampsApiWeb.SportsView do
 
   def render("show.json", %{sport: sport}) do
     %{
-      data: %{
-        slug: sport.slug,
-        name: sport.name,
-        player_statistics:
-          render_many(sport.player_statistics, SportsView, "player_statistic.json",
-            as: :player_statistic
-          )
-      }
+      data: render_one(sport, SportsView, "sport.json", as: :sport)
     }
   end
 
   def render("sport.json", %{sport: sport}) do
-    %{slug: sport.slug, name: sport.name}
+    %{
+      slug: sport.slug,
+      name: sport.name,
+      player_statistics:
+        render_many(sport.player_statistics, SportsView, "player_statistic.json",
+          as: :player_statistic
+        )
+    }
   end
 
   def render("player_statistic.json", %{player_statistic: player_statistic}) do

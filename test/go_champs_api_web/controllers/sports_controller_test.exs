@@ -4,10 +4,23 @@ defmodule GoChampsApiWeb.SportsControllerTest do
 
   describe "index" do
     test "lists all sports", %{conn: conn} do
+      expected_player_statistics =
+        Basketball5x5.sport().player_statistics
+        |> Enum.map(
+          &%{
+            "slug" => &1.slug,
+            "name" => &1.name
+          }
+        )
+
       conn = get(conn, Routes.v1_sports_path(conn, :index))
 
       assert json_response(conn, 200)["data"] == [
-               %{"name" => "Basketball 5x5", "slug" => "basketball_5x5"}
+               %{
+                 "name" => "Basketball 5x5",
+                 "slug" => "basketball_5x5",
+                 "player_statistics" => expected_player_statistics
+               }
              ]
     end
   end
