@@ -21,4 +21,18 @@ defmodule GoChampsApi.SportsTest do
       assert sport.slug == "basketball_5x5"
     end
   end
+
+  describe "get_calculated_player_calculated_statistics!/1" do
+    test "returns the list of calculated player statistics for a sport" do
+      statistics = Sports.get_calculated_player_calculated_statistics!("basketball_5x5")
+
+      Enum.each(statistics, fn stat ->
+        assert stat.type == :calculated
+      end)
+    end
+
+    test "returns empty list when sport is not found" do
+      assert Sports.get_calculated_player_calculated_statistics!("invalid_sport") == []
+    end
+  end
 end
