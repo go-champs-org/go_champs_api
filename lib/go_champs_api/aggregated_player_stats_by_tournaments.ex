@@ -4,6 +4,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
   """
 
   import Ecto.Query, warn: false
+  alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Tournaments.Tournament.PlayerStats
   alias GoChampsApi.Repo
 
@@ -229,6 +230,25 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
 
         Map.put(player_stats_map, player_stats.id, current_stat_value + aggregated_stat_value)
       end)
+    end)
+  end
+
+  @doc """
+  Calculate the player stats that are calculated.
+
+  ## Examples
+
+      iex> calculate_player_stats(%AggregatedPlayerStatsByTournament{})
+      %AggregatedPlayerStatsByTournament{}
+
+  """
+  @spec calculate_player_stats([%Statistic{}], map()) :: map()
+  def calculate_player_stats(sport_statistics, aggregated_stats) do
+    Enum.reduce(sport_statistics, aggregated_stats, fn statistic, acc ->
+      case statistic.calculation_function do
+        nil -> acc
+        calculation_function -> Map.put(acc, statistic.slug, calculation_function.(acc))
+      end
     end)
   end
 end

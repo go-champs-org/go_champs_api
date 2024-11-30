@@ -252,6 +252,21 @@ defmodule GoChampsApi.Tournaments do
   end
 
   @doc """
+  Find player stat by player stat slug.
+
+  ## Examples
+
+      iex> find_player_stat_by_slug("some-slug")
+      %PlayerStatsLog{}
+
+  """
+  @spec find_player_stat_by_slug(%Tournament{}, String.t()) :: %PlayerStatsLog{}
+  def find_player_stat_by_slug(tournament, slug) do
+    tournament.player_stats
+    |> Enum.find(& &1.slug == slug)
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking tournament changes.
 
   ## Examples

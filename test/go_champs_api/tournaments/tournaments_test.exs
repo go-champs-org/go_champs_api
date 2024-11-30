@@ -25,11 +25,11 @@ defmodule GoChampsApi.TournamentsTest do
       player_stats: [
         %{
           title: "fixed stat",
-          slug: "fixed_stat"
+          slug: "fixed_stat_1"
         },
         %{
           title: "sum stat",
-          slug: "fixed_stat"
+          slug: "fixed_stat_2"
         },
         %{
           title: "average stat"
@@ -136,9 +136,9 @@ defmodule GoChampsApi.TournamentsTest do
 
       assert fixed_stat.id != sum_stat.id
       assert fixed_stat.title == "fixed stat"
-      assert fixed_stat.slug == "fixed_stat"
+      assert fixed_stat.slug == "fixed_stat_1"
       assert sum_stat.title == "sum stat"
-      assert sum_stat.slug == "fixed_stat"
+      assert sum_stat.slug == "fixed_stat_2"
       assert average_stat.title == "average stat"
       assert average_stat.slug == nil
 
@@ -332,6 +332,15 @@ defmodule GoChampsApi.TournamentsTest do
 
       tournament_after = Tournaments.get_tournament!(tournament.id)
       assert tournament_after.has_aggregated_player_stats == true
+    end
+
+    test "find_player_stat_by_slug/2 returns the player stat with given slug" do
+      tournament = tournament_fixture()
+
+      player_stat = Tournaments.find_player_stat_by_slug(tournament, "fixed_stat_2")
+      assert player_stat.id != nil
+      assert player_stat.title == "sum stat"
+      assert player_stat.slug == "fixed_stat_2"
     end
   end
 end
