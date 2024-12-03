@@ -1,6 +1,4 @@
 defmodule GoChampsApi.PlayerStatsLogsTest do
-  alias GoChampsApi.Tournaments.Tournament
-  alias GoChampsApi.Tournaments.Tournament.PlayerStats
   use GoChampsApi.DataCase
 
   alias GoChampsApi.PlayerStatsLogs

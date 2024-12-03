@@ -52,7 +52,7 @@ defmodule GoChampsApiWeb.UserControllerTest do
   describe "create user" do
     test "renders user when data is valid", %{conn: conn} do
       conn = post(conn, Routes.v1_user_path(conn, :create), user: @create_attrs)
-      assert %{"email" => email} = json_response(conn, 201)["data"]
+      assert %{"email" => _email} = json_response(conn, 201)["data"]
 
       conn = post(conn, Routes.v1_user_path(conn, :signin), @create_attrs)
 

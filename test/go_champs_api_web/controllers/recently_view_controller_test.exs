@@ -3,10 +3,8 @@ defmodule GoChampsApiWeb.RecentlyViewControllerTest do
 
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.RecentlyViews
-  alias GoChampsApi.RecentlyViews.RecentlyView
 
   @create_attrs %{}
-  @update_attrs %{}
   @invalid_attrs %{}
 
   def fixture(:recently_view) do
@@ -43,7 +41,7 @@ defmodule GoChampsApiWeb.RecentlyViewControllerTest do
       conn = get(conn, Routes.v1_recently_view_path(conn, :show, id))
 
       assert %{
-               "id" => id
+               "id" => ^id
              } = json_response(conn, 200)["data"]
     end
 

@@ -58,7 +58,7 @@ defmodule GoChampsApiWeb.DrawControllerTest do
       conn = get(conn, Routes.v1_draw_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "title" => "some title",
                "matches" => [
                  %{
@@ -106,7 +106,7 @@ defmodule GoChampsApiWeb.DrawControllerTest do
       conn = get(conn, Routes.v1_draw_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "title" => "some updated title",
                "matches" => [
                  %{

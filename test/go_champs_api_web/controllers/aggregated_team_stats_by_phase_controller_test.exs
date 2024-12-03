@@ -20,7 +20,7 @@ defmodule GoChampsApiWeb.AggregatedTeamStatsByPhaseControllerTest do
 
   def fixture(:aggregated_team_stats_by_phase) do
     attrs =
-      @valid_attrs
+      @valid_tournament_attrs
       |> TeamHelpers.map_team_id_and_tournament_id()
       |> PhaseHelpers.map_phase_id_for_tournament()
 

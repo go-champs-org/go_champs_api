@@ -14,19 +14,6 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
     }
     @invalid_attrs %{player_id: nil, stats: nil, tournament_id: nil}
 
-    @valid_tournament_attrs %{
-      name: "some name",
-      slug: "some-slug",
-      team_stats: [
-        %{
-          title: "some stat"
-        },
-        %{
-          title: "another stat"
-        }
-      ]
-    }
-
     def aggregated_team_stats_by_phase_fixture(attrs \\ %{}) do
       {:ok, aggregated_team_stats_by_phase} =
         attrs

@@ -45,7 +45,7 @@ defmodule GoChampsApiWeb.PhaseControllerTest do
       conn = get(conn, Routes.v1_phase_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "title" => "some title",
                "type" => "elimination",
                "is_in_progress" => true
@@ -97,7 +97,7 @@ defmodule GoChampsApiWeb.PhaseControllerTest do
       conn = get(conn, Routes.v1_phase_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "title" => "some updated title",
                "type" => "elimination",
                "is_in_progress" => false

@@ -42,7 +42,7 @@ defmodule GoChampsApiWeb.TeamControllerTest do
       conn = get(conn, Routes.v1_team_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "name" => "some name"
              } = json_response(conn, 200)["data"]
     end
@@ -77,7 +77,7 @@ defmodule GoChampsApiWeb.TeamControllerTest do
       conn = get(conn, Routes.v1_team_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "name" => "some updated name"
              } = json_response(conn, 200)["data"]
     end

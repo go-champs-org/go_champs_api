@@ -101,7 +101,7 @@ defmodule GoChampsApiWeb.AggregatedPlayerStatsByTournamentControllerTest do
         tournament_id: first_valid_attrs.tournament_id
       }
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([second_valid_attrs, first_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
@@ -151,7 +151,7 @@ defmodule GoChampsApiWeb.AggregatedPlayerStatsByTournamentControllerTest do
         tournament_id: first_valid_attrs.tournament_id
       }
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([second_valid_attrs, first_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(

@@ -118,7 +118,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
         tournament_id: first_valid_attrs.tournament_id
       }
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([second_valid_attrs, first_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
@@ -245,7 +245,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
@@ -294,7 +294,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
@@ -341,7 +341,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
@@ -388,7 +388,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
@@ -431,7 +431,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       assert %{first_player_stat.id => 10.0, second_player_stat.id => 5.0} ==
@@ -464,7 +464,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       result_stats =
@@ -498,7 +498,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           tournament_id: first_valid_attrs.tournament_id
         })
 
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       aggregated_stats =

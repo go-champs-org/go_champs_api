@@ -277,7 +277,7 @@ defmodule GoChampsApi.Tournaments do
       iex> get_player_stat_by_id!(%Tournament{}, 456)
       nil
   """
-  @spec get_player_stat_by_id!(Tournament.t(), string()) :: PlayerStatsLog.t() | nil
+  @spec get_player_stat_by_id!(Tournament.t(), String.t()) :: PlayerStatsLog.t() | nil
   def get_player_stat_by_id!(%Tournament{} = tournament, player_stat_id) do
     tournament.player_stats
     |> Enum.find(&(&1.id == player_stat_id))
@@ -296,7 +296,7 @@ defmodule GoChampsApi.Tournaments do
       iex> get_player_stat_by_slug!(%Tournament{}, "slug")
       nil
   """
-  @spec get_player_stat_by_slug!(Tournament.t(), string()) :: PlayerStatsLog.t() | nil
+  @spec get_player_stat_by_slug!(Tournament.t(), String.t()) :: PlayerStatsLog.t() | nil
   def get_player_stat_by_slug!(%Tournament{} = tournament, player_stat_slug) do
     tournament.player_stats
     |> Enum.find(&(&1.slug == player_stat_slug))
@@ -312,7 +312,7 @@ defmodule GoChampsApi.Tournaments do
       ["slug1", "slug2", "slug3"]
 
   """
-  @spec get_player_stats_keys(Tournament.t()) :: [string()]
+  @spec get_player_stats_keys(Tournament.t()) :: [String.t()]
   def get_player_stats_keys(%Tournament{} = tournament) do
     tournament.player_stats
     |> Enum.map(fn stat ->

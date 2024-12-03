@@ -177,7 +177,7 @@ defmodule GoChampsApi.PendingAggregatedPlayerStatsByTournamentsTest do
     end
 
     test """
-      run_pending_aggregated_player_stats_generation/0 
+      run_pending_aggregated_player_stats_generation/0
       inserts aggregated player stats log for pending tournament,
       removes pending_aggregated_player_stats_by_tournament
     """ do
@@ -204,7 +204,7 @@ defmodule GoChampsApi.PendingAggregatedPlayerStatsByTournamentsTest do
         })
 
       # This operation adds pending_aggregated_player_stats_by_tournament
-      assert {:ok, batch_results} =
+      assert {:ok, _batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
       assert [tournament_id] = PendingAggregatedPlayerStatsByTournaments.list_tournament_ids()

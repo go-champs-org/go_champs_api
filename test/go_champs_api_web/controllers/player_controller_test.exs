@@ -50,7 +50,7 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
       conn = get(conn, Routes.v1_player_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "facebook" => "some facebook",
                "instagram" => "some instagram",
                "name" => "some name",
@@ -89,7 +89,7 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
       conn = get(conn, Routes.v1_player_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "facebook" => "some updated facebook",
                "instagram" => "some updated instagram",
                "name" => "some updated name",

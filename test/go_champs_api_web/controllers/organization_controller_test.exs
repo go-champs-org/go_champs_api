@@ -82,7 +82,7 @@ defmodule GoChampsApiWeb.OrganizationControllerTest do
       conn = get(conn, Routes.v1_organization_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "slug" => "some-slug",
                "name" => "some name",
                "members" => [
@@ -137,7 +137,7 @@ defmodule GoChampsApiWeb.OrganizationControllerTest do
       conn = get(conn, Routes.v1_organization_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "slug" => "some-updated-slug",
                "name" => "some updated name",
                "members" => [

@@ -6,7 +6,7 @@ defmodule GoChampsApiWeb.SportsController do
   action_fallback GoChampsApiWeb.FallbackController
 
   @spec index(Plug.Conn.t(), any()) :: Plug.Conn.t()
-  def index(conn, params) do
+  def index(conn, _params) do
     sports = Sports.list_sports()
 
     render(conn, "index.json", sports: sports)

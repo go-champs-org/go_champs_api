@@ -65,7 +65,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
       conn = get(conn, Routes.v1_team_stats_log_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "stats" => %{}
              } = json_response(conn, 200)["data"]
     end
@@ -116,7 +116,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
       conn = get(conn, Routes.v1_team_stats_log_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "stats" => %{}
              } = json_response(conn, 200)["data"]
     end
@@ -138,7 +138,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
     @tag :authenticated
     test "returns forbidden for an user that is not a member", %{
       conn: conn,
-      team_stats_log: %TeamStatsLog{id: id} = team_stats_log
+      team_stats_log: %TeamStatsLog{id: _id} = team_stats_log
     } do
       conn =
         put(conn, Routes.v1_team_stats_log_path(conn, :update, team_stats_log),

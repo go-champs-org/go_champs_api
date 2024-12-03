@@ -10,7 +10,6 @@ defmodule GoChampsApi.RecentlyViewsTest do
     alias GoChampsApi.RecentlyViews.RecentlyView
 
     @valid_attrs %{}
-    @update_attrs %{}
     @invalid_attrs %{}
 
     def recently_view_fixture(attrs \\ %{}) do
@@ -61,7 +60,7 @@ defmodule GoChampsApi.RecentlyViewsTest do
 
     test "list_recently_view/0 returns recently_views aggegated by tournament_id with count" do
       first_recently_view = recently_view_fixture()
-      second_recently_view = recently_view_for_tournament_id(first_recently_view.tournament_id)
+      _second_recently_view = recently_view_for_tournament_id(first_recently_view.tournament_id)
       third_recently_view = recently_view_for_other_tournament()
 
       [first_tournament, second_tournament] = RecentlyViews.list_recently_view()
@@ -82,7 +81,7 @@ defmodule GoChampsApi.RecentlyViewsTest do
     test "create_recently_view/1 with valid data creates a recently_view" do
       valid_attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
 
-      assert {:ok, %RecentlyView{} = recently_view} =
+      assert {:ok, %RecentlyView{} = _recently_view} =
                RecentlyViews.create_recently_view(valid_attrs)
     end
 

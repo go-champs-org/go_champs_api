@@ -1,7 +1,6 @@
 defmodule GoChampsApi.TeamStatsLogsTest do
   use GoChampsApi.DataCase
 
-  alias GoChampsApiWeb.PendingAggregatedTeamStatsByPhaseView
   alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Helpers.TeamHelpers

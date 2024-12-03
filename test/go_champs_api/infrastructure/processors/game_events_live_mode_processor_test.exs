@@ -36,6 +36,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
     home_score: 20,
     location: "some location"
   }
+  @invalid_message %{}
 
   def game_fixture(attrs \\ %{}) do
     {:ok, game} =

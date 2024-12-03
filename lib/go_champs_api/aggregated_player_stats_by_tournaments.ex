@@ -6,7 +6,6 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
   import Ecto.Query, warn: false
   alias GoChampsApi.Sports
   alias GoChampsApi.Sports.Statistic
-  alias GoChampsApi.Tournaments.Tournament.PlayerStats
   alias GoChampsApi.Repo
 
   alias GoChampsApi.PlayerStatsLogs.PlayerStatsLog
@@ -211,7 +210,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
       %${"points" => 5, "rebounds" => 3}
   """
   @spec aggregate_player_stats_from_player_stats_logs(
-          player_stats_keys :: [string()],
+          player_stats_keys :: [String.t()],
           player_stats_logs :: [PlayerStatsLog]
         ) :: map()
   def aggregate_player_stats_from_player_stats_logs(player_stats_keys, player_stats_logs) do

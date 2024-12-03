@@ -2,41 +2,15 @@ defmodule GoChampsApi.PendingAggregatedTeamStatsByPhasesTest do
   use GoChampsApi.DataCase
 
   alias GoChampsApi.Helpers.PhaseHelpers
-  alias GoChampsApi.Helpers.OrganizationHelpers
-  alias GoChampsApi.Helpers.TeamHelpers
-
-  alias GoChampsApi.AggregatedTeamStatsByPhases
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases
-  alias GoChampsApi.Phases
-  alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Tournaments
 
   describe "pending_aggregated_team_stats_by_phase" do
-    alias GoChampsApi.Tournaments.Tournament
-    alias GoChampsApi.Phases.Phase
     alias GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamStatsByPhase
 
     @valid_attrs %{}
     @update_attrs %{}
     @invalid_attrs %{tournament_id: nil}
-    @valid_tournament_attrs %{
-      name: "some name",
-      slug: "some-slug",
-      team_stats: [
-        %{
-          title: "some stat"
-        },
-        %{
-          title: "another stat"
-        }
-      ]
-    }
-    @valid_phase_attrs %{
-      is_in_progress: true,
-      title: "some title",
-      type: "elimination",
-      elimination_stats: [%{"title" => "stat title"}]
-    }
 
     def pending_aggregated_team_stats_by_phase_fixture(attrs \\ %{}) do
       {:ok, pending_aggregated_team_stats_by_phase} =

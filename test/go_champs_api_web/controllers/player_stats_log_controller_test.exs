@@ -95,7 +95,7 @@ defmodule GoChampsApiWeb.PlayerStatsLogControllerTest do
       conn = get(conn, Routes.v1_player_stats_log_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "stats" => %{
                  "some" => "some"
                }
@@ -148,7 +148,7 @@ defmodule GoChampsApiWeb.PlayerStatsLogControllerTest do
       conn = get(conn, Routes.v1_player_stats_log_path(conn, :show, id))
 
       assert %{
-               "id" => id,
+               "id" => ^id,
                "stats" => %{
                  "some" => "some updated"
                }

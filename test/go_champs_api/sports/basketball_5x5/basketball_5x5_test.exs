@@ -1,7 +1,6 @@
 defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
   use ExUnit.Case
   alias GoChampsApi.Sports.Basketball5x5.Basketball5x5
-  alias GoChampsApi.Sports.Sport
 
   describe "sport/0" do
     test "returns basketball 5x5 sport" do
