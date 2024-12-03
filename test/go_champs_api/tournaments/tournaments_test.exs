@@ -334,13 +334,42 @@ defmodule GoChampsApi.TournamentsTest do
       assert tournament_after.has_aggregated_player_stats == true
     end
 
-    test "find_player_stat_by_slug/2 returns the player stat with given slug" do
+    test "get_player_stat_by_id!/2 returns the player stats with the given id" do
       tournament = tournament_fixture()
 
-      player_stat = Tournaments.find_player_stat_by_slug(tournament, "fixed_stat_2")
-      assert player_stat.id != nil
-      assert player_stat.title == "sum stat"
-      assert player_stat.slug == "fixed_stat_2"
+      player_stat = Enum.at(tournament.player_stats, 0)
+      assert Tournaments.get_player_stat_by_id!(tournament, player_stat.id) == player_stat
+    end
+
+    test "get_player_stat_by_id!/2 returns nil if the player stats does not exist" do
+      tournament = tournament_fixture()
+
+      assert Tournaments.get_player_stat_by_id!(tournament, 123) == nil
+    end
+
+    test "get_player_stat_by_slug!/2 returns the player stats with the given slug" do
+      tournament = tournament_fixture()
+
+      player_stat = Enum.at(tournament.player_stats, 0)
+      assert Tournaments.get_player_stat_by_slug!(tournament, player_stat.slug) == player_stat
+    end
+
+    test "get_player_stat_by_slug!/2 returns nil if the player stats does not exist" do
+      tournament = tournament_fixture()
+
+      assert Tournaments.get_player_stat_by_slug!(tournament, "invalid-slug") == nil
+    end
+
+    test "get_player_stats_keys()/1 returns the keys of the player stats logs" do
+      tournament = tournament_fixture()
+
+      [fixed_stat, sum_stat, average_stat] = tournament.player_stats
+
+      assert Tournaments.get_player_stats_keys(tournament) == [
+               fixed_stat.slug,
+               sum_stat.slug,
+               average_stat.id
+             ]
     end
   end
 end

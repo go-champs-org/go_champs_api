@@ -1,4 +1,6 @@
 defmodule GoChampsApi.PlayerStatsLogsTest do
+  alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Tournaments.Tournament.PlayerStats
   use GoChampsApi.DataCase
 
   alias GoChampsApi.PlayerStatsLogs
@@ -92,11 +94,94 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                player_stats_log.tournament_id
     end
 
+    test "create_player_stats_log/1 with valid data that matches tournament player stats slugs creates a player_stats_log with slug stats and add pending aggregated player stats" do
+      valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(%{})
+
+      tournament = Tournaments.get_tournament!(valid_attrs.tournament_id)
+
+      tournament_player_stats = [
+        %{
+          "title" => "Def Reboundos",
+          "slug" => "def_rebounds"
+        },
+        %{
+          "title" => "Assists",
+          "slug" => "assists"
+        }
+      ]
+
+      {:ok, tournament} =
+        Tournaments.update_tournament(tournament, %{player_stats: tournament_player_stats})
+
+      def_rebounds_player_stat = Tournaments.get_player_stat_by_slug!(tournament, "def_rebounds")
+      assists_player_stat = Tournaments.get_player_stat_by_slug!(tournament, "assists")
+
+      valid_attrs =
+        Map.merge(valid_attrs, %{
+          stats: %{
+            def_rebounds_player_stat.id => 10,
+            assists_player_stat.id => 5
+          }
+        })
+
+      assert {:ok, %PlayerStatsLog{} = player_stats_log} =
+               PlayerStatsLogs.create_player_stats_log(valid_attrs)
+
+      assert player_stats_log.stats[def_rebounds_player_stat.slug] == 10
+      assert player_stats_log.stats[assists_player_stat.slug] == 5
+
+      [pending_aggregated_player_stats_by_tournament] =
+        PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
+
+      assert pending_aggregated_player_stats_by_tournament.tournament_id ==
+               player_stats_log.tournament_id
+    end
+
+    test "create_player_stats_log/1 with valid data that matches tournament player stats with no slug creates a player_stats_log with id stats and add pending aggregated player stats" do
+      valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(%{})
+
+      tournament = Tournaments.get_tournament!(valid_attrs.tournament_id)
+
+      tournament_player_stats = [
+        %{
+          "title" => "Def Reboundos"
+        },
+        %{
+          "title" => "Assists"
+        }
+      ]
+
+      {:ok, tournament} =
+        Tournaments.update_tournament(tournament, %{player_stats: tournament_player_stats})
+
+      [def_rebounds_player_stat, assists_player_stat] = tournament.player_stats
+
+      valid_attrs =
+        Map.merge(valid_attrs, %{
+          stats: %{
+            def_rebounds_player_stat.id => 10,
+            assists_player_stat.id => 5
+          }
+        })
+
+      assert {:ok, %PlayerStatsLog{} = player_stats_log} =
+               PlayerStatsLogs.create_player_stats_log(valid_attrs)
+
+      assert player_stats_log.stats[def_rebounds_player_stat.id] == 10
+      assert player_stats_log.stats[assists_player_stat.id] == 5
+
+      [pending_aggregated_player_stats_by_tournament] =
+        PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
+
+      assert pending_aggregated_player_stats_by_tournament.tournament_id ==
+               player_stats_log.tournament_id
+    end
+
     test "create_player_stats_log/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = PlayerStatsLogs.create_player_stats_log(@invalid_attrs)
     end
 
-    test "create_player_stats_logs/1 with valid data creates a player_stats_log and creates a player_stats_log and add pending aggregated player stats" do
+    test "create_player_stats_logs/1 with valid data creates a player_stats_log and add pending aggregated player stats" do
       first_valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
 
       second_valid_attrs =
@@ -140,8 +225,8 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                "some" => "some updated"
              }
 
-      # In this test we are calling create_player_stats_log once to set 
-      # the test up, that why we need to assert if only have 2 cause the 
+      # In this test we are calling create_player_stats_log once to set
+      # the test up, that why we need to assert if only have 2 cause the
       # update should only add it once.
       assert Enum.count(
                PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
@@ -172,11 +257,13 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       first_updated_player_stats_log = %{
         "id" => first_player_stats_log.id,
+        "tournament_id" => first_player_stats_log.tournament_id,
         "stats" => %{"some" => "some first updated"}
       }
 
       second_updated_player_stats_log = %{
         "id" => second_player_stats_log.id,
+        "tournament_id" => second_player_stats_log.tournament_id,
         "stats" => %{"some" => "some second updated"}
       }
 
@@ -198,8 +285,8 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                "some" => "some second updated"
              }
 
-      # In this test we are calling create_player_stats_log twice to set 
-      # the test up, that why we need to assert if only have 3 cause the 
+      # In this test we are calling create_player_stats_log twice to set
+      # the test up, that why we need to assert if only have 3 cause the
       # update should only add it once.
       assert Enum.count(
                PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
@@ -218,8 +305,8 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
         PlayerStatsLogs.get_player_stats_log!(player_stats_log.id)
       end
 
-      # In this test we are calling create_player_stats_log once to set 
-      # the test up, that why we need to assert if only have 2 cause the 
+      # In this test we are calling create_player_stats_log once to set
+      # the test up, that why we need to assert if only have 2 cause the
       # update should only add it once.
       assert Enum.count(
                PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()

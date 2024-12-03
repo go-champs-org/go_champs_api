@@ -1,6 +1,7 @@
 defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Statistic
+  alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
 
   @player_log_statistics [
     Statistic.new("assists", "Assists", :logged),
@@ -25,7 +26,6 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("minutes_played", "Minutes Played", :logged),
     Statistic.new("plus_minus", "Plus Minus", :logged),
     Statistic.new("points", "Points", :logged),
-    Statistic.new("rebounds", "Rebounds", :logged),
     Statistic.new("rebounds_defensive", "Defensive Rebounds", :logged),
     Statistic.new("rebounds_offensive", "Offensive Rebounds", :logged),
     Statistic.new("steals", "Steals", :logged),
@@ -44,7 +44,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("turnovers", "Turnovers", :logged)
   ]
 
-  @player_average_statistics [
+  @calculated_player_statistics [
     Statistic.new("assists_per_game", "Assists Per Game", :calculated),
     Statistic.new("blocks_per_game", "Blocks Per Game", :calculated),
     Statistic.new("disqualifications_per_game", "Disqualifications Per Game", :calculated),
@@ -82,6 +82,12 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("game_started_per_game", "Game Started Per Game", :calculated),
     Statistic.new("minutes_played_per_game", "Minutes Played Per Game", :calculated),
     Statistic.new("plus_minus_per_game", "Plus Minus Per Game", :calculated),
+    Statistic.new(
+      "rebounds",
+      "Rebounds",
+      :calculated,
+      &StatisticCalculation.calculate_rebounds/1
+    ),
     Statistic.new("points_per_game", "Points Per Game", :calculated),
     Statistic.new("rebounds_per_game", "Rebounds Per Game", :calculated),
     Statistic.new("rebounds_defensive_per_game", "Defensive Rebounds Per Game", :calculated),
@@ -113,7 +119,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   @sport Sport.new(
            "basketball_5x5",
            "Basketball 5x5",
-           @player_log_statistics ++ @player_average_statistics
+           @player_log_statistics ++ @calculated_player_statistics
          )
 
   @spec sport() :: Sport.t()

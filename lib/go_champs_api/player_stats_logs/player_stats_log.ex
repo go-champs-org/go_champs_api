@@ -5,6 +5,7 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
   alias GoChampsApi.Games.Game
   alias GoChampsApi.Teams.Team
   alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Tournaments
   alias GoChampsApi.Phases.Phase
   alias GoChampsApi.Players.Player
 
@@ -32,5 +33,32 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
       :tournament_id
     ])
     |> validate_required([:stats, :player_id, :tournament_id])
+    |> map_stats_id_to_stats_slug()
+  end
+
+  defp map_stats_id_to_stats_slug(changeset) do
+    case changeset.valid? do
+      true ->
+        tournament_id = Ecto.Changeset.get_field(changeset, :tournament_id)
+        tournament = Tournaments.get_tournament!(tournament_id)
+
+        stats =
+          Ecto.Changeset.get_field(changeset, :stats)
+          |> map_stats_id_to_stats_slug(tournament)
+
+        Ecto.Changeset.put_change(changeset, :stats, stats)
+
+      false ->
+        changeset
+    end
+  end
+
+  defp map_stats_id_to_stats_slug(stats, tournament) do
+    Enum.reduce(stats, %{}, fn {key, value}, acc ->
+      case Tournaments.get_player_stat_by_id!(tournament, key) do
+        nil -> Map.put(acc, key, value)
+        player_stat -> Map.put(acc, player_stat.slug || player_stat.id, value)
+      end
+    end)
   end
 end

@@ -5,6 +5,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
   alias GoChampsApi.Players
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Helpers.OrganizationHelpers
+  alias GoChampsApi.Sports
   alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Helpers.PlayerHelpers
 
@@ -39,7 +40,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
         %{
           title: "Total Rebounds",
           slug: "rebounds"
-        },
+        }
       ],
       sport_slug: "basketball_5x5"
     }
@@ -100,7 +101,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      [first_player_stat, second_player_stat] = tournament.player_stats
+      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
@@ -136,6 +137,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           first_player_stat.id
         )
 
+      IO.inspect(first_aggregated)
       assert Map.fetch(first_aggregated.stats, first_player_stat.id) == {:ok, 6}
       assert Map.fetch(second_aggregated.stats, first_player_stat.id) == {:ok, 4}
     end
@@ -229,7 +231,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      [first_player_stat, second_player_stat] = tournament.player_stats
+      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
@@ -278,7 +280,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      [first_player_stat, second_player_stat] = tournament.player_stats
+      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
@@ -327,7 +329,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      [first_player_stat, second_player_stat] = tournament.player_stats
+      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
@@ -370,7 +372,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      [first_player_stat, second_player_stat] = tournament.player_stats
+      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
@@ -394,7 +396,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
 
       assert %{first_player_stat.id => 10.0, second_player_stat.id => 5.0} ==
                AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-                 tournament.player_stats,
+                 [first_player_stat.id, second_player_stat.id],
                  [first_valid_attrs, second_valid_attrs]
                )
     end
@@ -403,7 +405,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      [first_player_stat, second_player_stat] = tournament.player_stats
+      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
@@ -425,31 +427,31 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       assert {:ok, batch_results} =
                PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
 
-      assert %{first_player_stat.id => 4.0, second_player_stat.id => 5.0} ==
-               AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-                 tournament.player_stats,
-                 [first_valid_attrs, second_valid_attrs]
-               )
+      result_stats =
+        AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
+          [first_player_stat.id, second_player_stat.id],
+          [first_valid_attrs, second_valid_attrs]
+        )
+
+      assert result_stats[first_player_stat.id] == 4.0
+      assert result_stats[second_player_stat.id] == 5.0
     end
 
     test "calculate_player_stats/2 returns a map with calculated statistics values" do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
-      def_rebounds_stat = tournament.player_stats
-      |> 
-
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
           stats: %{
-            first_player_stat.id => "6",
-            second_player_stat.id => "2"
+            "rebounds_defensive" => "6",
+            "rebounds_offensive" => "2"
           }
         })
 
       second_valid_attrs =
         %{
-          stats: %{first_player_stat.id => "4", second_player_stat.id => "3"}
+          stats: %{"rebounds_defensive" => "4", "rebounds_offensive" => "3"}
         }
         |> Map.merge(%{
           player_id: first_valid_attrs.player_id,
@@ -461,15 +463,22 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
 
       aggregated_stats =
         AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-          tournament.player_stats,
+          ["rebounds_defensive", "rebounds_offensive"],
           [first_valid_attrs, second_valid_attrs]
         )
 
-      assert %{first_player_stat.id => 10.0, second_player_stat.id => 5.0} ==
-               AggregatedPlayerStatsByTournaments.calculate_player_stats(
-                 tournament.player_stats,
-                 aggregated_stats
-               )
+      calculated_player_stats =
+        Sports.get_calculated_player_calculated_statistics!(tournament.sport_slug)
+
+      result_stats =
+        AggregatedPlayerStatsByTournaments.calculate_player_stats(
+          calculated_player_stats,
+          aggregated_stats
+        )
+
+      assert result_stats["rebounds_defensive"] == 10.0
+      assert result_stats["rebounds_offensive"] == 5.0
+      assert result_stats["rebounds"] == 15.0
     end
   end
 end
