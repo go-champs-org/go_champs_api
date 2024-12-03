@@ -25,11 +25,11 @@ defmodule GoChampsApi.TournamentsTest do
       player_stats: [
         %{
           title: "fixed stat",
-          slug: "fixed_stat"
+          slug: "fixed_stat_1"
         },
         %{
           title: "sum stat",
-          slug: "fixed_stat"
+          slug: "fixed_stat_2"
         },
         %{
           title: "average stat"
@@ -136,9 +136,9 @@ defmodule GoChampsApi.TournamentsTest do
 
       assert fixed_stat.id != sum_stat.id
       assert fixed_stat.title == "fixed stat"
-      assert fixed_stat.slug == "fixed_stat"
+      assert fixed_stat.slug == "fixed_stat_1"
       assert sum_stat.title == "sum stat"
-      assert sum_stat.slug == "fixed_stat"
+      assert sum_stat.slug == "fixed_stat_2"
       assert average_stat.title == "average stat"
       assert average_stat.slug == nil
 
@@ -332,6 +332,44 @@ defmodule GoChampsApi.TournamentsTest do
 
       tournament_after = Tournaments.get_tournament!(tournament.id)
       assert tournament_after.has_aggregated_player_stats == true
+    end
+
+    test "get_player_stat_by_id!/2 returns the player stats with the given id" do
+      tournament = tournament_fixture()
+
+      player_stat = Enum.at(tournament.player_stats, 0)
+      assert Tournaments.get_player_stat_by_id!(tournament, player_stat.id) == player_stat
+    end
+
+    test "get_player_stat_by_id!/2 returns nil if the player stats does not exist" do
+      tournament = tournament_fixture()
+
+      assert Tournaments.get_player_stat_by_id!(tournament, 123) == nil
+    end
+
+    test "get_player_stat_by_slug!/2 returns the player stats with the given slug" do
+      tournament = tournament_fixture()
+
+      player_stat = Enum.at(tournament.player_stats, 0)
+      assert Tournaments.get_player_stat_by_slug!(tournament, player_stat.slug) == player_stat
+    end
+
+    test "get_player_stat_by_slug!/2 returns nil if the player stats does not exist" do
+      tournament = tournament_fixture()
+
+      assert Tournaments.get_player_stat_by_slug!(tournament, "invalid-slug") == nil
+    end
+
+    test "get_player_stats_keys()/1 returns the keys of the player stats logs" do
+      tournament = tournament_fixture()
+
+      [fixed_stat, sum_stat, average_stat] = tournament.player_stats
+
+      assert Tournaments.get_player_stats_keys(tournament) == [
+               fixed_stat.slug,
+               sum_stat.slug,
+               average_stat.id
+             ]
     end
   end
 end

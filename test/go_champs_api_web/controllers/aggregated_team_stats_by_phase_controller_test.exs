@@ -2,15 +2,9 @@ defmodule GoChampsApiWeb.AggregatedTeamStatsByPhaseControllerTest do
   use GoChampsApiWeb.ConnCase
 
   alias GoChampsApi.AggregatedTeamStatsByPhases
-  alias GoChampsApi.AggregatedTeamStatsByPhases.AggregatedTeamStatsByPhase
   alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.Helpers.PhaseHelpers
 
-  @create_attrs %{
-    stats: %{
-      some: "some"
-    }
-  }
   @valid_tournament_attrs %{
     name: "some name",
     slug: "some-slug",
@@ -45,10 +39,5 @@ defmodule GoChampsApiWeb.AggregatedTeamStatsByPhaseControllerTest do
       conn = get(conn, Routes.v1_aggregated_team_stats_by_phase_path(conn, :index))
       assert json_response(conn, 200)["data"] == []
     end
-  end
-
-  defp create_aggregated_team_stats_by_phase(_) do
-    aggregated_team_stats_by_phase = fixture(:aggregated_team_stats_by_phase)
-    %{aggregated_team_stats_by_phase: aggregated_team_stats_by_phase}
   end
 end
