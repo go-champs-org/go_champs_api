@@ -320,6 +320,51 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
                first_valid_attrs.tournament_id
     end
 
+    test "generate_aggregated_player_stats_for_tournament/1 inserts aggregated player stats log when player stats is calculated" do
+      valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
+      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
+
+      first_valid_attrs =
+        PlayerHelpers.map_player_id(tournament.id, %{
+          stats: %{
+            "rebounds" => "6",
+            "game_played" => "1"
+          }
+        })
+
+      second_valid_attrs =
+        %{
+          stats: %{"rebounds" => "4", "game_played" => "1"}
+        }
+        |> Map.merge(%{
+          player_id: first_valid_attrs.player_id,
+          tournament_id: first_valid_attrs.tournament_id
+        })
+
+      assert {:ok, batch_results} =
+               PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
+
+      AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
+        first_valid_attrs.tournament_id
+      )
+
+      [aggregated_player_stats_by_tournament] =
+        AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament()
+
+      assert aggregated_player_stats_by_tournament.player_id == first_valid_attrs.player_id
+
+      {:ok, rebounds} = Map.fetch(aggregated_player_stats_by_tournament.stats, "rebounds")
+      assert rebounds == 10.0
+
+      {:ok, rebounds_per_game} =
+        Map.fetch(aggregated_player_stats_by_tournament.stats, "rebounds_per_game")
+
+      assert rebounds_per_game == 5.0
+
+      assert aggregated_player_stats_by_tournament.tournament_id ==
+               first_valid_attrs.tournament_id
+    end
+
     test "delete_aggregated_player_stats_for_tournament/1 deletes aggregated player stats log" do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)

@@ -4,6 +4,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
   """
 
   import Ecto.Query, warn: false
+  alias GoChampsApi.Sports
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Tournaments.Tournament.PlayerStats
   alias GoChampsApi.Repo
@@ -168,10 +169,14 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
         |> Tournaments.get_player_stats_keys()
         |> aggregate_player_stats_from_player_stats_logs(player_stats_logs)
 
+      calculated_aggregated_stats =
+        Sports.get_calculated_player_calculated_statistics!(tournament.sport_slug)
+        |> calculate_player_stats(player_aggregated_stats)
+
       create_aggregated_player_stats_by_tournament(%{
         tournament_id: tournament_id,
         player_id: player_id,
-        stats: player_aggregated_stats
+        stats: calculated_aggregated_stats
       })
     end)
   end
