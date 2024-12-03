@@ -30,16 +30,12 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           title: "another stat"
         },
         %{
-          title: "Def Rebounds",
-          slug: "rebounds_defensive"
-        },
-        %{
-          title: "Off Rebounds",
-          slug: "rebounds_offensive"
-        },
-        %{
           title: "Total Rebounds",
           slug: "rebounds"
+        },
+        %{
+          title: "Games Played",
+          slug: "game_played"
         }
       ],
       sport_slug: "basketball_5x5"
@@ -137,7 +133,6 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           first_player_stat.id
         )
 
-      IO.inspect(first_aggregated)
       assert Map.fetch(first_aggregated.stats, first_player_stat.id) == {:ok, 6}
       assert Map.fetch(second_aggregated.stats, first_player_stat.id) == {:ok, 4}
     end
@@ -444,14 +439,14 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
           stats: %{
-            "rebounds_defensive" => "6",
-            "rebounds_offensive" => "2"
+            "rebounds" => "6",
+            "game_played" => "1"
           }
         })
 
       second_valid_attrs =
         %{
-          stats: %{"rebounds_defensive" => "4", "rebounds_offensive" => "3"}
+          stats: %{"rebounds" => "4", "game_played" => "1"}
         }
         |> Map.merge(%{
           player_id: first_valid_attrs.player_id,
@@ -463,7 +458,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
 
       aggregated_stats =
         AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-          ["rebounds_defensive", "rebounds_offensive"],
+          ["rebounds", "game_played"],
           [first_valid_attrs, second_valid_attrs]
         )
 
@@ -476,9 +471,8 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
           aggregated_stats
         )
 
-      assert result_stats["rebounds_defensive"] == 10.0
-      assert result_stats["rebounds_offensive"] == 5.0
-      assert result_stats["rebounds"] == 15.0
+      assert result_stats["rebounds"] == 10.0
+      assert result_stats["rebounds_per_game"] == 5.0
     end
   end
 end

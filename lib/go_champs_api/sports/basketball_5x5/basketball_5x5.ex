@@ -26,6 +26,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("minutes_played", "Minutes Played", :logged),
     Statistic.new("plus_minus", "Plus Minus", :logged),
     Statistic.new("points", "Points", :logged),
+    Statistic.new("rebounds", "Rebounds", :logged),
     Statistic.new("rebounds_defensive", "Defensive Rebounds", :logged),
     Statistic.new("rebounds_offensive", "Offensive Rebounds", :logged),
     Statistic.new("steals", "Steals", :logged),
@@ -82,14 +83,13 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("game_started_per_game", "Game Started Per Game", :calculated),
     Statistic.new("minutes_played_per_game", "Minutes Played Per Game", :calculated),
     Statistic.new("plus_minus_per_game", "Plus Minus Per Game", :calculated),
-    Statistic.new(
-      "rebounds",
-      "Rebounds",
-      :calculated,
-      &StatisticCalculation.calculate_rebounds/1
-    ),
     Statistic.new("points_per_game", "Points Per Game", :calculated),
-    Statistic.new("rebounds_per_game", "Rebounds Per Game", :calculated),
+    Statistic.new(
+      "rebounds_per_game",
+      "Rebounds Per Game",
+      :calculated,
+      &StatisticCalculation.calculate_rebounds_per_game/1
+    ),
     Statistic.new("rebounds_defensive_per_game", "Defensive Rebounds Per Game", :calculated),
     Statistic.new("rebounds_offensive_per_game", "Offensive Rebounds Per Game", :calculated),
     Statistic.new("steals_per_game", "Steals Per Game", :calculated),
