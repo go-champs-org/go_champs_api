@@ -24,6 +24,6 @@ defmodule GoChampsApiWeb.SportsView do
   end
 
   def render("player_statistic.json", %{player_statistic: player_statistic}) do
-    %{slug: player_statistic.slug, name: player_statistic.name}
+    %{slug: player_statistic.slug, name: player_statistic.name, type: player_statistic.type}
   end
 end
