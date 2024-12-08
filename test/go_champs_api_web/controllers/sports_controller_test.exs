@@ -9,7 +9,8 @@ defmodule GoChampsApiWeb.SportsControllerTest do
         |> Enum.map(
           &%{
             "slug" => &1.slug,
-            "name" => &1.name
+            "name" => &1.name,
+            "type" => to_string(&1.type)
           }
         )
 
@@ -34,7 +35,8 @@ defmodule GoChampsApiWeb.SportsControllerTest do
         |> Enum.map(
           &%{
             "slug" => &1.slug,
-            "name" => &1.name
+            "name" => &1.name,
+            "type" => to_string(&1.type)
           }
         )
 

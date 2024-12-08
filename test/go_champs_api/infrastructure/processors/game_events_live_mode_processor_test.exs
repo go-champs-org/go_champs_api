@@ -4,7 +4,11 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
 
   alias GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor
   alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Phases
+  alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Games
+  alias GoChampsApi.Teams
+  alias GoChampsApi.Players
 
   @valid_start_message %{
     "metadata" => %{
@@ -27,6 +31,55 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       "event" => %{
         "key" => "end-game-live-mode",
         "timestamp" => "2019-08-25T16:59:27.116Z"
+      },
+      "game_state" => %{
+        "id" => "some-game-id",
+        "away_team" => %{
+          "name" => "away team",
+          "players" => [
+            %{
+              "name" => "player 1",
+              "number" => 1,
+              "stats_values" => %{
+                "points" => 1,
+                "rebounds" => 2,
+                "assists" => 3
+              }
+            },
+            %{
+              "name" => "player 2",
+              "number" => 2,
+              "stats_values" => %{
+                "points" => 4,
+                "rebounds" => 5,
+                "assists" => 6
+              }
+            }
+          ]
+        },
+        "home_team" => %{
+          "name" => "home team",
+          "players" => [
+            %{
+              "name" => "player 3",
+              "number" => 11,
+              "stats_values" => %{
+                "points" => 7,
+                "rebounds" => 8,
+                "assists" => 9
+              }
+            },
+            %{
+              "name" => "player 4",
+              "number" => 22,
+              "stats_values" => %{
+                "points" => 10,
+                "rebounds" => 11,
+                "assists" => 12
+              }
+            }
+          ]
+        }
       }
     }
   }
@@ -45,7 +98,35 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       |> PhaseHelpers.map_phase_id()
       |> Games.create_game()
 
-    game
+    phase = Phases.get_phase!(game.phase_id)
+    tournament_id = phase.tournament_id
+
+    {:ok, home_team} =
+      %{"name" => "home team", "tournament_id" => tournament_id} |> Teams.create_team()
+
+    {:ok, _player_1} =
+      %{"name" => "player 1", "team_id" => home_team.id, "tournament_id" => tournament_id}
+      |> Players.create_player()
+
+    {:ok, _player_2} =
+      %{"name" => "player 2", "team_id" => home_team.id, "tournament_id" => tournament_id}
+      |> Players.create_player()
+
+    {:ok, away_team} =
+      %{"name" => "away team", "tournament_id" => tournament_id} |> Teams.create_team()
+
+    {:ok, _player_3} =
+      %{"name" => "player 3", "team_id" => away_team.id, "tournament_id" => tournament_id}
+      |> Players.create_player()
+
+    {:ok, _player_4} =
+      %{"name" => "player 4", "team_id" => away_team.id, "tournament_id" => tournament_id}
+      |> Players.create_player()
+
+    {:ok, updated_game} =
+      Games.update_game(game, %{"home_team_id" => home_team.id, "away_team_id" => away_team.id})
+
+    updated_game
   end
 
   def set_game_id_in_event(event, game_id) do
@@ -68,11 +149,31 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
   end
 
   describe "process/1 with a valid end message" do
-    test "process the event calling the correct function" do
+    test "updates game live state" do
       game = game_fixture()
 
       message = set_game_id_in_event(@valid_end_message, game.id)
       message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
+
+      [player_1, player_2, player_3, player_4] = Players.list_players()
+
+      message =
+        put_in(
+          message["body"]["game_state"]["away_team"]["players"],
+          put_in_players(message["body"]["game_state"]["away_team"]["players"], [
+            player_1,
+            player_2
+          ])
+        )
+
+      message =
+        put_in(
+          message["body"]["game_state"]["home_team"]["players"],
+          put_in_players(message["body"]["game_state"]["home_team"]["players"], [
+            player_3,
+            player_4
+          ])
+        )
 
       assert :ok == GameEventsLiveModeProcessor.process(message)
 
@@ -80,6 +181,63 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
 
       assert updated_game.live_state == :ended
       assert updated_game.live_ended_at != nil
+    end
+
+    test "creates player stats logs" do
+      game = game_fixture()
+
+      message = set_game_id_in_event(@valid_end_message, game.id)
+      message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
+
+      [player_1, player_2, player_3, player_4] = Players.list_players()
+
+      message =
+        put_in(
+          message["body"]["game_state"]["away_team"]["players"],
+          put_in_players(message["body"]["game_state"]["away_team"]["players"], [
+            player_1,
+            player_2
+          ])
+        )
+
+      message =
+        put_in(
+          message["body"]["game_state"]["home_team"]["players"],
+          put_in_players(message["body"]["game_state"]["home_team"]["players"], [
+            player_3,
+            player_4
+          ])
+        )
+
+      assert :ok == GameEventsLiveModeProcessor.process(message)
+
+      phase = Phases.get_phase!(game.phase_id)
+
+      message["body"]["game_state"]["away_team"]["players"]
+      |> Enum.each(fn player ->
+        [player_stats_log] =
+          PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: player["id"])
+
+        assert player_stats_log.game_id == game.id
+        assert player_stats_log.phase_id == game.phase_id
+        assert player_stats_log.player_id == player["id"]
+        assert player_stats_log.team_id == game.away_team_id
+        assert player_stats_log.tournament_id == phase.tournament_id
+        assert player_stats_log.stats == player["stats_values"]
+      end)
+
+      message["body"]["game_state"]["home_team"]["players"]
+      |> Enum.each(fn player ->
+        [player_stats_log] =
+          PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: player["id"])
+
+        assert player_stats_log.game_id == game.id
+        assert player_stats_log.phase_id == game.phase_id
+        assert player_stats_log.player_id == player["id"]
+        assert player_stats_log.team_id == game.home_team_id
+        assert player_stats_log.tournament_id == phase.tournament_id
+        assert player_stats_log.stats == player["stats_values"]
+      end)
     end
   end
 
@@ -96,5 +254,13 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
     test "returns error" do
       assert :error == GameEventsLiveModeProcessor.process(@invalid_message)
     end
+  end
+
+  defp put_in_players(player_states, players) do
+    Enum.map(player_states, fn player_state ->
+      player = Enum.find(players, fn player -> player.name == player_state["name"] end)
+
+      put_in(player_state["id"], player.id)
+    end)
   end
 end
