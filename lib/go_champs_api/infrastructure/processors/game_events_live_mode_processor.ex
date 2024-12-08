@@ -1,4 +1,6 @@
 defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
+  alias GoChampsApi.Players
+
   alias GoChampsApi.Infrastructure.Processors.Models.{
     Event,
     GameState,
@@ -54,7 +56,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
     case Games.get_game!(game_id)
          |> Games.update_game(%{live_state: :in_progress}) do
       {:ok, _} -> :ok
-      {:error, error} -> :error
+      {:error, _error} -> :error
     end
   end
 
@@ -70,37 +72,55 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
         phase = Phases.get_phase!(phase_id)
         tournament_id = phase.tournament_id
 
-        away_team_player_stats_logs =
-          game_state.away_team
-          |> map_game_state_to_player_stats_logs(%{
-            game_id: game_id,
-            phase_id: phase_id,
-            team_id: away_team_id,
-            tournament_id: tournament_id
-          })
+        {:ok, _} =
+          create_team_player_stats_logs(
+            game_state.away_team,
+            updated_game.id,
+            phase_id,
+            away_team_id,
+            tournament_id
+          )
 
-        home_team_player_stats_logs =
-          game_state.home_team
-          |> map_game_state_to_player_stats_logs(%{
-            game_id: game_id,
-            phase_id: phase_id,
-            team_id: home_team_id,
-            tournament_id: tournament_id
-          })
+        {:ok, _} =
+          create_team_player_stats_logs(
+            game_state.home_team,
+            updated_game.id,
+            phase_id,
+            home_team_id,
+            tournament_id
+          )
 
-        {:ok, _} = PlayerStatsLogs.create_player_stats_logs(away_team_player_stats_logs)
-        {:ok, _} = PlayerStatsLogs.create_player_stats_logs(home_team_player_stats_logs)
         :ok
 
-      {:error, error} ->
+      {:error, _error} ->
         :error
     end
   end
 
+  defp create_team_player_stats_logs(game_state_team, game_id, phase_id, team_id, tournament_id) do
+    game_state_team
+    |> map_game_state_to_player_stats_logs(%{
+      game_id: game_id,
+      phase_id: phase_id,
+      team_id: team_id,
+      tournament_id: tournament_id
+    })
+    |> PlayerStatsLogs.create_player_stats_logs()
+  end
+
   defp map_game_state_to_player_stats_logs(team_state, base_player_stats_log) do
-    Enum.map(team_state.players, fn %PlayerState{id: id, stats_values: stats_values} ->
+    Enum.map(team_state.players, fn %PlayerState{id: id, name: name, stats_values: stats_values} ->
+      {:ok, db_player} =
+        %{
+          id: id,
+          name: name,
+          tournament_id: base_player_stats_log.tournament_id,
+          team_id: base_player_stats_log.team_id
+        }
+        |> Players.get_player_or_create()
+
       base_player_stats_log
-      |> Map.put(:player_id, id)
+      |> Map.put(:player_id, db_player.id)
       |> Map.put(:stats, stats_values)
     end)
   end

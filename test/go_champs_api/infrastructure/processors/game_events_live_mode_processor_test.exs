@@ -38,6 +38,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
           "name" => "away team",
           "players" => [
             %{
+              "id" => "player-1-id",
               "name" => "player 1",
               "number" => 1,
               "stats_values" => %{
@@ -47,6 +48,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
               }
             },
             %{
+              "id" => "player-2-id",
               "name" => "player 2",
               "number" => 2,
               "stats_values" => %{
@@ -61,6 +63,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
           "name" => "home team",
           "players" => [
             %{
+              "id" => "player-3-id",
               "name" => "player 3",
               "number" => 11,
               "stats_values" => %{
@@ -70,6 +73,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
               }
             },
             %{
+              "id" => "player-4-id",
               "name" => "player 4",
               "number" => 22,
               "stats_values" => %{
@@ -239,6 +243,45 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.stats == player["stats_values"]
       end)
     end
+
+    test "creates player when player when player id does not exist" do
+      game = game_fixture()
+
+      message = set_game_id_in_event(@valid_end_message, game.id)
+      message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
+
+      assert :ok == GameEventsLiveModeProcessor.process(message)
+
+      phase = Phases.get_phase!(game.phase_id)
+
+      message["body"]["game_state"]["away_team"]["players"]
+      |> Enum.each(fn player ->
+        db_player = find_player_by_game_id_and_name(game.id, player["name"])
+
+        [player_stats_log] =
+          PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: db_player.id)
+
+        assert player_stats_log.game_id == game.id
+        assert player_stats_log.phase_id == game.phase_id
+        assert player_stats_log.team_id == game.away_team_id
+        assert player_stats_log.tournament_id == phase.tournament_id
+        assert player_stats_log.stats == player["stats_values"]
+      end)
+
+      message["body"]["game_state"]["home_team"]["players"]
+      |> Enum.each(fn player ->
+        db_player = find_player_by_game_id_and_name(game.id, player["name"])
+
+        [player_stats_log] =
+          PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: db_player.id)
+
+        assert player_stats_log.game_id == game.id
+        assert player_stats_log.phase_id == game.phase_id
+        assert player_stats_log.team_id == game.home_team_id
+        assert player_stats_log.tournament_id == phase.tournament_id
+        assert player_stats_log.stats == player["stats_values"]
+      end)
+    end
   end
 
   describe "process/1 with not found game" do
@@ -262,5 +305,18 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
 
       put_in(player_state["id"], player.id)
     end)
+  end
+
+  defp find_player_by_game_id_and_name(game_id, name) do
+    player_logs = PlayerStatsLogs.list_player_stats_log(game_id: game_id)
+
+    player_log =
+      Enum.find(player_logs, fn player_log ->
+        player = Players.get_player!(player_log.player_id)
+
+        player.name == name
+      end)
+
+    Players.get_player!(player_log.player_id)
   end
 end

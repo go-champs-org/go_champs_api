@@ -65,6 +65,33 @@ defmodule GoChampsApi.Players do
   end
 
   @doc """
+  Gets a player or creates a new one.
+
+  ## Examples
+
+      iex> get_player_or_create(%Player{id: 123})
+      %Player{}
+
+      iex> get_player_or_create(%Player{id: 456})
+      %Player{}
+  """
+  @spec get_player_or_create(%Player{}) :: %Player{}
+  def get_player_or_create(attrs) do
+    case Ecto.UUID.cast(attrs.id) do
+      {:ok, id} ->
+        case Repo.get(Player, id) do
+          nil -> attrs |> Map.drop([:id]) |> create_player()
+          player -> {:ok, player}
+        end
+
+      :error ->
+        attrs
+        |> Map.drop([:id])
+        |> create_player()
+    end
+  end
+
+  @doc """
   Creates a player.
 
   ## Examples

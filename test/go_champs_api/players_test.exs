@@ -56,6 +56,25 @@ defmodule GoChampsApi.PlayersTest do
       assert organization.id == tournament.organization_id
     end
 
+    test "get_player_or_create/1 returns the player with given id" do
+      player = player_fixture()
+      assert Players.get_player_or_create(%Player{id: player.id}) == {:ok, player}
+    end
+
+    test "get_player_or_create/1 create player and returns the player" do
+      player =
+        %{
+          id: "some random id",
+          name: "New Player"
+        }
+        |> TournamentHelpers.map_tournament_id()
+
+      {:ok, result_player} = Players.get_player_or_create(player)
+
+      assert result_player.name == "New Player"
+      assert result_player.tournament_id == player.tournament_id
+    end
+
     test "create_player/1 with valid data creates a player" do
       valid_attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
       assert {:ok, %Player{} = player} = Players.create_player(valid_attrs)
