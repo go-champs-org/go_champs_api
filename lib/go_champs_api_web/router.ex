@@ -97,6 +97,7 @@ defmodule GoChampsApiWeb.Router do
       only: [:create, :update, :delete]
 
     resources "/games", GameController, only: [:create, :update, :delete]
+    get "/games/:id/verify-access", GameController, :verify_access
 
     resources "/organizations", OrganizationController, only: [:create, :update, :delete]
 

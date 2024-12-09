@@ -7,7 +7,7 @@ defmodule GoChampsApiWeb.GameController do
   action_fallback GoChampsApiWeb.FallbackController
 
   plug GoChampsApiWeb.Plugs.AuthorizedGame, :game when action in [:create]
-  plug GoChampsApiWeb.Plugs.AuthorizedGame, :id when action in [:delete, :update]
+  plug GoChampsApiWeb.Plugs.AuthorizedGame, :id when action in [:delete, :update, :verify_access]
 
   defp map_to_keyword(map) do
     Enum.map(map, fn {key, value} -> {String.to_atom(key), value} end)
@@ -41,6 +41,11 @@ defmodule GoChampsApiWeb.GameController do
   end
 
   def show(conn, %{"id" => id}) do
+    game = Games.get_game!(id)
+    render(conn, "show.json", game: game)
+  end
+
+  def verify_access(conn, %{"id" => id}) do
     game = Games.get_game!(id)
     render(conn, "show.json", game: game)
   end

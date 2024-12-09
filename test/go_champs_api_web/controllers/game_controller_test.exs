@@ -231,6 +231,46 @@ defmodule GoChampsApiWeb.GameControllerTest do
     end
   end
 
+  describe "verify access" do
+    setup [:create_game_with_teams_and_players]
+
+    @tag :authenticated
+    test "renders game when user is authorized", %{conn: conn, game: %Game{id: id}} do
+      conn = get(conn, Routes.v1_game_path(conn, :verify_access, id))
+
+      assert %{
+               "away_placeholder" => "away placeholder",
+               "away_score" => 10,
+               "away_team" => %{
+                 "name" => "away team",
+                 "players" => [%{"name" => "away player"}]
+               },
+               "datetime" => "2019-08-25T16:59:27Z",
+               "home_placeholder" => "home placeholder",
+               "home_score" => 20,
+               "home_team" => %{
+                 "name" => "home team",
+                 "players" => [%{"name" => "home player"}]
+               },
+               "is_finished" => false,
+               "live_state" => "not_started",
+               "live_ended_at" => nil,
+               "live_started_at" => nil,
+               "location" => "some location"
+             } = json_response(conn, 200)["data"]
+    end
+  end
+
+  describe "verify access with different member" do
+    setup [:create_game_with_different_member]
+
+    @tag :authenticated
+    test "returns forbidden for an user that is not a member", %{conn: conn, game: %Game{id: id}} do
+      conn = get(conn, Routes.v1_game_path(conn, :verify_access, id))
+      assert text_response(conn, 403) == "Forbidden"
+    end
+  end
+
   defp create_game(_) do
     game = fixture(:game)
     {:ok, game: game}
