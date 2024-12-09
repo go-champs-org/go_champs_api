@@ -227,7 +227,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.player_id == player["id"]
         assert player_stats_log.team_id == game.away_team_id
         assert player_stats_log.tournament_id == phase.tournament_id
-        assert player_stats_log.stats == player["stats_values"]
+        assert player_stats_log.stats["assists"] == to_string(player["stats_values"]["assists"])
+        assert player_stats_log.stats["points"] == to_string(player["stats_values"]["points"])
+        assert player_stats_log.stats["rebounds"] == to_string(player["stats_values"]["rebounds"])
       end)
 
       message["body"]["game_state"]["home_team"]["players"]
@@ -240,7 +242,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.player_id == player["id"]
         assert player_stats_log.team_id == game.home_team_id
         assert player_stats_log.tournament_id == phase.tournament_id
-        assert player_stats_log.stats == player["stats_values"]
+        assert player_stats_log.stats["assists"] == to_string(player["stats_values"]["assists"])
+        assert player_stats_log.stats["points"] == to_string(player["stats_values"]["points"])
+        assert player_stats_log.stats["rebounds"] == to_string(player["stats_values"]["rebounds"])
       end)
     end
 
@@ -265,7 +269,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.phase_id == game.phase_id
         assert player_stats_log.team_id == game.away_team_id
         assert player_stats_log.tournament_id == phase.tournament_id
-        assert player_stats_log.stats == player["stats_values"]
+        assert player_stats_log.stats["assists"] == to_string(player["stats_values"]["assists"])
+        assert player_stats_log.stats["points"] == to_string(player["stats_values"]["points"])
+        assert player_stats_log.stats["rebounds"] == to_string(player["stats_values"]["rebounds"])
       end)
 
       message["body"]["game_state"]["home_team"]["players"]
@@ -279,7 +285,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.phase_id == game.phase_id
         assert player_stats_log.team_id == game.home_team_id
         assert player_stats_log.tournament_id == phase.tournament_id
-        assert player_stats_log.stats == player["stats_values"]
+        assert player_stats_log.stats["assists"] == to_string(player["stats_values"]["assists"])
+        assert player_stats_log.stats["points"] == to_string(player["stats_values"]["points"])
+        assert player_stats_log.stats["rebounds"] == to_string(player["stats_values"]["rebounds"])
       end)
     end
   end

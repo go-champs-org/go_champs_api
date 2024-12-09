@@ -125,8 +125,8 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert {:ok, %PlayerStatsLog{} = player_stats_log} =
                PlayerStatsLogs.create_player_stats_log(valid_attrs)
 
-      assert player_stats_log.stats[def_rebounds_player_stat.slug] == 10
-      assert player_stats_log.stats[assists_player_stat.slug] == 5
+      assert player_stats_log.stats[def_rebounds_player_stat.slug] == "10"
+      assert player_stats_log.stats[assists_player_stat.slug] == "5"
 
       [pending_aggregated_player_stats_by_tournament] =
         PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
@@ -165,8 +165,8 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert {:ok, %PlayerStatsLog{} = player_stats_log} =
                PlayerStatsLogs.create_player_stats_log(valid_attrs)
 
-      assert player_stats_log.stats[def_rebounds_player_stat.id] == 10
-      assert player_stats_log.stats[assists_player_stat.id] == 5
+      assert player_stats_log.stats[def_rebounds_player_stat.id] == "10"
+      assert player_stats_log.stats[assists_player_stat.id] == "5"
 
       [pending_aggregated_player_stats_by_tournament] =
         PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()

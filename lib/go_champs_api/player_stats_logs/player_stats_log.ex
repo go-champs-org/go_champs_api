@@ -56,8 +56,8 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
   defp map_stats_id_to_stats_slug(stats, tournament) do
     Enum.reduce(stats, %{}, fn {key, value}, acc ->
       case Tournaments.get_player_stat_by_id!(tournament, key) do
-        nil -> Map.put(acc, key, value)
-        player_stat -> Map.put(acc, player_stat.slug || player_stat.id, value)
+        nil -> Map.put(acc, key, to_string(value))
+        player_stat -> Map.put(acc, player_stat.slug || player_stat.id, to_string(value))
       end
     end)
   end
