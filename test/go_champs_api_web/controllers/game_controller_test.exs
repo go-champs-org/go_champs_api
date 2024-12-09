@@ -5,6 +5,8 @@ defmodule GoChampsApiWeb.GameControllerTest do
   alias GoChampsApi.Games
   alias GoChampsApi.Games.Game
   alias GoChampsApi.Phases
+  alias GoChampsApi.Teams
+  alias GoChampsApi.Players
 
   @create_attrs %{
     away_placeholder: "away placeholder",
@@ -200,6 +202,35 @@ defmodule GoChampsApiWeb.GameControllerTest do
     end
   end
 
+  describe "show details" do
+    setup [:create_game_with_teams_and_players]
+
+    test "renders game with associated teams and players", %{conn: conn, game: %Game{id: id}} do
+      conn = get(conn, Routes.v1_game_path(conn, :show, id))
+
+      assert %{
+               "away_placeholder" => "away placeholder",
+               "away_score" => 10,
+               "away_team" => %{
+                 "name" => "away team",
+                 "players" => [%{"name" => "away player"}]
+               },
+               "datetime" => "2019-08-25T16:59:27Z",
+               "home_placeholder" => "home placeholder",
+               "home_score" => 20,
+               "home_team" => %{
+                 "name" => "home team",
+                 "players" => [%{"name" => "home player"}]
+               },
+               "is_finished" => false,
+               "live_state" => "not_started",
+               "live_ended_at" => nil,
+               "live_started_at" => nil,
+               "location" => "some location"
+             } = json_response(conn, 200)["data"]
+    end
+  end
+
   defp create_game(_) do
     game = fixture(:game)
     {:ok, game: game}
@@ -208,5 +239,30 @@ defmodule GoChampsApiWeb.GameControllerTest do
   defp create_game_with_different_member(_) do
     game = fixture(:game_with_different_member)
     {:ok, game: game}
+  end
+
+  defp create_game_with_teams_and_players(_) do
+    game = fixture(:game)
+    phase = Phases.get_phase!(game.phase_id)
+    {:ok, away_team} = Teams.create_team(%{name: "away team", tournament_id: phase.tournament_id})
+
+    Players.create_player(%{
+      name: "away player",
+      team_id: away_team.id,
+      tournament_id: phase.tournament_id
+    })
+
+    {:ok, home_team} = Teams.create_team(%{name: "home team", tournament_id: phase.tournament_id})
+
+    Players.create_player(%{
+      name: "home player",
+      team_id: home_team.id,
+      tournament_id: phase.tournament_id
+    })
+
+    {:ok, result_game} =
+      Games.update_game(game, %{away_team_id: away_team.id, home_team_id: home_team.id})
+
+    {:ok, game: result_game}
   end
 end

@@ -3,11 +3,13 @@ defmodule GoChampsApi.Teams.Team do
   use GoChampsApi.Schema
   import Ecto.Changeset
   alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Players.Player
 
   schema "teams" do
     field :name, :string
 
     belongs_to :tournament, Tournament
+    has_many :players, Player
 
     timestamps()
   end

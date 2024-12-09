@@ -42,7 +42,7 @@ defmodule GoChampsApi.Games do
   def get_game!(id),
     do:
       Repo.get!(Game, id)
-      |> Repo.preload([:away_team, :home_team])
+      |> Repo.preload(away_team: :players, home_team: :players)
 
   @doc """
   Gets a game organization for a given game id.
