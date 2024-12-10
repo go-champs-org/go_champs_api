@@ -169,7 +169,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
         |> aggregate_player_stats_from_player_stats_logs(player_stats_logs)
 
       calculated_aggregated_stats =
-        Sports.get_calculated_player_calculated_statistics!(tournament.sport_slug)
+        Sports.get_tournament_level_per_game_statistics!(tournament.sport_slug)
         |> calculate_player_stats(player_aggregated_stats)
 
       create_aggregated_player_stats_by_tournament(%{

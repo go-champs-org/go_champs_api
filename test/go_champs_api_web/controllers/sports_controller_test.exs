@@ -10,7 +10,9 @@ defmodule GoChampsApiWeb.SportsControllerTest do
           &%{
             "slug" => &1.slug,
             "name" => &1.name,
-            "type" => to_string(&1.type)
+            "value_type" => to_string(&1.value_type),
+            "level" => to_string(&1.level),
+            "scope" => to_string(&1.scope)
           }
         )
 
@@ -36,7 +38,9 @@ defmodule GoChampsApiWeb.SportsControllerTest do
           &%{
             "slug" => &1.slug,
             "name" => &1.name,
-            "type" => to_string(&1.type)
+            "value_type" => to_string(&1.value_type),
+            "level" => to_string(&1.level),
+            "scope" => to_string(&1.scope)
           }
         )
 

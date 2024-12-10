@@ -23,16 +23,16 @@ defmodule GoChampsApi.Sports do
       iex> get_calculated_player_statistics("basketball-5x5")
       [%GoChampsApi.Sports.Statistic{}, ...]
   """
-  @spec get_calculated_player_calculated_statistics!(String.t()) :: [
+  @spec get_tournament_level_per_game_statistics!(String.t()) :: [
           GoChampsApi.Sports.Statistic.t()
         ]
-  def get_calculated_player_calculated_statistics!(slug) do
+  def get_tournament_level_per_game_statistics!(slug) do
     try do
       sport = get_sport(slug)
 
       sport.player_statistics
       |> Enum.filter(fn stat ->
-        stat.type == :calculated
+        stat.level == :tournament and stat.scope == :per_game
       end)
     rescue
       _ -> []

@@ -508,7 +508,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
         )
 
       calculated_player_stats =
-        Sports.get_calculated_player_calculated_statistics!(tournament.sport_slug)
+        Sports.get_tournament_level_per_game_statistics!(tournament.sport_slug)
 
       result_stats =
         AggregatedPlayerStatsByTournaments.calculate_player_stats(

@@ -22,17 +22,18 @@ defmodule GoChampsApi.SportsTest do
     end
   end
 
-  describe "get_calculated_player_calculated_statistics!/1" do
-    test "returns the list of calculated player statistics for a sport" do
-      statistics = Sports.get_calculated_player_calculated_statistics!("basketball_5x5")
+  describe "get_tournament_level_per_game_statistics!/1" do
+    test "returns the list of tournament level per game statistics for a sport" do
+      statistics = Sports.get_tournament_level_per_game_statistics!("basketball_5x5")
 
       Enum.each(statistics, fn stat ->
-        assert stat.type == :calculated
+        assert stat.level == :tournament
+        assert stat.scope == :per_game
       end)
     end
 
     test "returns empty list when sport is not found" do
-      assert Sports.get_calculated_player_calculated_statistics!("invalid_sport") == []
+      assert Sports.get_tournament_level_per_game_statistics!("invalid_sport") == []
     end
   end
 end

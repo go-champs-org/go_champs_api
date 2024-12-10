@@ -116,7 +116,10 @@
       "title": "PlayerStatistic",
       "required": [
         "slug",
-        "name"
+        "name",
+        "value_type",
+        "level",
+        "scope"
       ],
       "properties": {
         "slug": {
@@ -126,6 +129,18 @@
         "name": {
           "type": "string",
           "description": "Points"
+        },
+        "value_type": {
+          "type": "string",
+          "description": "integer"
+        },
+        "level": {
+          "type": "string",
+          "description": "player"
+        },
+        "scope": {
+          "type": "string",
+          "description": "player"
         }
       },
       "example": {
