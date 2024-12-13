@@ -62,21 +62,37 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   ]
 
   @calculated_player_statistics [
-    Statistic.new("assists_per_game", "Assists Per Game", :calculated, :tournament, :per_game),
-    Statistic.new("blocks_per_game", "Blocks Per Game", :calculated, :tournament, :per_game),
+    Statistic.new(
+      "assists_per_game",
+      "Assists Per Game",
+      :calculated,
+      :tournament,
+      :per_game,
+      &StatisticCalculation.calculate_assists_per_game/1
+    ),
+    Statistic.new(
+      "blocks_per_game",
+      "Blocks Per Game",
+      :calculated,
+      :tournament,
+      :per_game,
+      &StatisticCalculation.calculate_blocks_per_game/1
+    ),
     Statistic.new(
       "disqualifications_per_game",
       "Disqualifications Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_disqualifications_per_game/1
     ),
     Statistic.new(
       "ejections_per_game",
       "Ejections Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_ejections_per_game/1
     ),
     Statistic.new(
       "efficiency_per_game",
@@ -97,21 +113,24 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Field Goals Attempted Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_field_goals_attempted_per_game/1
     ),
     Statistic.new(
       "field_goals_made_per_game",
       "Field Goals Made Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_field_goals_made_per_game/1
     ),
     Statistic.new(
       "field_goals_missed_per_game",
       "Field Goals Missed Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_field_goals_missed_per_game/1
     ),
     Statistic.new("fouls_per_game", "Fouls Per Game", :calculated, :tournament, :per_game),
     Statistic.new(
@@ -119,21 +138,24 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Flagrant Fouls Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_fouls_flagrant_per_game/1
     ),
     Statistic.new(
       "fouls_personal_per_game",
       "Personal Fouls Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_fouls_personal_per_game/1
     ),
     Statistic.new(
       "fouls_technical_per_game",
       "Technical Fouls Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_fouls_technical_per_game/1
     ),
     Statistic.new(
       "free_throw_percentage_per_game",
@@ -147,21 +169,24 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Free Throws Attempted Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_free_throws_attempted_per_game/1
     ),
     Statistic.new(
       "free_throws_made_per_game",
       "Free Throws Made Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_free_throws_made_per_game/1
     ),
     Statistic.new(
       "free_throws_missed_per_game",
       "Free Throws Missed Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_free_throws_missed_per_game/1
     ),
     Statistic.new(
       "game_played_per_game",
@@ -182,14 +207,16 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Minutes Played Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_minutes_played_per_game/1
     ),
     Statistic.new(
       "plus_minus_per_game",
       "Plus Minus Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_plus_minus_per_game/1
     ),
     Statistic.new("points_per_game", "Points Per Game", :calculated, :tournament, :per_game),
     Statistic.new(
@@ -205,14 +232,16 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Defensive Rebounds Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_rebounds_defensive_per_game/1
     ),
     Statistic.new(
       "rebounds_offensive_per_game",
       "Offensive Rebounds Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_rebounds_offensive_per_game/1
     ),
     Statistic.new("steals_per_game", "Steals Per Game", :calculated, :tournament, :per_game),
     Statistic.new(
@@ -227,23 +256,33 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Three Point Field Goals Attempted Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_three_point_field_goals_attempted_per_game/1
     ),
     Statistic.new(
       "three_point_field_goals_made_per_game",
       "Three Point Field Goals Made Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_three_point_field_goals_made_per_game/1
     ),
     Statistic.new(
       "three_point_field_goals_missed_per_game",
       "Three Point Field Goals Missed Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_three_point_field_goals_missed_per_game/1
     ),
-    Statistic.new("turnovers_per_game", "Turnovers Per Game", :calculated, :tournament, :per_game)
+    Statistic.new(
+      "turnovers_per_game",
+      "Turnovers Per Game",
+      :calculated,
+      :tournament,
+      :per_game,
+      &StatisticCalculation.calculate_turnovers_per_game/1
+    )
   ]
 
   @sport Sport.new(
