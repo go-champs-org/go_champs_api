@@ -1,10 +1,111 @@
 defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
+  def calculate_assists_per_game(stats) do
+    stats |> calculate_stat_per_game("assists")
+  end
+
+  @spec calculate_blocks_per_game(map()) :: number()
+  def calculate_blocks_per_game(stats) do
+    stats |> calculate_stat_per_game("blocks")
+  end
+
+  def calculate_disqualifications_per_game(stats) do
+    stats |> calculate_stat_per_game("disqualifications")
+  end
+
+  def calculate_ejections_per_game(stats) do
+    stats |> calculate_stat_per_game("ejections")
+  end
+
+  def calculate_field_goals_made_per_game(stats) do
+    stats |> calculate_stat_per_game("field_goals_made")
+  end
+
+  def calculate_field_goals_attempted_per_game(stats) do
+    stats |> calculate_stat_per_game("field_goals_attempted")
+  end
+
+  def calculate_field_goals_missed_per_game(stats) do
+    stats |> calculate_stat_per_game("field_goals_missed")
+  end
+
+  def calculate_fouls_per_game(stats) do
+    stats |> calculate_stat_per_game("fouls")
+  end
+
+  def calculate_fouls_flagrant_per_game(stats) do
+    stats |> calculate_stat_per_game("fouls_flagrant")
+  end
+
+  def calculate_fouls_personal_per_game(stats) do
+    stats |> calculate_stat_per_game("fould_personal")
+  end
+
+  def calculate_fouls_technical_per_game(stats) do
+    stats |> calculate_stat_per_game("fouls_technical")
+  end
+
+  def calculate_free_throws_made_per_game(stats) do
+    stats |> calculate_stat_per_game("free_throws_made")
+  end
+
+  def calculate_free_throws_attempted_per_game(stats) do
+    stats |> calculate_stat_per_game("free_throws_attempted")
+  end
+
+  def calculate_free_throws_missed_per_game(stats) do
+    stats |> calculate_stat_per_game("free_throws_missed")
+  end
+
+  def calculate_minutes_played_per_game(stats) do
+    stats |> calculate_stat_per_game("minutes_played")
+  end
+
+  def calculate_plus_minus_per_game(stats) do
+    stats |> calculate_stat_per_game("plus_minus")
+  end
+
+  def calculate_points_per_game(stats) do
+    stats |> calculate_stat_per_game("points")
+  end
+
   def calculate_rebounds_per_game(stats) do
-    rebounds = stats |> retrieve_stat_value("rebounds")
+    stats |> calculate_stat_per_game("rebounds")
+  end
+
+  def calculate_rebounds_defensive_per_game(stats) do
+    stats |> calculate_stat_per_game("rebounds_defensive")
+  end
+
+  def calculate_rebounds_offensive_per_game(stats) do
+    stats |> calculate_stat_per_game("rebounds_offensive")
+  end
+
+  def calculate_steals_per_game(stats) do
+    stats |> calculate_stat_per_game("steals")
+  end
+
+  def calculate_three_point_field_goals_made_per_game(stats) do
+    stats |> calculate_stat_per_game("three_point_field_goals_made")
+  end
+
+  def calculate_three_point_field_goals_attempted_per_game(stats) do
+    stats |> calculate_stat_per_game("three_point_field_goals_attempted")
+  end
+
+  def calculate_three_point_field_goals_missed_per_game(stats) do
+    stats |> calculate_stat_per_game("three_point_field_goals_missed")
+  end
+
+  def calculate_turnovers_per_game(stats) do
+    stats |> calculate_stat_per_game("turnovers")
+  end
+
+  defp calculate_stat_per_game(stats, stat_slug) do
+    stat_value = stats |> retrieve_stat_value(stat_slug)
     game_played = stats |> retrieve_stat_value("game_played")
 
     if game_played > 0 do
-      rebounds / game_played
+      stat_value / game_played
     else
       0
     end
