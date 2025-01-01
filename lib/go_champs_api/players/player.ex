@@ -11,6 +11,8 @@ defmodule GoChampsApi.Players.Player do
     field :name, :string
     field :twitter, :string
     field :username, :string
+    field :shirt_number, :integer
+    field :shirt_name, :string
 
     belongs_to :tournament, Tournament
     belongs_to :team, Team
@@ -21,7 +23,17 @@ defmodule GoChampsApi.Players.Player do
   @doc false
   def changeset(player, attrs) do
     player
-    |> cast(attrs, [:name, :username, :facebook, :instagram, :twitter, :tournament_id, :team_id])
+    |> cast(attrs, [
+      :name,
+      :username,
+      :facebook,
+      :instagram,
+      :twitter,
+      :tournament_id,
+      :team_id,
+      :shirt_number,
+      :shirt_name
+    ])
     |> validate_required([:name, :tournament_id])
   end
 end

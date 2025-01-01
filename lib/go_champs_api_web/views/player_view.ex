@@ -18,7 +18,9 @@ defmodule GoChampsApiWeb.PlayerView do
       facebook: player.facebook,
       instagram: player.instagram,
       twitter: player.twitter,
-      team_id: player.team_id
+      team_id: player.team_id,
+      shirt_number: player.shirt_number,
+      shirt_name: player.shirt_name
     }
   end
 end
