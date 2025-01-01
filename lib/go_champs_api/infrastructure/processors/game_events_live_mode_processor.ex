@@ -63,8 +63,15 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
   defp end_game_live_mode(game_id, game_state) do
     Logger.info("Ending live mode for game #{game_id}", game_id: game_id)
 
+    away_score = map_team_state_to_score(game_state.away_team)
+    home_score = map_team_state_to_score(game_state.home_team)
+
     case Games.get_game!(game_id)
-         |> Games.update_game(%{live_state: :ended}) do
+         |> Games.update_game(%{
+           live_state: :ended,
+           away_score: away_score,
+           home_score: home_score
+         }) do
       {:ok, updated_game} ->
         away_team_id = updated_game.away_team_id
         phase_id = updated_game.phase_id
@@ -109,11 +116,18 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
   end
 
   defp map_game_state_to_player_stats_logs(team_state, base_player_stats_log) do
-    Enum.map(team_state.players, fn %PlayerState{id: id, name: name, stats_values: stats_values} ->
+    Enum.map(team_state.players, fn %PlayerState{
+                                      id: id,
+                                      name: name,
+                                      number: number,
+                                      stats_values: stats_values
+                                    } ->
       {:ok, db_player} =
         %{
           id: id,
           name: name,
+          shirt_name: name,
+          shirt_number: number,
           tournament_id: base_player_stats_log.tournament_id,
           team_id: base_player_stats_log.team_id
         }
@@ -123,5 +137,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
       |> Map.put(:player_id, db_player.id)
       |> Map.put(:stats, stats_values)
     end)
+  end
+
+  defp map_team_state_to_score(%TeamState{} = team_state) do
+    Map.get(team_state.total_player_stats, "points", 0)
   end
 end

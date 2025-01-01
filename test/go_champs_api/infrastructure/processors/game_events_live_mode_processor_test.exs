@@ -40,7 +40,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
             %{
               "id" => "player-1-id",
               "name" => "player 1",
-              "number" => 1,
+              "number" => "1",
               "stats_values" => %{
                 "points" => 1,
                 "rebounds" => 2,
@@ -50,14 +50,17 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
             %{
               "id" => "player-2-id",
               "name" => "player 2",
-              "number" => 2,
+              "number" => "2",
               "stats_values" => %{
                 "points" => 4,
                 "rebounds" => 5,
                 "assists" => 6
               }
             }
-          ]
+          ],
+          "total_player_stats" => %{
+            "points" => 5
+          }
         },
         "home_team" => %{
           "name" => "home team",
@@ -65,7 +68,7 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
             %{
               "id" => "player-3-id",
               "name" => "player 3",
-              "number" => 11,
+              "number" => "11",
               "stats_values" => %{
                 "points" => 7,
                 "rebounds" => 8,
@@ -75,14 +78,17 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
             %{
               "id" => "player-4-id",
               "name" => "player 4",
-              "number" => 22,
+              "number" => "22",
               "stats_values" => %{
                 "points" => 10,
                 "rebounds" => 11,
                 "assists" => 12
               }
             }
-          ]
+          ],
+          "total_player_stats" => %{
+            "points" => 17
+          }
         }
       }
     }
@@ -185,6 +191,8 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
 
       assert updated_game.live_state == :ended
       assert updated_game.live_ended_at != nil
+      assert updated_game.home_score == 17
+      assert updated_game.away_score == 5
     end
 
     test "creates player stats logs" do
@@ -262,6 +270,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       |> Enum.each(fn player ->
         db_player = find_player_by_game_id_and_name(game.id, player["name"])
 
+        assert db_player.shirt_name == player["name"]
+        assert db_player.shirt_number == player["number"]
+
         [player_stats_log] =
           PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: db_player.id)
 
@@ -277,6 +288,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       message["body"]["game_state"]["home_team"]["players"]
       |> Enum.each(fn player ->
         db_player = find_player_by_game_id_and_name(game.id, player["name"])
+
+        assert db_player.shirt_name == player["name"]
+        assert db_player.shirt_number == player["number"]
 
         [player_stats_log] =
           PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: db_player.id)
