@@ -147,7 +147,7 @@
           "description": "Username"
         },
         "shirt_number": {
-          "type": "number",
+          "type": "string",
           "description": "Shirt number"
         },
         "shirt_name": {

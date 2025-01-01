@@ -11,7 +11,7 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
     name: "some name",
     twitter: "some twitter",
     username: "some username",
-    shirt_number: 10,
+    shirt_number: "10",
     shirt_name: "some shirt name"
   }
   @update_attrs %{
@@ -20,7 +20,7 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
     name: "some updated name",
     twitter: "some updated twitter",
     username: "some updated username",
-    shirt_number: 20,
+    shirt_number: "20",
     shirt_name: "some updated shirt name"
   }
   @invalid_attrs %{facebook: nil, instagram: nil, name: nil, twitter: nil, username: nil}
@@ -60,7 +60,7 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
                "name" => "some name",
                "twitter" => "some twitter",
                "username" => "some username",
-               "shirt_number" => 10,
+               "shirt_number" => "10",
                "shirt_name" => "some shirt name"
              } = json_response(conn, 200)["data"]
     end
@@ -101,7 +101,7 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
                "name" => "some updated name",
                "twitter" => "some updated twitter",
                "username" => "some updated username",
-               "shirt_number" => 20,
+               "shirt_number" => "20",
                "shirt_name" => "some updated shirt name"
              } = json_response(conn, 200)["data"]
     end

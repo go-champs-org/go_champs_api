@@ -11,7 +11,7 @@ defmodule GoChampsApi.Players.Player do
     field :name, :string
     field :twitter, :string
     field :username, :string
-    field :shirt_number, :integer
+    field :shirt_number, :string
     field :shirt_name, :string
 
     belongs_to :tournament, Tournament
