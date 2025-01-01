@@ -123,7 +123,7 @@
         },
         "facebook": {
           "type": "string",
-          "description": "Facebook link",
+          "description": "Facebook link"
         },
         "instagram": {
           "type": "string",
@@ -145,6 +145,14 @@
         "username": {
           "type": "string",
           "description": "Username"
+        },
+        "shirt_number": {
+          "type": "number",
+          "description": "Shirt number"
+        },
+        "shirt_name": {
+          "type": "string",
+          "description": "Shirt name"
         },
         "inserted_at": {
           "type": "string",

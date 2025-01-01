@@ -7,6 +7,8 @@ const randomPlayer = (tournamentId: string) => ({
   tournament_id: tournamentId,
   twitter: randomString(),
   username: randomString(),
+  shirt_name: randomString(),
+  shirt_number: 10,
 });
 
 const randomPlayerWithTeam = (tournamentId: string, teamId: string) => ({
@@ -17,6 +19,8 @@ const randomPlayerWithTeam = (tournamentId: string, teamId: string) => ({
   tournament_id: tournamentId,
   twitter: randomString(),
   username: randomString(),
+  shirt_name: randomString(),
+  shirt_number: 10,
 });
 
 export const tournamentPlayerPayload = (tournamentId: string) => (
