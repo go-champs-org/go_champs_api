@@ -25,7 +25,7 @@ defmodule GoChampsApi.Phases do
   def get_phase!(id),
     do:
       Repo.get_by!(Phase, id: id)
-      |> Repo.preload([:draws, :eliminations])
+      |> Repo.preload([:tournament, :draws, :eliminations])
 
   @doc """
   Gets a phase organization for a given phase id..

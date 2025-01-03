@@ -29,6 +29,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     embeds_many :team_stats, TeamStats, on_replace: :delete do
       field :title, :string
       field :source, :string
+      field :slug, :string
       field :is_default_order, :boolean
     end
 
@@ -71,7 +72,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
 
   defp team_stats_changeset(schema, params) do
     schema
-    |> cast(params, [:title, :source, :is_default_order])
+    |> cast(params, [:title, :slug, :source, :is_default_order])
     |> validate_required([:title])
   end
 

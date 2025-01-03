@@ -319,4 +319,22 @@ defmodule GoChampsApi.Tournaments do
       stat.slug || stat.id
     end)
   end
+
+  @doc """
+  Returns a list of team stats keys for a given tournament.
+  If team stats has slug it will return the slug, otherwise it will return the id.
+
+  ## Examples
+
+      iex> get_team_stats_keys(%Tournament{})
+      ["slug1", "slug2", "slug3"]
+
+  """
+  @spec get_team_stats_keys(Tournament.t()) :: [String.t()]
+  def get_team_stats_keys(%Tournament{} = tournament) do
+    tournament.team_stats
+    |> Enum.map(fn stat ->
+      stat.slug || stat.id
+    end)
+  end
 end

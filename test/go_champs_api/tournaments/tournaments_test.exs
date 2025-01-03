@@ -38,11 +38,16 @@ defmodule GoChampsApi.TournamentsTest do
       team_stats: [
         %{
           title: "team fixed stat",
-          is_default_order: true
+          is_default_order: true,
+          slug: "team_fixed_stat"
         },
         %{
           title: "team source stat",
-          source: "player-stat-id"
+          source: "player-stat-id",
+          slug: "team_source_stat"
+        },
+        %{
+          title: "team stat"
         }
       ],
       sport_slug: "basketball_5x5",
@@ -142,12 +147,16 @@ defmodule GoChampsApi.TournamentsTest do
       assert average_stat.title == "average stat"
       assert average_stat.slug == nil
 
-      [fixed_team_stat, fixed_source_stat] = tournament.team_stats
+      [fixed_team_stat, fixed_source_stat, team_stat] = tournament.team_stats
 
       assert fixed_team_stat.title == "team fixed stat"
       assert fixed_team_stat.is_default_order == true
+      assert fixed_team_stat.slug == "team_fixed_stat"
       assert fixed_source_stat.title == "team source stat"
       assert fixed_source_stat.source == "player-stat-id"
+      assert fixed_source_stat.slug == "team_source_stat"
+      assert team_stat.title == "team stat"
+      assert team_stat.slug == nil
     end
 
     test "create_tournament/1 with nil sport slug creates a tournament" do
@@ -369,6 +378,18 @@ defmodule GoChampsApi.TournamentsTest do
                fixed_stat.slug,
                sum_stat.slug,
                average_stat.id
+             ]
+    end
+
+    test "get_team_stats_keys()/1 returns the keys of the team stats logs" do
+      tournament = tournament_fixture()
+
+      [fixed_team_stat, fixed_source_stat, team_stat] = tournament.team_stats
+
+      assert Tournaments.get_team_stats_keys(tournament) == [
+               fixed_team_stat.slug,
+               fixed_source_stat.slug,
+               team_stat.id
              ]
     end
   end
