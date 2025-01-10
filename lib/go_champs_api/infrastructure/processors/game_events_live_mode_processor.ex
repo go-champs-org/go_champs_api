@@ -99,7 +99,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
 
         :ok
 
-      {:error, _error} ->
+      {:error, error} ->
+        Logger.error("Error updating game #{game_id}")
+        IO.inspect(error)
         :error
     end
   end
