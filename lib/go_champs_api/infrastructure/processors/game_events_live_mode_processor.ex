@@ -63,16 +63,21 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
   defp end_game_live_mode(game_id, game_state) do
     Logger.info("Ending live mode for game #{game_id}", game_id: game_id)
 
-    away_score = map_team_state_to_score(game_state.away_team)
-    home_score = map_team_state_to_score(game_state.home_team)
-
     case Games.get_game!(game_id)
          |> Games.update_game(%{
-           live_state: :ended,
-           away_score: away_score,
-           home_score: home_score
+           live_state: :ended
          }) do
       {:ok, updated_game} ->
+        away_score = map_team_state_to_score(game_state.away_team)
+        home_score = map_team_state_to_score(game_state.home_team)
+
+        {:ok, _} =
+          updated_game
+          |> Games.update_game(%{
+            away_score: away_score,
+            home_score: home_score
+          })
+
         away_team_id = updated_game.away_team_id
         phase_id = updated_game.phase_id
         home_team_id = updated_game.home_team_id

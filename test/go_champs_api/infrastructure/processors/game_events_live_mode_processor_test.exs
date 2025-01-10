@@ -160,7 +160,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
 
   describe "process/1 with a valid end message" do
     test "updates game live state" do
-      game = game_fixture()
+      {:ok, game} =
+        game_fixture()
+        |> Games.update_game(%{live_state: :in_progress})
 
       message = set_game_id_in_event(@valid_end_message, game.id)
       message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
@@ -196,7 +198,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
     end
 
     test "creates player stats logs" do
-      game = game_fixture()
+      {:ok, game} =
+        game_fixture()
+        |> Games.update_game(%{live_state: :in_progress})
 
       message = set_game_id_in_event(@valid_end_message, game.id)
       message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
@@ -257,7 +261,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
     end
 
     test "creates player when player when player id does not exist" do
-      game = game_fixture()
+      {:ok, game} =
+        game_fixture()
+        |> Games.update_game(%{live_state: :in_progress})
 
       message = set_game_id_in_event(@valid_end_message, game.id)
       message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
