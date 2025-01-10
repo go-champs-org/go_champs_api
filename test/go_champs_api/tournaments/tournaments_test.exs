@@ -136,6 +136,7 @@ defmodule GoChampsApi.TournamentsTest do
       assert tournament.twitter == "twitter"
       assert tournament.sport_slug == "basketball_5x5"
       assert tournament.sport_name == "Basketball 5x5"
+      assert tournament.visibility == "public"
 
       [fixed_stat, sum_stat, average_stat] = tournament.player_stats
 
@@ -167,6 +168,15 @@ defmodule GoChampsApi.TournamentsTest do
 
       assert tournament.sport_slug == nil
       assert tournament.sport_name == "Basketball"
+    end
+
+    test "create_tournament/1 with private visibility creates a tournament" do
+      attrs = Map.put(@valid_attrs, :visibility, "private")
+      valid_tournament = OrganizationHelpers.map_organization_id(attrs)
+
+      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
+
+      assert tournament.visibility == "private"
     end
 
     test "create_tournament/1 with invalid data returns error changeset" do
@@ -201,6 +211,16 @@ defmodule GoChampsApi.TournamentsTest do
 
       assert changeset.errors[:sport_slug] ==
                {"is invalid", [{:validation, :inclusion}, {:enum, ["basketball_5x5"]}]}
+    end
+
+    test "create_tournament/1 with invalid visibility returns error changeset" do
+      invalid_attrs = Map.put(@valid_attrs, :visibility, "invalid")
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Tournaments.create_tournament(invalid_attrs)
+
+      assert changeset.errors[:visibility] ==
+               {"is invalid", [{:validation, :inclusion}, {:enum, ["public", "private"]}]}
     end
 
     test "update_tournament/2 with valid data updates the tournament" do

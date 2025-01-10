@@ -147,6 +147,10 @@
           "type": "string",
           "description": "Organization ID"
         },
+        "visibility": {
+          "type": "string",
+          "description": "Tournament visibility could be either public or private"
+        },
         "has_aggregated_player_stats": {
           "type": "boolean",
           "description": "Whether tournament has aggregated player stats"
@@ -200,7 +204,10 @@
                 "description": "Stat id"
               },
               "slug": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Stat slug"
               },
               "title": {

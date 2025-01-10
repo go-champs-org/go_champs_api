@@ -22,6 +22,18 @@ defmodule GoChampsApi.RecentlyViewsTest do
       recently_view
     end
 
+    def recently_view_for_tournament_with_private_visiblity(attrs \\ %{}) do
+      {:ok, recently_view} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> TournamentHelpers.map_tournament_id_with_custom_tournament_attrs(%{
+          visibility: "private"
+        })
+        |> RecentlyViews.create_recently_view()
+
+      recently_view
+    end
+
     def recently_view_for_tournament_id(tournament_id) do
       {:ok, recently_view} =
         @valid_attrs
@@ -56,6 +68,12 @@ defmodule GoChampsApi.RecentlyViewsTest do
       assert recently_view_result.tournament_id == recently_view.tournament_id
       assert recently_view_result.views == 1
       assert recently_view_result.tournament.id == recently_view.tournament_id
+    end
+
+    test "list_recently_view/0 does not return recently_views with private visibility" do
+      _recently_view = recently_view_for_tournament_with_private_visiblity()
+
+      assert RecentlyViews.list_recently_view() == []
     end
 
     test "list_recently_view/0 returns recently_views aggegated by tournament_id with count" do

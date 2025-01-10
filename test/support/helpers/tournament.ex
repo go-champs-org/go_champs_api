@@ -20,6 +20,17 @@ defmodule GoChampsApi.Helpers.TournamentHelpers do
     Map.merge(attrs, %{tournament_id: tournament.id})
   end
 
+  def map_tournament_id_with_custom_tournament_attrs(attrs \\ %{}, tournament_attrs \\ %{}) do
+    {:ok, tournament} =
+      tournament_attrs
+      |> Map.put_new(:name, "some tournament")
+      |> Map.put_new(:slug, "some-slug")
+      |> OrganizationHelpers.map_organization_id()
+      |> Tournaments.create_tournament()
+
+    Map.merge(attrs, %{tournament_id: tournament.id})
+  end
+
   def map_tournament_id_and_stat_id(attrs \\ %{}) do
     {:ok, tournament} =
       %{

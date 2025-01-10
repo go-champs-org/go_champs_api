@@ -23,6 +23,7 @@ defmodule GoChampsApi.RecentlyViews do
       from t in Tournament,
         join: r in RecentlyView,
         on: t.id == r.tournament_id,
+        where: t.visibility == "public",
         group_by: t.id,
         select: %{
           tournament: t,

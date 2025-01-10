@@ -19,6 +19,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     field :has_aggregated_player_stats, :boolean
     field :sport_slug, :string
     field :sport_name, :string
+    field :visibility, :string, default: "public"
 
     embeds_many :player_stats, PlayerStats, on_replace: :delete do
       field :title, :string
@@ -54,7 +55,8 @@ defmodule GoChampsApi.Tournaments.Tournament do
       :twitter,
       :organization_slug,
       :sport_slug,
-      :sport_name
+      :sport_name,
+      :visibility
     ])
     |> cast_embed(:player_stats, with: &player_stats_changeset/2)
     |> cast_embed(:team_stats, with: &team_stats_changeset/2)
@@ -62,6 +64,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     |> unique_constraint(:slug, name: :tournaments_slug_organization_id_index)
     |> validate_sport_slug()
+    |> validate_inclusion(:visibility, ["public", "private"])
   end
 
   defp player_stats_changeset(schema, params) do

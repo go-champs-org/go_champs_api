@@ -23,6 +23,7 @@ defmodule GoChampsApiWeb.TournamentView do
         has_aggregated_player_stats: tournament.has_aggregated_player_stats,
         sport_slug: tournament.sport_slug,
         sport_name: tournament.sport_name,
+        visibility: tournament.visibility,
         organization: render_one(tournament.organization, OrganizationView, "organization.json"),
         phases: render_many(tournament.phases, PhaseView, "phase.json"),
         players: render_many(tournament.players, PlayerView, "player.json"),
