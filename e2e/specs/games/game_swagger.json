@@ -226,6 +226,13 @@
           "format": "datetime",
           "description": "Live ended timestamp"
         },
+        "youtube_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "YouTube video code"
+        },
         "updated_at": {
           "type": "string",
           "format": "datetime",

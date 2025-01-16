@@ -14,7 +14,8 @@ defmodule GoChampsApiWeb.GameControllerTest do
     datetime: "2019-08-25T16:59:27.116Z",
     home_placeholder: "home placeholder",
     home_score: 20,
-    location: "some location"
+    location: "some location",
+    youtube_code: "1234"
   }
   @update_attrs %{
     away_placeholder: "away placeholder updated",
@@ -24,7 +25,8 @@ defmodule GoChampsApiWeb.GameControllerTest do
     home_score: 30,
     is_finished: true,
     live_state: "ended",
-    location: "another location"
+    location: "another location",
+    youtube_code: "5678"
   }
 
   def fixture(:game) do
@@ -103,7 +105,8 @@ defmodule GoChampsApiWeb.GameControllerTest do
                "live_state" => "not_started",
                "live_ended_at" => nil,
                "live_started_at" => nil,
-               "location" => "some location"
+               "location" => "some location",
+               "youtube_code" => "1234"
              } = json_response(conn, 200)["data"]
     end
   end
@@ -142,7 +145,8 @@ defmodule GoChampsApiWeb.GameControllerTest do
                "live_state" => "ended",
                "live_ended_at" => live_ended_at,
                "live_started_at" => nil,
-               "location" => "another location"
+               "location" => "another location",
+               "youtube_code" => "5678"
              } = json_response(conn, 200)["data"]
 
       assert live_ended_at != nil

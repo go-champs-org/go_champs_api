@@ -17,6 +17,7 @@ defmodule GoChampsApi.Games.Game do
     field :live_state, Ecto.Enum, values: [:not_started, :in_progress, :ended]
     field :live_started_at, :utc_datetime
     field :live_ended_at, :utc_datetime
+    field :youtube_code, :string
 
     belongs_to :phase, Phase
     belongs_to :away_team, Team
@@ -42,7 +43,8 @@ defmodule GoChampsApi.Games.Game do
       :live_started_at,
       :live_ended_at,
       :away_team_id,
-      :home_team_id
+      :home_team_id,
+      :youtube_code
     ])
     |> validate_required([:phase_id])
     |> validate_inclusion(:live_state, [:not_started, :in_progress, :ended])

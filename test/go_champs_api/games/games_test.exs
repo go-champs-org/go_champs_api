@@ -12,13 +12,15 @@ defmodule GoChampsApi.GamesTest do
       away_score: 10,
       datetime: "2019-08-25T16:59:27.116Z",
       home_score: 20,
-      location: "some location"
+      location: "some location",
+      youtube_code: "1234"
     }
     @update_attrs %{
       away_score: 20,
       datetime: "2019-08-25T16:59:27.116Z",
       home_score: 30,
-      location: "another location"
+      location: "another location",
+      youtube_code: "5678"
     }
     @invalid_attrs %{phase_id: nil}
 
@@ -55,7 +57,12 @@ defmodule GoChampsApi.GamesTest do
     test "create_game/1 with valid data creates a game" do
       attrs = PhaseHelpers.map_phase_id(@valid_attrs)
 
-      assert {:ok, %Game{} = _game} = Games.create_game(attrs)
+      assert {:ok, %Game{} = game} = Games.create_game(attrs)
+
+      assert game.away_score == attrs.away_score
+      assert game.home_score == attrs.home_score
+      assert game.location == attrs.location
+      assert game.youtube_code == attrs.youtube_code
     end
 
     test "create_game/1 with invalid data returns error changeset" do
@@ -72,6 +79,7 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.away_score == attrs.away_score
       assert updated_game.home_score == attrs.home_score
       assert updated_game.location == attrs.location
+      assert updated_game.youtube_code == attrs.youtube_code
     end
 
     test "update_game/2 with is_finished false but current game live_state is :ended updates the game" do
