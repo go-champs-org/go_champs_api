@@ -106,7 +106,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Field Goal Percentage Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_field_goal_percentage_per_game/1
     ),
     Statistic.new(
       "field_goals_attempted_per_game",
@@ -132,7 +133,14 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       :per_game,
       &StatisticCalculation.calculate_field_goals_missed_per_game/1
     ),
-    Statistic.new("fouls_per_game", "Fouls Per Game", :calculated, :tournament, :per_game),
+    Statistic.new(
+      "fouls_per_game",
+      "Fouls Per Game",
+      :calculated,
+      :tournament,
+      :per_game,
+      &StatisticCalculation.calculate_fouls_per_game/1
+    ),
     Statistic.new(
       "fouls_flagrant_per_game",
       "Flagrant Fouls Per Game",
@@ -162,7 +170,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       "Free Throw Percentage Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_free_throw_percentage_per_game/1
     ),
     Statistic.new(
       "free_throws_attempted_per_game",
@@ -189,18 +198,12 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       &StatisticCalculation.calculate_free_throws_missed_per_game/1
     ),
     Statistic.new(
-      "game_played_per_game",
-      "Game Played Per Game",
-      :calculated,
-      :tournament,
-      :per_game
-    ),
-    Statistic.new(
       "game_started_per_game",
       "Game Started Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_game_started_per_game/1
     ),
     Statistic.new(
       "minutes_played_per_game",
@@ -218,7 +221,14 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       :per_game,
       &StatisticCalculation.calculate_plus_minus_per_game/1
     ),
-    Statistic.new("points_per_game", "Points Per Game", :calculated, :tournament, :per_game),
+    Statistic.new(
+      "points_per_game",
+      "Points Per Game",
+      :calculated,
+      :tournament,
+      :per_game,
+      &StatisticCalculation.calculate_points_per_game/1
+    ),
     Statistic.new(
       "rebounds_per_game",
       "Rebounds Per Game",
@@ -243,13 +253,21 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
       :per_game,
       &StatisticCalculation.calculate_rebounds_offensive_per_game/1
     ),
-    Statistic.new("steals_per_game", "Steals Per Game", :calculated, :tournament, :per_game),
+    Statistic.new(
+      "steals_per_game",
+      "Steals Per Game",
+      :calculated,
+      :tournament,
+      :per_game,
+      &StatisticCalculation.calculate_steals_per_game/1
+    ),
     Statistic.new(
       "three_point_field_goal_percentage_per_game",
       "Three Point Field Goal Percentage Per Game",
       :calculated,
       :tournament,
-      :per_game
+      :per_game,
+      &StatisticCalculation.calculate_three_point_field_goal_percentage_per_game/1
     ),
     Statistic.new(
       "three_point_field_goals_attempted_per_game",
