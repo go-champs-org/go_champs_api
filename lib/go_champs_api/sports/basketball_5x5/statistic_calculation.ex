@@ -3,7 +3,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     field_goals_made = stats |> retrieve_stat_value("field_goals_made")
     field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
 
-    calculate_percentage(field_goals_made, field_goals_missed)
+    calculate_made_miss_percentage(field_goals_made, field_goals_missed)
   end
 
   def calculate_field_goals_attempted(stats) do
@@ -17,7 +17,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     free_throws_made = stats |> retrieve_stat_value("free_throws_made")
     free_throws_missed = stats |> retrieve_stat_value("free_throws_missed")
 
-    calculate_percentage(free_throws_made, free_throws_missed)
+    calculate_made_miss_percentage(free_throws_made, free_throws_missed)
   end
 
   def calculate_free_throws_attempted(stats) do
@@ -48,7 +48,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     three_point_field_goals_missed =
       stats |> retrieve_stat_value("three_point_field_goals_missed")
 
-    calculate_percentage(three_point_field_goals_made, three_point_field_goals_missed)
+    calculate_made_miss_percentage(three_point_field_goals_made, three_point_field_goals_missed)
   end
 
   def calculate_three_point_field_goals_attempted(stats) do
@@ -81,7 +81,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     field_goals_made = stats |> retrieve_stat_value("field_goals_made")
     field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
 
-    calculate_percentage(field_goals_made, field_goals_missed)
+    calculate_made_miss_percentage(field_goals_made, field_goals_missed)
   end
 
   def calculate_field_goals_made_per_game(stats) do
@@ -116,7 +116,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     free_throws_made = stats |> retrieve_stat_value("free_throws_made")
     free_throws_missed = stats |> retrieve_stat_value("free_throws_missed")
 
-    calculate_percentage(free_throws_made, free_throws_missed)
+    calculate_made_miss_percentage(free_throws_made, free_throws_missed)
   end
 
   def calculate_free_throws_made_per_game(stats) do
@@ -176,7 +176,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     three_point_field_goals_missed =
       stats |> retrieve_stat_value("three_point_field_goals_missed")
 
-    calculate_percentage(three_point_field_goals_made, three_point_field_goals_missed)
+    calculate_made_miss_percentage(three_point_field_goals_made, three_point_field_goals_missed)
   end
 
   def calculate_three_point_field_goals_made_per_game(stats) do
@@ -195,6 +195,36 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     stats |> calculate_stat_per_game("turnovers")
   end
 
+  def calculate_made_miss_percentage(made, missed) do
+    made = made || 0
+    missed = missed || 0
+
+    if made == 0 and missed == 0 do
+      0
+    else
+      (made / (made + missed) * 100) |> Float.round(3)
+    end
+  end
+
+  def retrieve_stat_value(stats, stat_slug) do
+    stat_value =
+      stats
+      |> Map.get(stat_slug, 0.0)
+
+    if is_float(stat_value) do
+      stat_value
+    else
+      {float_value, _} =
+        stat_value
+        # Remove non digit and non decimal point characters
+        |> String.replace(~r/[^\d.]/, "")
+        |> String.trim()
+        |> Float.parse()
+
+      float_value
+    end
+  end
+
   defp calculate_stat_per_game(stats, stat_slug) do
     stat_value = stats |> retrieve_stat_value(stat_slug)
     game_played = stats |> retrieve_stat_value("game_played")
@@ -203,20 +233,6 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
       stat_value / game_played
     else
       0
-    end
-  end
-
-  defp calculate_percentage(made, missed) do
-    case made do
-      0 -> 0
-      _ -> (made / (made + missed) * 100) |> Float.round(3)
-    end
-  end
-
-  defp retrieve_stat_value(stats, stat_slug) do
-    case Map.get(stats, stat_slug) do
-      nil -> 0
-      value -> value
     end
   end
 end
