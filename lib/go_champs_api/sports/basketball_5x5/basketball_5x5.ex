@@ -9,40 +9,84 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("disqualifications", "Disqualifications", :manual, :game, :aggregate),
     Statistic.new("ejections", "Ejections", :manual, :game, :aggregate),
     Statistic.new("efficiency", "Efficiency", :manual, :game, :aggregate),
-    Statistic.new("field_goal_percentage", "Field Goal Percentage", :manual, :game, :aggregate),
-    Statistic.new("field_goals_attempted", "Field Goals Attempted", :manual, :game, :aggregate),
+    Statistic.new(
+      "field_goal_percentage",
+      "Field Goal Percentage",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_field_goal_percentage/1
+    ),
+    Statistic.new(
+      "field_goals_attempted",
+      "Field Goals Attempted",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_field_goals_attempted/1
+    ),
     Statistic.new("field_goals_made", "Field Goals Made", :manual, :game, :aggregate),
     Statistic.new("field_goals_missed", "Field Goals Missed", :manual, :game, :aggregate),
     Statistic.new("fouls", "Fouls", :manual, :game, :aggregate),
     Statistic.new("fouls_flagrant", "Flagrant Fouls", :manual, :game, :aggregate),
     Statistic.new("fouls_personal", "Personal Fouls", :manual, :game, :aggregate),
     Statistic.new("fouls_technical", "Technical Fouls", :manual, :game, :aggregate),
-    Statistic.new("free_throw_percentage", "Free Throw Percentage", :manual, :game, :aggregate),
-    Statistic.new("free_throws_attempted", "Free Throws Attempted", :manual, :game, :aggregate),
+    Statistic.new(
+      "free_throw_percentage",
+      "Free Throw Percentage",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_free_throw_percentage/1
+    ),
+    Statistic.new(
+      "free_throws_attempted",
+      "Free Throws Attempted",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_free_throws_attempted/1
+    ),
     Statistic.new("free_throws_made", "Free Throws Made", :manual, :game, :aggregate),
     Statistic.new("free_throws_missed", "Free Throws Missed", :manual, :game, :aggregate),
     Statistic.new("game_played", "Game Played", :manual, :game, :aggregate),
     Statistic.new("game_started", "Game Started", :manual, :game, :aggregate),
     Statistic.new("minutes_played", "Minutes Played", :manual, :game, :aggregate),
     Statistic.new("plus_minus", "Plus Minus", :manual, :game, :aggregate),
-    Statistic.new("points", "Points", :manual, :game, :aggregate),
-    Statistic.new("rebounds", "Rebounds", :manual, :game, :aggregate),
+    Statistic.new(
+      "points",
+      "Points",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_points/1
+    ),
+    Statistic.new(
+      "rebounds",
+      "Rebounds",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_rebounds/1
+    ),
     Statistic.new("rebounds_defensive", "Defensive Rebounds", :manual, :game, :aggregate),
     Statistic.new("rebounds_offensive", "Offensive Rebounds", :manual, :game, :aggregate),
     Statistic.new("steals", "Steals", :manual, :game, :aggregate),
     Statistic.new(
       "three_point_field_goal_percentage",
       "Three Point Field Goal Percentage",
-      :manual,
+      :calculated,
       :game,
-      :aggregate
+      :aggregate,
+      &StatisticCalculation.calculate_three_point_field_goal_percentage/1
     ),
     Statistic.new(
       "three_point_field_goals_attempted",
       "Three Point Field Goals Attempted",
-      :manual,
+      :calculated,
       :game,
-      :aggregate
+      :aggregate,
+      &StatisticCalculation.calculate_three_point_field_goals_attempted/1
     ),
     Statistic.new(
       "three_point_field_goals_made",

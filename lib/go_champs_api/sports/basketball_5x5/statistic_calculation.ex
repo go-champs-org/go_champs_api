@@ -1,4 +1,65 @@
 defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
+  def calculate_field_goal_percentage(stats) do
+    field_goals_made = stats |> retrieve_stat_value("field_goals_made")
+    field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
+
+    calculate_percentage(field_goals_made, field_goals_missed)
+  end
+
+  def calculate_field_goals_attempted(stats) do
+    field_goals_made = stats |> retrieve_stat_value("field_goals_made")
+    field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
+
+    field_goals_made + field_goals_missed
+  end
+
+  def calculate_free_throw_percentage(stats) do
+    free_throws_made = stats |> retrieve_stat_value("free_throws_made")
+    free_throws_missed = stats |> retrieve_stat_value("free_throws_missed")
+
+    calculate_percentage(free_throws_made, free_throws_missed)
+  end
+
+  def calculate_free_throws_attempted(stats) do
+    free_throws_made = stats |> retrieve_stat_value("free_throws_made")
+    free_throws_missed = stats |> retrieve_stat_value("free_throws_missed")
+
+    free_throws_made + free_throws_missed
+  end
+
+  def calculate_points(stats) do
+    free_throws_made = stats |> retrieve_stat_value("free_throws_made")
+    field_goals_made = stats |> retrieve_stat_value("field_goals_made")
+    three_point_field_goals_made = stats |> retrieve_stat_value("three_point_field_goals_made")
+
+    free_throws_made * 1 + field_goals_made * 2 + three_point_field_goals_made * 3
+  end
+
+  def calculate_rebounds(stats) do
+    rebounds_defensive = stats |> retrieve_stat_value("rebounds_defensive")
+    rebounds_offensive = stats |> retrieve_stat_value("rebounds_offensive")
+
+    rebounds_defensive + rebounds_offensive
+  end
+
+  def calculate_three_point_field_goal_percentage(stats) do
+    three_point_field_goals_made = stats |> retrieve_stat_value("three_point_field_goals_made")
+
+    three_point_field_goals_missed =
+      stats |> retrieve_stat_value("three_point_field_goals_missed")
+
+    calculate_percentage(three_point_field_goals_made, three_point_field_goals_missed)
+  end
+
+  def calculate_three_point_field_goals_attempted(stats) do
+    three_point_field_goals_made = stats |> retrieve_stat_value("three_point_field_goals_made")
+
+    three_point_field_goals_missed =
+      stats |> retrieve_stat_value("three_point_field_goals_missed")
+
+    three_point_field_goals_made + three_point_field_goals_missed
+  end
+
   def calculate_assists_per_game(stats) do
     stats |> calculate_stat_per_game("assists")
   end

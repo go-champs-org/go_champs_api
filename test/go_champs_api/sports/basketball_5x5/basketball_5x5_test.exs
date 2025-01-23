@@ -60,7 +60,6 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
         "free_throws_attempted_per_game",
         "free_throws_made_per_game",
         "free_throws_missed_per_game",
-        "game_played_per_game",
         "game_started_per_game",
         "minutes_played_per_game",
         "plus_minus_per_game",

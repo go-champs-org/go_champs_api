@@ -36,6 +36,14 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
         %{
           title: "Games Played",
           slug: "game_played"
+        },
+        %{
+          title: "Total Rebounds defensive",
+          slug: "rebounds_defensive"
+        },
+        %{
+          title: "Total Rebounds offensive",
+          slug: "rebounds_offensive"
         }
       ],
       sport_slug: "basketball_5x5"
@@ -320,21 +328,63 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
                first_valid_attrs.tournament_id
     end
 
-    test "generate_aggregated_player_stats_for_tournament/1 inserts aggregated player stats log when player stats is calculated" do
+    test "generate_aggregated_player_stats_for_tournament/1 inserts aggregated player stats when player stats is a game calculate" do
+      valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
+      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
+
+      # Total Rebounds is 6 for first stats logs
+      first_valid_attrs =
+        PlayerHelpers.map_player_id(tournament.id, %{
+          stats: %{
+            "rebounds_defensive" => "1",
+            "rebounds_offensive" => "5"
+          }
+        })
+
+      # Total Rebounds is 4 for second stats log
+      second_valid_attrs =
+        %{
+          stats: %{"rebounds_defensive" => "2", "rebounds_offensive" => "2"}
+        }
+        |> Map.merge(%{
+          player_id: first_valid_attrs.player_id,
+          tournament_id: first_valid_attrs.tournament_id
+        })
+
+      assert {:ok, _batch_results} =
+               PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
+
+      AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
+        first_valid_attrs.tournament_id
+      )
+
+      [aggregated_player_stats_by_tournament] =
+        AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament()
+
+      assert aggregated_player_stats_by_tournament.player_id == first_valid_attrs.player_id
+
+      {:ok, rebounds} = Map.fetch(aggregated_player_stats_by_tournament.stats, "rebounds")
+      assert rebounds == 10.0
+
+      assert aggregated_player_stats_by_tournament.tournament_id ==
+               first_valid_attrs.tournament_id
+    end
+
+    test "generate_aggregated_player_stats_for_tournament/1 inserts aggregated player stats when player stats is per game" do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
 
       first_valid_attrs =
         PlayerHelpers.map_player_id(tournament.id, %{
           stats: %{
-            "rebounds" => "6",
+            "rebounds_offensive" => "6",
             "game_played" => "1"
           }
         })
 
       second_valid_attrs =
         %{
-          stats: %{"rebounds" => "4", "game_played" => "1"}
+          stats: %{"rebounds_offensive" => "4", "game_played" => "1"}
         }
         |> Map.merge(%{
           player_id: first_valid_attrs.player_id,
