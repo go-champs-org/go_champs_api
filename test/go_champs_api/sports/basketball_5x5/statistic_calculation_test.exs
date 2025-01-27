@@ -12,7 +12,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
     {"field_goals_missed", :calculate_field_goals_missed_per_game},
     {"fouls", :calculate_fouls_per_game},
     {"fouls_flagrant", :calculate_fouls_flagrant_per_game},
-    {"fould_personal", :calculate_fouls_personal_per_game},
+    {"fouls_personal", :calculate_fouls_personal_per_game},
     {"fouls_technical", :calculate_fouls_technical_per_game},
     {"free_throws_made", :calculate_free_throws_made_per_game},
     {"free_throws_attempted", :calculate_free_throws_attempted_per_game},

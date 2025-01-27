@@ -105,7 +105,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
   end
 
   def calculate_fouls_personal_per_game(stats) do
-    stats |> calculate_stat_per_game("fould_personal")
+    stats |> calculate_stat_per_game("fouls_personal")
   end
 
   def calculate_fouls_technical_per_game(stats) do
