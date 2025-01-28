@@ -117,11 +117,23 @@ defmodule GoChampsApi.TournamentsTest do
       assert organization.id == tournament.organization_id
     end
 
-    test "get_tournament_default_player_stats_order_id!/1 returns the first player stats id" do
-      tournament = tournament_fixture()
+    test "get_tournament_default_player_stats_order_id!/1 returns the first player stats id when tournament has no known sport" do
+      tournament = tournament_fixture(%{sport_slug: nil})
 
       assert Tournaments.get_tournament_default_player_stats_order_id!(tournament.id) ==
                Enum.at(tournament.player_stats, 0).id
+    end
+
+    test "get_tournament_default_player_stats_order_id!/1 returns points when tournament is basketball" do
+      tournament = tournament_fixture()
+
+      assert Tournaments.get_tournament_default_player_stats_order_id!(tournament.id) == "points"
+    end
+
+    test "get_tournament_default_player_stats_order_id!/1 returns 0 when tournament is unknown sport and tournament has not player_stats" do
+      tournament = tournament_fixture(%{sport_slug: nil, player_stats: []})
+
+      assert Tournaments.get_tournament_default_player_stats_order_id!(tournament.id) == 0
     end
 
     test "create_tournament/1 with valid data creates a tournament" do

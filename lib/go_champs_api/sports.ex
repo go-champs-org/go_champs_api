@@ -16,6 +16,25 @@ defmodule GoChampsApi.Sports do
   end
 
   @doc """
+  Returns the default player statistic to order by for a sport.
+
+  ## Examples
+
+      iex> get_default_player_statistic_to_order_by("basketball-5x5")
+      %GoChampsApi.Sports.Statistic{}
+  """
+  @spec get_default_player_statistic_to_order_by(String.t()) ::
+          GoChampsApi.Sports.Statistic.t() | nil
+  def get_default_player_statistic_to_order_by(slug) do
+    try do
+      sport = get_sport(slug)
+      sport.default_player_statistic_to_order_by
+    rescue
+      _ -> nil
+    end
+  end
+
+  @doc """
   Returns the list of calculated game statistics for a sport.
 
   ## Examples

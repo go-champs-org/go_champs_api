@@ -4,6 +4,7 @@ defmodule GoChampsApi.Tournaments do
   """
 
   import Ecto.Query, warn: false
+  alias GoChampsApi.Sports
   alias GoChampsApi.Repo
 
   alias GoChampsApi.Tournaments.Tournament
@@ -106,9 +107,16 @@ defmodule GoChampsApi.Tournaments do
       Tournament
       |> Repo.get!(id)
 
-    case Enum.count(tournament.player_stats) do
-      0 -> 0
-      _ -> Enum.at(tournament.player_stats, 0).id
+    sport_statistic = Sports.get_default_player_statistic_to_order_by(tournament.sport_slug)
+
+    case sport_statistic do
+      nil ->
+        tournament.player_stats
+        |> Enum.at(0, %{id: 0})
+        |> Map.get(:id)
+
+      _ ->
+        sport_statistic.slug
     end
   end
 

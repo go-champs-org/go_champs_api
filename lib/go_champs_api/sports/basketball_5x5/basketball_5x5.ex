@@ -3,6 +3,15 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
 
+  @default_player_statistic_to_order_by Statistic.new(
+                                          "points",
+                                          "Points",
+                                          :calculated,
+                                          :game,
+                                          :aggregate,
+                                          &StatisticCalculation.calculate_points/1
+                                        )
+
   @player_log_statistics [
     Statistic.new("assists", "Assists", :manual, :game, :aggregate),
     Statistic.new("blocks", "Blocks", :manual, :game, :aggregate),
@@ -53,14 +62,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("game_started", "Game Started", :manual, :game, :aggregate),
     Statistic.new("minutes_played", "Minutes Played", :manual, :game, :aggregate),
     Statistic.new("plus_minus", "Plus Minus", :manual, :game, :aggregate),
-    Statistic.new(
-      "points",
-      "Points",
-      :calculated,
-      :game,
-      :aggregate,
-      &StatisticCalculation.calculate_points/1
-    ),
+    @default_player_statistic_to_order_by,
     Statistic.new(
       "rebounds",
       "Rebounds",
@@ -350,7 +352,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   @sport Sport.new(
            "basketball_5x5",
            "Basketball 5x5",
-           @player_log_statistics ++ @calculated_player_statistics
+           @player_log_statistics ++ @calculated_player_statistics,
+           @default_player_statistic_to_order_by
          )
 
   @spec sport() :: Sport.t()

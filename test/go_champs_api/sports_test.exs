@@ -22,6 +22,20 @@ defmodule GoChampsApi.SportsTest do
     end
   end
 
+  describe "get_default_player_statistic_to_order_by/1" do
+    test "returns the default player statistic to order by for a sport" do
+      statistic = Sports.get_default_player_statistic_to_order_by("basketball_5x5")
+
+      assert statistic.slug == "points"
+      assert statistic.level == :game
+      assert statistic.value_type == :calculated
+    end
+
+    test "returns nil when sport is not found" do
+      assert Sports.get_default_player_statistic_to_order_by("invalid_sport") == nil
+    end
+  end
+
   describe "get_game_level_calculated_statistics!/1" do
     test "returns the list of game level calculated statistics for a sport" do
       statistics = Sports.get_game_level_calculated_statistics!("basketball_5x5")
