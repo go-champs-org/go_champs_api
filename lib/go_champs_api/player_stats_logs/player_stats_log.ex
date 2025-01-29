@@ -2,6 +2,7 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
   use Ecto.Schema
   use GoChampsApi.Schema
   import Ecto.Changeset
+  alias GoChampsApi.Sports
   alias GoChampsApi.Games.Game
   alias GoChampsApi.Teams.Team
   alias GoChampsApi.Tournaments.Tournament
@@ -34,6 +35,7 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
     ])
     |> validate_required([:stats, :player_id, :tournament_id])
     |> map_stats_id_to_stats_slug()
+    |> calculate_game_level_calculated_statistics()
   end
 
   defp map_stats_id_to_stats_slug(changeset) do
@@ -58,6 +60,40 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
       case Tournaments.get_player_stat_by_id!(tournament, key) do
         nil -> Map.put(acc, key, to_string(value))
         player_stat -> Map.put(acc, player_stat.slug || player_stat.id, to_string(value))
+      end
+    end)
+  end
+
+  defp calculate_game_level_calculated_statistics(changeset) do
+    case changeset.valid? do
+      true ->
+        tournament_id = Ecto.Changeset.get_field(changeset, :tournament_id)
+        tournament = Tournaments.get_tournament!(tournament_id)
+
+        stats =
+          Ecto.Changeset.get_field(changeset, :stats)
+          |> calculate_game_level_calculated_statistics(tournament)
+
+        Ecto.Changeset.put_change(changeset, :stats, stats)
+
+      false ->
+        changeset
+    end
+  end
+
+  defp calculate_game_level_calculated_statistics(stats, tournament) do
+    calculated_game_level_sport_statistics =
+      tournament.sport_slug
+      |> Sports.get_game_level_calculated_statistics!()
+
+    Enum.reduce(calculated_game_level_sport_statistics, stats, fn stat, acc ->
+      case Map.has_key?(acc, stat.slug) do
+        true ->
+          acc
+
+        false ->
+          acc
+          |> Map.put(stat.slug, to_string(stat.calculation_function.(acc)))
       end
     end)
   end

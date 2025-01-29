@@ -1,4 +1,5 @@
 defmodule GoChampsApi.PlayerStatsLogsTest do
+  alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
 
   alias GoChampsApi.PlayerStatsLogs
@@ -20,6 +21,26 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
         attrs
         |> Enum.into(@valid_attrs)
         |> PlayerHelpers.map_player_id_and_tournament_id()
+        |> PlayerStatsLogs.create_player_stats_log()
+
+      player_stats_log
+    end
+
+    def player_stats_log_for_tournament_with_sport(player_stats_values \\ []) do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+      {:ok, player} = PlayerHelpers.create_player_for_tournament(tournament.id)
+
+      player_stats =
+        Enum.reduce(player_stats_values, %{}, fn {player_stat_slug, value}, acc ->
+          Map.put(acc, player_stat_slug, value)
+        end)
+
+      {:ok, player_stats_log} =
+        %{
+          player_id: player.id,
+          tournament_id: tournament.id,
+          stats: player_stats
+        }
         |> PlayerStatsLogs.create_player_stats_log()
 
       player_stats_log
@@ -133,6 +154,18 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       assert pending_aggregated_player_stats_by_tournament.tournament_id ==
                player_stats_log.tournament_id
+    end
+
+    test "create_player_stats_log/1 with valid data that matches tournament sport statistics store result of calculated stats" do
+      player_stats_log =
+        player_stats_log_for_tournament_with_sport([
+          {"rebounds_defensive", "10"},
+          {"rebounds_offensive", "5"}
+        ])
+
+      assert player_stats_log.stats["rebounds"] == "15.0"
+      assert player_stats_log.stats["rebounds_defensive"] == "10"
+      assert player_stats_log.stats["rebounds_offensive"] == "5"
     end
 
     test "create_player_stats_log/1 with valid data that matches tournament player stats with no slug creates a player_stats_log with id stats and add pending aggregated player stats" do

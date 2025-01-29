@@ -1,6 +1,7 @@
 defmodule GoChampsApi.Helpers.TournamentHelpers do
   alias GoChampsApi.Helpers.OrganizationHelpers
   alias GoChampsApi.Tournaments
+  alias GoChampsApi.Sports
 
   def map_tournament_id(attrs \\ %{}) do
     {:ok, tournament} =
@@ -67,5 +68,24 @@ defmodule GoChampsApi.Helpers.TournamentHelpers do
     [player_stat] = tournament.player_stats
 
     Map.merge(attrs, %{tournament_id: tournament.id, stat_id: player_stat.id})
+  end
+
+  def create_tournament_basketball_5x5(attrs \\ %{}) do
+    basketball_slug = "basketball_5x5"
+
+    sport =
+      basketball_slug
+      |> Sports.get_sport()
+
+    %{name: "Basketball 5x5", slug: "basketball-5x5", sport_slug: basketball_slug}
+    |> Map.merge(attrs)
+    |> Map.put_new(
+      :player_stats,
+      Enum.map(sport.player_statistics, fn stat ->
+        %{title: stat.name, slug: stat.slug}
+      end)
+    )
+    |> OrganizationHelpers.map_organization_id()
+    |> Tournaments.create_tournament()
   end
 end

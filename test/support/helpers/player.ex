@@ -27,4 +27,10 @@ defmodule GoChampsApi.Helpers.PlayerHelpers do
 
     Map.merge(attrs, %{player_id: player.id, tournament_id: player.tournament_id})
   end
+
+  def create_player_for_tournament(tournament_id, attrs \\ %{}) do
+    %{name: "some player", tournament_id: tournament_id}
+    |> Map.merge(attrs)
+    |> Players.create_player()
+  end
 end
