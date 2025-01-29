@@ -87,14 +87,8 @@ defmodule GoChampsApi.PlayerStatsLogs.PlayerStatsLog do
       |> Sports.get_game_level_calculated_statistics!()
 
     Enum.reduce(calculated_game_level_sport_statistics, stats, fn stat, acc ->
-      case Map.has_key?(acc, stat.slug) do
-        true ->
-          acc
-
-        false ->
-          acc
-          |> Map.put(stat.slug, to_string(stat.calculation_function.(acc)))
-      end
+      acc
+      |> Map.put(stat.slug, to_string(stat.calculation_function.(acc)))
     end)
   end
 end
