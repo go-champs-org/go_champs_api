@@ -7,6 +7,7 @@ defmodule GoChampsApi.PlayerStatsLogs do
   alias GoChampsApi.Repo
 
   alias GoChampsApi.PlayerStatsLogs.PlayerStatsLog
+  alias GoChampsApi.TeamStatsLogs
 
   alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament
 
@@ -153,6 +154,8 @@ defmodule GoChampsApi.PlayerStatsLogs do
           )
           |> Repo.transaction()
 
+        start_side_effect_task(player_stats_logs)
+
         {:ok, player_stats_logs}
     end
   end
@@ -209,6 +212,8 @@ defmodule GoChampsApi.PlayerStatsLogs do
 
         case Repo.transaction(multi_player_stats_logs_and_pending_aggregated_player_stats) do
           {:ok, transaction_result} ->
+            start_side_effect_task(player_stats_logs)
+
             {:ok,
              transaction_result
              |> Map.drop([:pending_aggregated_player_stats_by_tournament])}
@@ -259,6 +264,8 @@ defmodule GoChampsApi.PlayerStatsLogs do
             pending_aggregated_player_stats_by_tournament_changeset
           )
           |> Repo.transaction()
+
+        start_side_effect_task(player_stats_logs)
 
         {:ok, player_stats_logs}
     end
@@ -314,6 +321,8 @@ defmodule GoChampsApi.PlayerStatsLogs do
 
         case Repo.transaction(multi_player_stats_logs_and_pending_aggregated_player_stats) do
           {:ok, transaction_result} ->
+            start_side_effect_task(player_stats_logs)
+
             {:ok,
              transaction_result
              |> Map.drop([:pending_aggregated_player_stats_by_tournament])}
@@ -356,6 +365,8 @@ defmodule GoChampsApi.PlayerStatsLogs do
       )
       |> Repo.transaction()
 
+    start_side_effect_task(player_stats_logs)
+
     {:ok, player_stats_logs}
   end
 
@@ -370,5 +381,51 @@ defmodule GoChampsApi.PlayerStatsLogs do
   """
   def change_player_stats_log(%PlayerStatsLog{} = player_stats_log) do
     PlayerStatsLog.changeset(player_stats_log, %{})
+  end
+
+  @doc """
+  Start side-effect task to generate results that depend on player stats logs.
+
+  ## Examples
+
+      iex> start_side_effect_tasks(player_stats_logs)
+      :ok
+  """
+  @spec start_side_effect_tasks([%PlayerStatsLog{}]) :: :ok
+  def start_side_effect_tasks(player_stats_logs) do
+    [player_stats_log | _] = player_stats_logs
+
+    start_side_effect_task(player_stats_log)
+  end
+
+  @doc """
+  Start side-effect task to generate results that depend on player stats log.
+
+  ## Examples
+
+      iex> start_side_effect_task(player_stats_log)
+      :ok
+  """
+  @spec start_side_effect_task(%PlayerStatsLog{}) :: :ok
+  def start_side_effect_task(%PlayerStatsLog{game_id: game_id}) do
+    task_supervisor = Application.get_env(:go_champs_api, :task_supervisor)
+
+    IO.inspect(task_supervisor)
+    IO.inspect(Task.Supervisor)
+
+    Task.Supervisor.start_child(
+      task_supervisor,
+      fn ->
+        TeamStatsLogs.generate_team_stats_log(game_id)
+      end
+    )
+
+    # Generate game stats
+    :ok
+  end
+
+  @spec start_side_effect_task(%PlayerStatsLog{}) :: :ok
+  def start_side_effect_task(_) do
+    :ok
   end
 end

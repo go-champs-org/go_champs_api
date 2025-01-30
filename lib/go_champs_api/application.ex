@@ -8,11 +8,17 @@ defmodule GoChampsApi.Application do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
     # List all child processes to be supervised
+    task_supervisor = Application.get_env(:go_champs_api, :task_supervisor)
+
+    IO.inspect(task_supervisor)
+
     children = [
       # Start the Ecto repository
       GoChampsApi.Repo,
       # Start the PubSub system
       {Phoenix.PubSub, name: GoChampsApiWeb.PubSub},
+      # Start task supervisor
+      {Task.Supervisor, name: task_supervisor},
       # Start the endpoint when the application starts
       GoChampsApiWeb.Endpoint,
       # Starts a worker by calling: GoChampsApi.Worker.start_link(arg)

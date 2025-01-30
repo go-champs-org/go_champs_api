@@ -52,7 +52,8 @@ defmodule GoChampsApi.MixProject do
       {:recaptcha, "~> 3.0"},
       {:quantum, "~> 3.0"},
       {:amqp, "~> 3.3"},
-      {:amqp_client, "~> 3.12"}
+      {:amqp_client, "~> 3.12"},
+      {:mox, "~> 1.0", only: :test}
     ]
   end
 

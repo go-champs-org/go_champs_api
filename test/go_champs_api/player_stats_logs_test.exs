@@ -1,12 +1,22 @@
 defmodule GoChampsApi.PlayerStatsLogsTest do
-  alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
+  import Mox
+
+  alias GoChampsApi.Helpers.TournamentHelpers
 
   alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Helpers.PlayerHelpers
   alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments
   alias GoChampsApi.Phases
+  alias GoChampsApi.TaskSupervisorMock
+
+  setup :verify_on_exit!
+
+  # setup do
+  #   Application.put_env(:go_champs_api, :task_supervisor, TaskSupervisorMock)
+  #   :ok
+  # end
 
   describe "player_stats_log" do
     alias GoChampsApi.Phases.Phase
@@ -97,6 +107,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
     end
 
     test "create_player_stats_log/1 with valid data and creates a player_stats_log and add pending aggregated player stats" do
+      expect(TaskSupervisorMock, :start_child, fn _args, _fn -> :ok end)
       valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
 
       assert {:ok, %PlayerStatsLog{} = player_stats_log} =

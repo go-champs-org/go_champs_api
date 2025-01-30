@@ -7,7 +7,7 @@ defmodule GoChampsApi.TeamStatsLogs do
   alias GoChampsApi.Repo
 
   alias GoChampsApi.TeamStatsLogs.TeamStatsLog
-
+  alias GoChampsApi.Games.Game
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamStatsByPhase
 
   @doc """
@@ -349,6 +349,21 @@ defmodule GoChampsApi.TeamStatsLogs do
       |> Repo.transaction()
 
     {:ok, team_stats_logs}
+  end
+
+  @doc """
+  Generates a team_stats_log based on a game
+
+  ## Examples
+
+      iex> generate_team_stats_log("game-id")
+      :ok
+
+  """
+  @spec generate_team_stats_log(game_id :: Ecto.UUID.t()) :: :ok
+  def generate_team_stats_log(game_id) do
+    IO.inspect("Generating team stats log for game #{game_id}")
+    :ok
   end
 
   @doc """

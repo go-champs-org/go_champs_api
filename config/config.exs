@@ -23,6 +23,8 @@ config :go_champs_api, GoChampsApiWeb.Auth.Guardian,
     System.get_env("SECRET_AUTH_KEY") ||
       "ptHFgyK8ePlG2uYnwP7KJhEzfp1s/Xmu6Agtj9iuJA5IU8+g8CCi8zScfaaT+yOX"
 
+config :go_champs_api, task_supervisor: GoChampsApi.TaskSupervisor
+
 # config :go_champs_api, :phoenix_swagger,
 #   swagger_files: %{
 #     "priv/static/swagger.json" => [
