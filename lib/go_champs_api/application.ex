@@ -18,6 +18,7 @@ defmodule GoChampsApi.Application do
       # Starts a worker by calling: GoChampsApi.Worker.start_link(arg)
       # {GoChampsApi.Worker, arg},
       GoChampsApi.Scheduler,
+      {Oban, Application.fetch_env!(:go_champs_api, Oban)},
       GoChampsApi.Infrastructure.RabbitMQ
     ]
 
