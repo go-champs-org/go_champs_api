@@ -32,8 +32,8 @@ defmodule GoChampsApi.Draws.Draw do
   def changeset(draw, attrs) do
     draw
     |> cast(attrs, [:order, :title, :phase_id])
-    |> cast_embed(:matches, with: &match_changeset/2)
-    |> validate_required([:matches, :phase_id])
+    |> cast_embed(:matches, with: &match_changeset/2, required: true)
+    |> validate_required([:phase_id])
   end
 
   defp match_changeset(schema, params) do

@@ -161,7 +161,9 @@ defmodule GoChampsApi.EliminationsTest do
       second_attrs = %{
         title: "some title",
         info: "some info",
-        team_stats: [],
+        team_stats: [
+          %{placeholder: "placeholder", team_id: "team-id", stats: %{"key" => "value"}}
+        ],
         phase_id: second_phase.id
       }
 

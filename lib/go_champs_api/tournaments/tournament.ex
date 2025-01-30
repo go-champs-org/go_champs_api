@@ -58,8 +58,8 @@ defmodule GoChampsApi.Tournaments.Tournament do
       :sport_name,
       :visibility
     ])
-    |> cast_embed(:player_stats, with: &player_stats_changeset/2)
-    |> cast_embed(:team_stats, with: &team_stats_changeset/2)
+    |> cast_embed(:player_stats, with: &player_stats_changeset/2, required: false)
+    |> cast_embed(:team_stats, with: &team_stats_changeset/2, required: false)
     |> validate_required([:name, :slug, :organization_id])
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     |> unique_constraint(:slug, name: :tournaments_slug_organization_id_index)

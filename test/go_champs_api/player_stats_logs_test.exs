@@ -1,6 +1,9 @@
 defmodule GoChampsApi.PlayerStatsLogsTest do
+  alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.GameHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Tournaments
@@ -21,6 +24,8 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
         attrs
         |> Enum.into(@valid_attrs)
         |> PlayerHelpers.map_player_id_and_tournament_id()
+        |> PhaseHelpers.map_phase_id()
+        |> GameHelpers.map_game_id()
         |> PlayerStatsLogs.create_player_stats_log()
 
       player_stats_log
@@ -111,6 +116,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       assert pending_aggregated_player_stats_by_tournament.tournament_id ==
                player_stats_log.tournament_id
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: player_stats_log.game_id}
+      )
     end
 
     test "create_player_stats_log/1 with valid data that matches tournament player stats slugs creates a player_stats_log with slug stats and add pending aggregated player stats" do
@@ -154,6 +164,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       assert pending_aggregated_player_stats_by_tournament.tournament_id ==
                player_stats_log.tournament_id
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: player_stats_log.game_id}
+      )
     end
 
     test "create_player_stats_log/1 with valid data that matches tournament sport statistics store result of calculated stats" do
@@ -206,6 +221,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       assert pending_aggregated_player_stats_by_tournament.tournament_id ==
                player_stats_log.tournament_id
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: player_stats_log.game_id}
+      )
     end
 
     test "create_player_stats_log/1 with invalid data returns error changeset" do
@@ -213,11 +233,12 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
     end
 
     test "create_player_stats_logs/1 with valid data creates a player_stats_log and add pending aggregated player stats" do
-      first_valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
+      first_valid_attrs = PlayerHelpers.map_player_id_and_tournament_id_and_game_id(@valid_attrs)
 
       second_valid_attrs =
         @valid_attrs
         |> Map.merge(%{
+          game_id: first_valid_attrs.game_id,
           player_id: first_valid_attrs.player_id,
           tournament_id: first_valid_attrs.tournament_id
         })
@@ -244,6 +265,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       assert pending_aggregated_player_stats_by_tournament.tournament_id ==
                batch_results[0].tournament_id
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: first_valid_attrs.game_id}
+      )
     end
 
     test "update_player_stats_log/2 with valid data updates the player_stats_log and creates a player_stats_log and add pending aggregated player stats" do
@@ -266,6 +292,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == [
                player_stats_log.tournament_id
              ]
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: player_stats_log.game_id}
+      )
     end
 
     test "update_player_stats_log/2 with invalid data returns error changeset" do
@@ -278,7 +309,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
     end
 
     test "update_player_stats_logs/1 with valid data updates the player_stats_log and creates a player_stats_log and add pending aggregated player stats" do
-      attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
+      attrs = PlayerHelpers.map_player_id_and_tournament_id_and_game_id(@valid_attrs)
 
       {:ok, %PlayerStatsLog{} = first_player_stats_log} =
         PlayerStatsLogs.create_player_stats_log(attrs)
@@ -326,6 +357,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == [
                attrs.tournament_id
              ]
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: attrs.game_id}
+      )
     end
 
     test "delete_player_stats_log/1 deletes the player_stats_log" do
@@ -346,6 +382,11 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == [
                player_stats_log.tournament_id
              ]
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
+        args: %{game_id: player_stats_log.game_id}
+      )
     end
 
     test "change_player_stats_log/1 returns a player_stats_log changeset" do

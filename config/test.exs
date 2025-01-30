@@ -20,7 +20,7 @@ config :go_champs_api, GoChampsApi.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
 
-config :go_champs_api, Oban, testing: :inline
+config :go_champs_api, Oban, testing: :manual
 
 config :recaptcha,
   secret: "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"

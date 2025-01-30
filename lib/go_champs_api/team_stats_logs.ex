@@ -363,4 +363,11 @@ defmodule GoChampsApi.TeamStatsLogs do
   def change_team_stats_log(%TeamStatsLog{} = team_stats_log) do
     TeamStatsLog.changeset(team_stats_log, %{})
   end
+
+  @spec generate_team_stats_log_from_game_id(game_id :: String.t()) :: :ok | :error
+  def generate_team_stats_log_from_game_id(game_id) do
+    # IO.inspect("Generating team stats log from game id: #{game_id}")
+    # case Repo.get_by(Game, id: game_id) do
+    # end
+  end
 end

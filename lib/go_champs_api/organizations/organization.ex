@@ -21,7 +21,7 @@ defmodule GoChampsApi.Organizations.Organization do
   def changeset(organization, attrs) do
     organization
     |> cast(attrs, [:name, :slug])
-    |> cast_embed(:members, with: &member_changeset/2)
+    |> cast_embed(:members, with: &member_changeset/2, required: false)
     |> validate_required([:name, :slug])
     |> validate_format(:slug, ~r/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     |> unique_constraint(:slug)
