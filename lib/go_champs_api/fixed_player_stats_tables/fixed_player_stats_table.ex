@@ -24,8 +24,8 @@ defmodule GoChampsApi.FixedPlayerStatsTables.FixedPlayerStatsTable do
       :stat_id,
       :tournament_id
     ])
-    |> cast_embed(:player_stats, with: &player_stats_changeset/2)
-    |> validate_required([:player_stats, :stat_id, :tournament_id])
+    |> cast_embed(:player_stats, with: &player_stats_changeset/2, required: true)
+    |> validate_required([:stat_id, :tournament_id])
   end
 
   defp player_stats_changeset(schema, params) do

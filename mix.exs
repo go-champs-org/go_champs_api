@@ -37,8 +37,8 @@ defmodule GoChampsApi.MixProject do
       {:phoenix_pubsub, "~> 2.0"},
       {:phoenix_ecto, "~> 4.0"},
       {:poison, "~> 3.1"},
-      {:ecto_sql, "~> 3.0"},
-      {:postgrex, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.10.0"},
+      {:postgrex, ">= 0.17.5"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.1"},
@@ -52,7 +52,8 @@ defmodule GoChampsApi.MixProject do
       {:recaptcha, "~> 3.0"},
       {:quantum, "~> 3.0"},
       {:amqp, "~> 3.3"},
-      {:amqp_client, "~> 3.12"}
+      {:amqp_client, "~> 3.12"},
+      {:oban, "~> 2.15.0"}
     ]
   end
 

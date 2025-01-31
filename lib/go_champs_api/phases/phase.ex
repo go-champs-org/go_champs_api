@@ -29,7 +29,7 @@ defmodule GoChampsApi.Phases.Phase do
   def changeset(phase, attrs) do
     phase
     |> cast(attrs, [:title, :type, :order, :is_in_progress, :tournament_id])
-    |> cast_embed(:elimination_stats, with: &elimination_stats_changeset/2)
+    |> cast_embed(:elimination_stats, with: &elimination_stats_changeset/2, required: false)
     |> validate_required([:title, :type, :tournament_id])
   end
 

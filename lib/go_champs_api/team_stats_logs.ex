@@ -7,8 +7,14 @@ defmodule GoChampsApi.TeamStatsLogs do
   alias GoChampsApi.Repo
 
   alias GoChampsApi.TeamStatsLogs.TeamStatsLog
-
+  alias GoChampsApi.Games.Game
+  alias GoChampsApi.PlayerStatsLogs
+  alias GoChampsApi.Sports
+  alias GoChampsApi.Tournaments
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamStatsByPhase
+  alias GoChampsApi.AggregatedPlayerStatsByTournaments
+
+  require Logger
 
   @doc """
   Returns the list of team_stats_log.
@@ -33,8 +39,21 @@ defmodule GoChampsApi.TeamStatsLogs do
 
   """
   def list_team_stats_log(where) do
-    query = from t in TeamStatsLog, where: ^where
+    query = from t in TeamStatsLog, where: ^build_where_clause(where)
     Repo.all(query)
+  end
+
+  defp build_where_clause(where) do
+    Enum.reduce(where, dynamic(true), fn
+      {:phase_id, nil}, dynamic ->
+        dynamic([t], ^dynamic and is_nil(t.phase_id))
+
+      {:team_id, nil}, dynamic ->
+        dynamic([t], ^dynamic and is_nil(t.team_id))
+
+      {field, value}, dynamic ->
+        dynamic([t], ^dynamic and field(t, ^field) == ^value)
+    end)
   end
 
   @doc """
@@ -362,5 +381,62 @@ defmodule GoChampsApi.TeamStatsLogs do
   """
   def change_team_stats_log(%TeamStatsLog{} = team_stats_log) do
     TeamStatsLog.changeset(team_stats_log, %{})
+  end
+
+  @spec generate_team_stats_log_from_game_id(game_id :: String.t()) :: :ok | :error
+  def generate_team_stats_log_from_game_id(game_id) do
+    Logger.info("Generating team stats log from game id: #{game_id}")
+
+    case Repo.get!(Game, game_id)
+         |> Repo.preload(phase: :tournament) do
+      nil ->
+        :error
+
+      game ->
+        base_team_stats_log = %{
+          game_id: game_id,
+          phase_id: game.phase_id,
+          tournament_id: game.phase.tournament_id
+        }
+
+        base_team_stats_log
+        |> map_stats_and_team_id(game, game.home_team_id)
+        |> upsert_team_stats_log()
+
+        base_team_stats_log
+        |> map_stats_and_team_id(game, game.away_team_id)
+        |> upsert_team_stats_log()
+
+        :ok
+    end
+  end
+
+  @spec map_stats_and_team_id(base_attrs :: %{}, %Game{}, team_id :: String.t()) :: %{}
+  def map_stats_and_team_id(base_attrs, game, team_id) do
+    player_stats_logs = PlayerStatsLogs.list_player_stats_log(game_id: game.id, team_id: team_id)
+
+    aggregated_player_stats =
+      game.phase.tournament
+      |> Tournaments.get_player_stats_keys()
+      |> AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
+        player_stats_logs
+      )
+
+    calculated_home_player_stats =
+      Sports.get_game_level_calculated_statistics!(game.phase.tournament.sport_slug)
+      |> AggregatedPlayerStatsByTournaments.calculate_player_stats(aggregated_player_stats)
+
+    Map.merge(base_attrs, %{team_id: team_id, stats: calculated_home_player_stats})
+  end
+
+  @spec upsert_team_stats_log(%{}) :: :ok | :error
+  def upsert_team_stats_log(attrs) do
+    case list_team_stats_log(game_id: attrs.game_id, team_id: attrs.team_id) do
+      [] ->
+        create_team_stats_log(attrs)
+
+      [team_stats_log] ->
+        update_team_stats_log(team_stats_log, attrs)
+    end
   end
 end
