@@ -5,7 +5,6 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
   alias GoChampsApi.Players
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Helpers.OrganizationHelpers
-  alias GoChampsApi.Sports
   alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Helpers.PlayerHelpers
 
@@ -456,118 +455,6 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
       assert 0 ==
                AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament()
                |> Enum.count()
-    end
-
-    test "aggregate_player_stats_from_player_stats_logs/2 returns a map with player stats aggregated" do
-      valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
-      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
-
-      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
-
-      first_valid_attrs =
-        PlayerHelpers.map_player_id(tournament.id, %{
-          stats: %{
-            first_player_stat.id => "6",
-            second_player_stat.id => "2"
-          }
-        })
-
-      second_valid_attrs =
-        %{
-          stats: %{first_player_stat.id => "4", second_player_stat.id => "3"}
-        }
-        |> Map.merge(%{
-          player_id: first_valid_attrs.player_id,
-          tournament_id: first_valid_attrs.tournament_id
-        })
-
-      assert {:ok, _batch_results} =
-               PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
-
-      assert %{first_player_stat.id => 10.0, second_player_stat.id => 5.0} ==
-               AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-                 [first_player_stat.id, second_player_stat.id],
-                 [first_valid_attrs, second_valid_attrs]
-               )
-    end
-
-    test "aggregate_player_stats_from_player_stats_logs/2 returns a map with player stats aggregated when player stats has a string" do
-      valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
-      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
-
-      [first_player_stat, second_player_stat | _tail] = tournament.player_stats
-
-      first_valid_attrs =
-        PlayerHelpers.map_player_id(tournament.id, %{
-          stats: %{
-            first_player_stat.id => "six - points",
-            second_player_stat.id => "2"
-          }
-        })
-
-      second_valid_attrs =
-        %{
-          stats: %{first_player_stat.id => "4", second_player_stat.id => "3"}
-        }
-        |> Map.merge(%{
-          player_id: first_valid_attrs.player_id,
-          tournament_id: first_valid_attrs.tournament_id
-        })
-
-      assert {:ok, _batch_results} =
-               PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
-
-      result_stats =
-        AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-          [first_player_stat.id, second_player_stat.id],
-          [first_valid_attrs, second_valid_attrs]
-        )
-
-      assert result_stats[first_player_stat.id] == 4.0
-      assert result_stats[second_player_stat.id] == 5.0
-    end
-
-    test "calculate_player_stats/2 returns a map with calculated statistics values" do
-      valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
-      assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
-
-      first_valid_attrs =
-        PlayerHelpers.map_player_id(tournament.id, %{
-          stats: %{
-            "rebounds" => "6",
-            "game_played" => "1"
-          }
-        })
-
-      second_valid_attrs =
-        %{
-          stats: %{"rebounds" => "4", "game_played" => "1"}
-        }
-        |> Map.merge(%{
-          player_id: first_valid_attrs.player_id,
-          tournament_id: first_valid_attrs.tournament_id
-        })
-
-      assert {:ok, _batch_results} =
-               PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
-
-      aggregated_stats =
-        AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-          ["rebounds", "game_played"],
-          [first_valid_attrs, second_valid_attrs]
-        )
-
-      calculated_player_stats =
-        Sports.get_tournament_level_per_game_statistics!(tournament.sport_slug)
-
-      result_stats =
-        AggregatedPlayerStatsByTournaments.calculate_player_stats(
-          calculated_player_stats,
-          aggregated_stats
-        )
-
-      assert result_stats["rebounds"] == 10.0
-      assert result_stats["rebounds_per_game"] == 5.0
     end
   end
 end

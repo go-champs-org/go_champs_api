@@ -12,7 +12,6 @@ defmodule GoChampsApi.TeamStatsLogs do
   alias GoChampsApi.Sports
   alias GoChampsApi.Tournaments
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamStatsByPhase
-  alias GoChampsApi.AggregatedPlayerStatsByTournaments
 
   require Logger
 
@@ -413,20 +412,17 @@ defmodule GoChampsApi.TeamStatsLogs do
 
   @spec map_stats_and_team_id(base_attrs :: %{}, %Game{}, team_id :: String.t()) :: %{}
   def map_stats_and_team_id(base_attrs, game, team_id) do
-    player_stats_logs = PlayerStatsLogs.list_player_stats_log(game_id: game.id, team_id: team_id)
+    case PlayerStatsLogs.list_player_stats_log(game_id: game.id, team_id: team_id) do
+      [] ->
+        Map.merge(base_attrs, %{team_id: team_id})
 
-    aggregated_player_stats =
-      game.phase.tournament
-      |> Tournaments.get_player_stats_keys()
-      |> AggregatedPlayerStatsByTournaments.aggregate_player_stats_from_player_stats_logs(
-        player_stats_logs
-      )
+      player_stats_logs ->
+        stats =
+          player_stats_logs
+          |> PlayerStatsLogs.aggregate_and_calculate_player_stats_from_player_stats_logs()
 
-    calculated_home_player_stats =
-      Sports.get_game_level_calculated_statistics!(game.phase.tournament.sport_slug)
-      |> AggregatedPlayerStatsByTournaments.calculate_player_stats(aggregated_player_stats)
-
-    Map.merge(base_attrs, %{team_id: team_id, stats: calculated_home_player_stats})
+        Map.merge(base_attrs, %{team_id: team_id, stats: stats})
+    end
   end
 
   @spec upsert_team_stats_log(%{}) :: :ok | :error
