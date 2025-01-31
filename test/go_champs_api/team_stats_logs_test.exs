@@ -1,12 +1,18 @@
 defmodule GoChampsApi.TeamStatsLogsTest do
+  alias GoChampsApi.Helpers.PlayerHelpers
   use GoChampsApi.DataCase
 
   alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Tournaments
-  alias GoChampsApi.Helpers.TeamHelpers
+  alias GoChampsApi.Helpers.GameHelpers
   alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.PlayerHelpers
+  alias GoChampsApi.Helpers.PlayerStatsLogHelper
+  alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases
   alias GoChampsApi.Phases
+  alias GoChampsApi.Games
+  alias GoChampsApi.PlayerStatsLogs
 
   describe "team_stats_log" do
     alias GoChampsApi.Phases.Phase
@@ -32,7 +38,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert TeamStatsLogs.list_team_stats_log() == [team_stats_log]
     end
 
-    test "list_team_stats_log/1 returns all tournaments pertaining to some game id" do
+    test "list_team_stats_log/1 returns all team_stats_log pertaining to some game id" do
       first_valid_attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
         |> PhaseHelpers.map_phase_id_for_tournament()
@@ -60,6 +66,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       where = [phase_id: phase.id]
       assert TeamStatsLogs.list_team_stats_log(where) == [batch_results[1]]
+    end
+
+    test "list_team_stats_log/1 returns all team_stats_log that does have phase as nil" do
+      team_stats_log_fixture()
+      assert TeamStatsLogs.list_team_stats_log(phase_id: nil) == []
     end
 
     test "get_team_stats_log!/1 returns the team_stats_log with given id" do
@@ -245,6 +256,212 @@ defmodule GoChampsApi.TeamStatsLogsTest do
     test "change_team_stats_log/1 returns a team_stats_log changeset" do
       team_stats_log = team_stats_log_fixture()
       assert %Ecto.Changeset{} = TeamStatsLogs.change_team_stats_log(team_stats_log)
+    end
+
+    test "generate_team_stats_log_from_game_id/1 creates a team_stats_log for the home team of a game" do
+      first_player_stats_log =
+        PlayerStatsLogHelper.create_player_stats_log_for_tournament_with_sport([
+          {"rebounds_defensive", "10"},
+          {"rebounds_offensive", "5"}
+        ])
+
+      %{
+        tournament_id: first_player_stats_log.tournament_id,
+        phase_id: first_player_stats_log.phase_id,
+        game_id: first_player_stats_log.game_id,
+        team_id: first_player_stats_log.team_id,
+        stats: %{
+          "rebounds_defensive" => "4",
+          "rebounds_offensive" => "1"
+        }
+      }
+      |> PlayerHelpers.map_player_id_in_attrs()
+      |> PlayerStatsLogs.create_player_stats_log()
+
+      Games.get_game!(first_player_stats_log.game_id)
+      |> GameHelpers.set_home_team_id(first_player_stats_log.team_id)
+
+      assert :ok =
+               TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
+
+      [team_stats_log] =
+        TeamStatsLogs.list_team_stats_log(
+          game_id: first_player_stats_log.game_id,
+          team_id: first_player_stats_log.team_id
+        )
+
+      assert team_stats_log.stats["rebounds"] == 20.0
+      assert team_stats_log.stats["rebounds_defensive"] == 14.0
+      assert team_stats_log.stats["rebounds_offensive"] == 6.0
+    end
+
+    test "generate_team_stats_log_from_game_id/1 creates a team_stats_log for the away team of a game" do
+      first_player_stats_log =
+        PlayerStatsLogHelper.create_player_stats_log_for_tournament_with_sport([
+          {"rebounds_defensive", "10"},
+          {"rebounds_offensive", "5"}
+        ])
+
+      %{
+        tournament_id: first_player_stats_log.tournament_id,
+        phase_id: first_player_stats_log.phase_id,
+        game_id: first_player_stats_log.game_id,
+        team_id: first_player_stats_log.team_id,
+        stats: %{
+          "rebounds_defensive" => "4",
+          "rebounds_offensive" => "1"
+        }
+      }
+      |> PlayerHelpers.map_player_id_in_attrs()
+      |> PlayerStatsLogs.create_player_stats_log()
+
+      Games.get_game!(first_player_stats_log.game_id)
+      |> GameHelpers.set_away_team_id(first_player_stats_log.team_id)
+
+      assert :ok =
+               TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
+
+      [team_stats_log] =
+        TeamStatsLogs.list_team_stats_log(
+          game_id: first_player_stats_log.game_id,
+          team_id: first_player_stats_log.team_id
+        )
+
+      assert team_stats_log.stats["rebounds"] == 20.0
+      assert team_stats_log.stats["rebounds_defensive"] == 14.0
+      assert team_stats_log.stats["rebounds_offensive"] == 6.0
+    end
+
+    test "generate_team_stats_log_from_game_id/1 updates the team stats logs for the home team of a game" do
+      first_player_stats_log =
+        PlayerStatsLogHelper.create_player_stats_log_for_tournament_with_sport([
+          {"rebounds_defensive", "10"},
+          {"rebounds_offensive", "5"}
+        ])
+
+      %{
+        tournament_id: first_player_stats_log.tournament_id,
+        phase_id: first_player_stats_log.phase_id,
+        game_id: first_player_stats_log.game_id,
+        team_id: first_player_stats_log.team_id,
+        stats: %{
+          "rebounds_defensive" => "4",
+          "rebounds_offensive" => "1"
+        }
+      }
+      |> PlayerHelpers.map_player_id_in_attrs()
+      |> PlayerStatsLogs.create_player_stats_log()
+
+      Games.get_game!(first_player_stats_log.game_id)
+      |> GameHelpers.set_home_team_id(first_player_stats_log.team_id)
+
+      # First creation
+      assert :ok =
+               TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
+
+      [team_stats_log] =
+        TeamStatsLogs.list_team_stats_log(
+          game_id: first_player_stats_log.game_id,
+          team_id: first_player_stats_log.team_id
+        )
+
+      # Assert the first creation
+      assert team_stats_log.stats["rebounds"] == 20.0
+      assert team_stats_log.stats["rebounds_defensive"] == 14.0
+      assert team_stats_log.stats["rebounds_offensive"] == 6.0
+
+      %{
+        tournament_id: first_player_stats_log.tournament_id,
+        phase_id: first_player_stats_log.phase_id,
+        game_id: first_player_stats_log.game_id,
+        team_id: first_player_stats_log.team_id,
+        stats: %{
+          "rebounds_defensive" => "6",
+          "rebounds_offensive" => "2"
+        }
+      }
+      |> PlayerHelpers.map_player_id_in_attrs()
+      |> PlayerStatsLogs.create_player_stats_log()
+
+      assert :ok =
+               TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
+
+      [team_stats_log] =
+        TeamStatsLogs.list_team_stats_log(
+          game_id: first_player_stats_log.game_id,
+          team_id: first_player_stats_log.team_id
+        )
+
+      # Assert the update of the team stats logs
+      assert team_stats_log.stats["rebounds"] == 28.0
+      assert team_stats_log.stats["rebounds_defensive"] == 20.0
+      assert team_stats_log.stats["rebounds_offensive"] == 8.0
+    end
+
+    test "generate_team_stats_log_from_game_id/1 update the team stats logs for the away team of a game" do
+      first_player_stats_log =
+        PlayerStatsLogHelper.create_player_stats_log_for_tournament_with_sport([
+          {"rebounds_defensive", "10"},
+          {"rebounds_offensive", "5"}
+        ])
+
+      %{
+        tournament_id: first_player_stats_log.tournament_id,
+        phase_id: first_player_stats_log.phase_id,
+        game_id: first_player_stats_log.game_id,
+        team_id: first_player_stats_log.team_id,
+        stats: %{
+          "rebounds_defensive" => "4",
+          "rebounds_offensive" => "1"
+        }
+      }
+      |> PlayerHelpers.map_player_id_in_attrs()
+      |> PlayerStatsLogs.create_player_stats_log()
+
+      Games.get_game!(first_player_stats_log.game_id)
+      |> GameHelpers.set_away_team_id(first_player_stats_log.team_id)
+
+      # First creation
+      assert :ok =
+               TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
+
+      [team_stats_log] =
+        TeamStatsLogs.list_team_stats_log(
+          game_id: first_player_stats_log.game_id,
+          team_id: first_player_stats_log.team_id
+        )
+
+      # Assert the first creation
+      assert team_stats_log.stats["rebounds"] == 20.0
+      assert team_stats_log.stats["rebounds_defensive"] == 14.0
+      assert team_stats_log.stats["rebounds_offensive"] == 6.0
+
+      %{
+        tournament_id: first_player_stats_log.tournament_id,
+        phase_id: first_player_stats_log.phase_id,
+        game_id: first_player_stats_log.game_id,
+        team_id: first_player_stats_log.team_id,
+        stats: %{
+          "rebounds_defensive" => "6",
+          "rebounds_offensive" => "2"
+        }
+      }
+      |> PlayerHelpers.map_player_id_in_attrs()
+      |> PlayerStatsLogs.create_player_stats_log()
+
+      assert :ok =
+               TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
+
+      [team_stats_log] =
+        TeamStatsLogs.list_team_stats_log(
+          game_id: first_player_stats_log.game_id,
+          team_id: first_player_stats_log.team_id
+        )
+
+      # Assert the update of the team stats logs
+      assert team_stats_log.stats["rebounds"] == 28.0
+      assert team_stats_log.stats["rebounds_defensive"] == 20.0
+      assert team_stats_log.stats["rebounds_offensive"] == 8.0
     end
   end
 end

@@ -33,8 +33,24 @@ defmodule GoChampsApi.PlayerStatsLogs do
 
   """
   def list_player_stats_log(where) do
-    query = from t in PlayerStatsLog, where: ^where
+    query =
+      from t in PlayerStatsLog,
+        where: ^build_where_clause(where)
+
     Repo.all(query)
+  end
+
+  defp build_where_clause(where) do
+    Enum.reduce(where, dynamic(true), fn
+      {:phase_id, nil}, dynamic ->
+        dynamic([t], ^dynamic and is_nil(t.phase_id))
+
+      {:team_id, nil}, dynamic ->
+        dynamic([t], ^dynamic and is_nil(t.team_id))
+
+      {field, value}, dynamic ->
+        dynamic([t], ^dynamic and field(t, ^field) == ^value)
+    end)
   end
 
   @doc """

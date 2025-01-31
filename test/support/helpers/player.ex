@@ -3,6 +3,15 @@ defmodule GoChampsApi.Helpers.PlayerHelpers do
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.Players
 
+  def map_player_id_in_attrs(attrs \\ %{}) do
+    {:ok, player} =
+      %{name: "some player"}
+      |> create_or_use_tournament_id(attrs)
+      |> Players.create_player()
+
+    Map.merge(attrs, %{player_id: player.id})
+  end
+
   def map_player_id(tournament_id, attrs \\ %{}) do
     {:ok, player} =
       %{name: "some player", tournament_id: tournament_id}
@@ -45,5 +54,16 @@ defmodule GoChampsApi.Helpers.PlayerHelpers do
     %{name: "some player", tournament_id: tournament_id}
     |> Map.merge(attrs)
     |> Players.create_player()
+  end
+
+  defp create_or_use_tournament_id(player_attrs, additional_attrs) do
+    case Map.fetch(additional_attrs, :tournament_id) do
+      {:ok, tournament_id} ->
+        Map.merge(player_attrs, %{tournament_id: tournament_id})
+
+      :error ->
+        player_attrs
+        |> TournamentHelpers.map_tournament_id()
+    end
   end
 end

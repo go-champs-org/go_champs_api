@@ -22,4 +22,14 @@ defmodule GoChampsApi.Helpers.GameHelpers do
         |> PhaseHelpers.map_phase_id()
     end
   end
+
+  def set_home_team_id(game, team_id) do
+    game
+    |> Games.update_game(%{home_team_id: team_id})
+  end
+
+  def set_away_team_id(game, team_id) do
+    game
+    |> Games.update_game(%{away_team_id: team_id})
+  end
 end

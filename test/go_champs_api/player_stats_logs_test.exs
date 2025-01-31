@@ -1,7 +1,7 @@
 defmodule GoChampsApi.PlayerStatsLogsTest do
   alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Helpers.GameHelpers
-  alias GoChampsApi.Helpers.TournamentHelpers
+  alias GoChampsApi.Helpers.PlayerStatsLogHelper
   use GoChampsApi.DataCase
   use Oban.Testing, repo: GoChampsApi.Repo
 
@@ -31,32 +31,12 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       player_stats_log
     end
 
-    def player_stats_log_for_tournament_with_sport(player_stats_values \\ []) do
-      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
-      {:ok, player} = PlayerHelpers.create_player_for_tournament(tournament.id)
-
-      player_stats =
-        Enum.reduce(player_stats_values, %{}, fn {player_stat_slug, value}, acc ->
-          Map.put(acc, player_stat_slug, value)
-        end)
-
-      {:ok, player_stats_log} =
-        %{
-          player_id: player.id,
-          tournament_id: tournament.id,
-          stats: player_stats
-        }
-        |> PlayerStatsLogs.create_player_stats_log()
-
-      player_stats_log
-    end
-
     test "list_player_stats_log/0 returns all player_stats_log" do
       player_stats_log = player_stats_log_fixture()
       assert PlayerStatsLogs.list_player_stats_log() == [player_stats_log]
     end
 
-    test "list_player_stats_log/1 returns all tournaments pertaining to some game id" do
+    test "list_player_stats_log/1 returns all player_stats_logs pertaining to some game id" do
       first_valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
 
       phase_attrs = %{
@@ -82,6 +62,34 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
       where = [phase_id: phase.id]
       assert PlayerStatsLogs.list_player_stats_log(where) == [batch_results[1]]
+    end
+
+    test "list_player_stats_log/1 returns all player_stats_logs that phase_id is nil" do
+      first_valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
+
+      phase_attrs = %{
+        is_in_progress: true,
+        title: "some title",
+        type: "elimination",
+        elimination_stats: [%{"title" => "stat title"}],
+        tournament_id: first_valid_attrs.tournament_id
+      }
+
+      assert {:ok, %Phase{} = phase} = Phases.create_phase(phase_attrs)
+
+      second_valid_attrs =
+        @valid_attrs
+        |> Map.merge(%{
+          player_id: first_valid_attrs.player_id,
+          tournament_id: first_valid_attrs.tournament_id,
+          phase_id: phase.id
+        })
+
+      assert {:ok, batch_results} =
+               PlayerStatsLogs.create_player_stats_logs([first_valid_attrs, second_valid_attrs])
+
+      where = [phase_id: nil]
+      assert PlayerStatsLogs.list_player_stats_log(where) == [batch_results[0]]
     end
 
     test "get_player_stats_log!/1 returns the player_stats_log with given id" do
@@ -173,7 +181,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
 
     test "create_player_stats_log/1 with valid data that matches tournament sport statistics store result of calculated stats" do
       player_stats_log =
-        player_stats_log_for_tournament_with_sport([
+        PlayerStatsLogHelper.create_player_stats_log_for_tournament_with_sport([
           {"rebounds_defensive", "10"},
           {"rebounds_offensive", "5"}
         ])
