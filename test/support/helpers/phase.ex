@@ -42,7 +42,7 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
     Map.merge(attrs, %{phase_id: phase.id})
   end
 
-  defp create_or_use_tournament_id(phase_attrs \\ %{}, additional_attrs \\ %{}) do
+  defp create_or_use_tournament_id(phase_attrs, additional_attrs) do
     case Map.fetch(additional_attrs, :tournament_id) do
       {:ok, tournament_id} ->
         Map.merge(phase_attrs, %{tournament_id: tournament_id})

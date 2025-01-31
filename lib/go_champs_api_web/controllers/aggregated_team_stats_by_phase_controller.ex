@@ -2,7 +2,6 @@ defmodule GoChampsApiWeb.AggregatedTeamStatsByPhaseController do
   use GoChampsApiWeb, :controller
 
   alias GoChampsApi.AggregatedTeamStatsByPhases
-  alias GoChampsApi.AggregatedTeamStatsByPhases.AggregatedTeamStatsByPhase
 
   action_fallback GoChampsApiWeb.FallbackController
 

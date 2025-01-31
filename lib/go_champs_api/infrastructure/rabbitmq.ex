@@ -4,7 +4,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
   require Logger
 
   @queue "game-events-live-mode"
-  @queue_error "#{@queue}_error"
+  # @queue_error "#{@queue}_error"
   @accepted_sender "go-champs-scoreboard"
 
   def start_link(_) do

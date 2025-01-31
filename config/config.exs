@@ -26,7 +26,7 @@ config :go_champs_api, GoChampsApiWeb.Auth.Guardian,
 config :go_champs_api, Oban,
   repo: GoChampsApi.Repo,
   plugins: [Oban.Plugins.Pruner],
-  queues: [default: 10]
+  queues: [default: 10, generate_team_stats_logs_for_game: 1]
 
 # config :go_champs_api, :phoenix_swagger,
 #   swagger_files: %{
