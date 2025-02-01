@@ -1,6 +1,6 @@
 defmodule GoChampsApi.TeamStatsLogsTest do
-  alias GoChampsApi.Helpers.PlayerHelpers
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Tournaments
@@ -110,6 +110,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       assert pending_aggregated_team_stats_by_phase.phase_id ==
                team_stats_log.phase_id
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
+        args: %{game_id: team_stats_log.game_id}
+      )
     end
 
     test "create_team_stats_log/1 with invalid data returns error changeset" do
@@ -120,6 +125,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       first_valid_attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
         |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
 
       second_valid_attrs =
         @valid_attrs
@@ -151,6 +157,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       assert pending_aggregated_team_stats_by_phase.tournament_id ==
                batch_results[0].tournament_id
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
+        args: %{game_id: first_valid_attrs.game_id}
+      )
     end
 
     test "update_team_stats_log/2 with valid data updates the team_stats_log and creates a team_stats_log and add pending aggregated team stats" do
@@ -170,9 +181,14 @@ defmodule GoChampsApi.TeamStatsLogsTest do
                PendingAggregatedTeamStatsByPhases.list_pending_aggregated_team_stats_by_phase()
              ) == 2
 
-      # assert PendingAggregatedTeamStatsByPhases.list_phases_ids() == [
-      #          team_stats_log.phase_id
-      #        ]
+      assert PendingAggregatedTeamStatsByPhases.list_phase_ids() == [
+               team_stats_log.phase_id
+             ]
+
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+      # It needs to be two because we are calling create_team_stats_log once
+      assert Enum.count(queue) == 2
+      assert Enum.fetch!(queue, 1).args == %{"game_id" => team_stats_log.game_id}
     end
 
     test "update_team_stats_log/2 with invalid data returns error changeset" do
@@ -188,6 +204,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
         |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
 
       {:ok, %TeamStatsLog{} = first_team_stats_log} = TeamStatsLogs.create_team_stats_log(attrs)
 
@@ -228,9 +245,14 @@ defmodule GoChampsApi.TeamStatsLogsTest do
                PendingAggregatedTeamStatsByPhases.list_pending_aggregated_team_stats_by_phase()
              ) == 3
 
-      # assert PendingAggregatedTeamStatsByPhases.list_tournament_ids() == [
-      #          attrs.tournament_id
-      #        ]
+      assert PendingAggregatedTeamStatsByPhases.list_tournament_ids() == [
+               attrs.tournament_id
+             ]
+
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+      # It needs to be three because we are calling create_team_stats_log twice
+      assert Enum.count(queue) == 3
+      assert Enum.fetch!(queue, 2).args == %{"game_id" => first_team_stats_log.game_id}
     end
 
     test "delete_team_stats_log/1 deletes the team_stats_log" do
@@ -248,9 +270,14 @@ defmodule GoChampsApi.TeamStatsLogsTest do
                PendingAggregatedTeamStatsByPhases.list_pending_aggregated_team_stats_by_phase()
              ) == 2
 
-      # assert PendingAggregatedTeamStatsByPhases.list_tournament_ids() == [
-      #          team_stats_log.tournament_id
-      #        ]
+      assert PendingAggregatedTeamStatsByPhases.list_tournament_ids() == [
+               team_stats_log.tournament_id
+             ]
+
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+      # It needs to be two because we are calling create_team_stats_log once
+      assert Enum.count(queue) == 2
+      assert Enum.fetch!(queue, 1).args == %{"game_id" => team_stats_log.game_id}
     end
 
     test "change_team_stats_log/1 returns a team_stats_log changeset" do
@@ -293,6 +320,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
+        args: %{game_id: first_player_stats_log.game_id}
+      )
     end
 
     test "generate_team_stats_log_from_game_id/1 creates a team_stats_log for the away team of a game" do
@@ -330,6 +362,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
+        args: %{game_id: first_player_stats_log.game_id}
+      )
     end
 
     test "generate_team_stats_log_from_game_id/1 updates the team stats logs for the home team of a game" do
@@ -396,6 +433,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert team_stats_log.stats["rebounds"] == 28.0
       assert team_stats_log.stats["rebounds_defensive"] == 20.0
       assert team_stats_log.stats["rebounds_offensive"] == 8.0
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
+        args: %{game_id: first_player_stats_log.game_id}
+      )
     end
 
     test "generate_team_stats_log_from_game_id/1 update the team stats logs for the away team of a game" do
@@ -462,6 +504,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert team_stats_log.stats["rebounds"] == 28.0
       assert team_stats_log.stats["rebounds_defensive"] == 20.0
       assert team_stats_log.stats["rebounds_offensive"] == 8.0
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
+        args: %{game_id: first_player_stats_log.game_id}
+      )
     end
   end
 end
