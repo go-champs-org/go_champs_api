@@ -354,10 +354,15 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     )
   ]
 
+  @team_log_statistics [
+    Statistic.new("points", "Points", :manual, :game, :aggregate)
+  ]
+
   @sport Sport.new(
            "basketball_5x5",
            "Basketball 5x5",
            @player_log_statistics ++ @calculated_player_statistics,
+           @team_log_statistics,
            @default_player_statistic_to_order_by
          )
 

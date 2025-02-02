@@ -204,19 +204,7 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
     |> Enum.reduce(%{}, fn team_stats_log, aggregated_stats ->
       team_stats_keys
       |> Enum.reduce(aggregated_stats, fn team_stats_key, team_stats_map ->
-        # Get the current stat value from the team stats log
-        # Remove all non-numeric characters and empty strings
-
-        string_stat_value =
-          Map.get(team_stats_log.stats, team_stats_key, "0")
-          |> String.replace(~r/\D/, "")
-          |> String.trim()
-
-        {current_stat_value, _} =
-          case string_stat_value do
-            "" -> {0, ""}
-            _ -> Float.parse(string_stat_value)
-          end
+        current_stat_value = Map.get(team_stats_log.stats, team_stats_key, 0)
 
         aggregated_stat_value = Map.get(aggregated_stats, team_stats_key, 0)
 

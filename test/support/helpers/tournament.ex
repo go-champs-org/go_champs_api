@@ -92,6 +92,12 @@ defmodule GoChampsApi.Helpers.TournamentHelpers do
         %{title: stat.name, slug: stat.slug}
       end)
     )
+    |> Map.put_new(
+      :team_stats,
+      Enum.map(sport.team_statistics, fn stat ->
+        %{title: stat.name, slug: stat.slug}
+      end)
+    )
     |> OrganizationHelpers.map_organization_id()
     |> Tournaments.create_tournament()
   end

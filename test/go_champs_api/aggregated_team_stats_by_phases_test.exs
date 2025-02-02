@@ -147,8 +147,8 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
       first_base_valid_attrs = %{
         tournament_id: tournament.id,
         stats: %{
-          first_team_stat.id => "6",
-          second_team_stat.id => "2"
+          first_team_stat.id => 6,
+          second_team_stat.id => 2
         }
       }
 
@@ -161,8 +161,8 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
         team_id: first_valid_attrs.team_id,
         phase_id: first_valid_attrs.phase_id,
         stats: %{
-          first_team_stat.id => "4",
-          second_team_stat.id => "6"
+          first_team_stat.id => 4,
+          second_team_stat.id => 6
         }
       }
 
@@ -199,9 +199,9 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
       first_base_valid_attrs = %{
         tournament_id: tournament.id,
         stats: %{
-          first_team_stat.id => "6",
-          second_team_stat.id => "2",
-          "some" => "3"
+          first_team_stat.id => 6,
+          second_team_stat.id => 2,
+          "some" => 3
         }
       }
 
@@ -214,9 +214,9 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
         team_id: first_valid_attrs.team_id,
         phase_id: first_valid_attrs.phase_id,
         stats: %{
-          first_team_stat.id => "4",
-          second_team_stat.id => "6",
-          "some" => "3"
+          first_team_stat.id => 4,
+          second_team_stat.id => 6,
+          "some" => 3
         }
       }
 

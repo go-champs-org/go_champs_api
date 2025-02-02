@@ -115,6 +115,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
         args: %{game_id: team_stats_log.game_id}
       )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats,
+        args: %{"phase_id" => team_stats_log.phase_id}
+      )
     end
 
     test "create_team_stats_log/1 with invalid data returns error changeset" do
@@ -162,6 +167,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
         args: %{game_id: first_valid_attrs.game_id}
       )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats,
+        args: %{"phase_id" => first_valid_attrs.phase_id}
+      )
     end
 
     test "update_team_stats_log/2 with valid data updates the team_stats_log and creates a team_stats_log and add pending aggregated team stats" do
@@ -185,10 +195,24 @@ defmodule GoChampsApi.TeamStatsLogsTest do
                team_stats_log.phase_id
              ]
 
-      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+      generate_game_results_queue =
+        all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+
+      generate_aggregated_team_stats_queue =
+        all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats)
+
       # It needs to be two because we are calling create_team_stats_log once
-      assert Enum.count(queue) == 2
-      assert Enum.fetch!(queue, 1).args == %{"game_id" => team_stats_log.game_id}
+      assert Enum.count(generate_game_results_queue) == 2
+
+      assert Enum.fetch!(generate_game_results_queue, 1).args == %{
+               "game_id" => team_stats_log.game_id
+             }
+
+      assert Enum.count(generate_aggregated_team_stats_queue) == 1
+
+      assert Enum.fetch!(generate_aggregated_team_stats_queue, 0).args == %{
+               "phase_id" => team_stats_log.phase_id
+             }
     end
 
     test "update_team_stats_log/2 with invalid data returns error changeset" do
@@ -249,10 +273,24 @@ defmodule GoChampsApi.TeamStatsLogsTest do
                attrs.tournament_id
              ]
 
-      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+      generate_game_results_queue =
+        all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+
       # It needs to be three because we are calling create_team_stats_log twice
-      assert Enum.count(queue) == 3
-      assert Enum.fetch!(queue, 2).args == %{"game_id" => first_team_stats_log.game_id}
+      assert Enum.count(generate_game_results_queue) == 3
+
+      assert Enum.fetch!(generate_game_results_queue, 2).args == %{
+               "game_id" => first_team_stats_log.game_id
+             }
+
+      generate_aggregated_team_stats_queue =
+        all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats)
+
+      assert Enum.count(generate_aggregated_team_stats_queue) == 1
+
+      assert Enum.fetch!(generate_aggregated_team_stats_queue, 0).args == %{
+               "phase_id" => first_team_stats_log.phase_id
+             }
     end
 
     test "delete_team_stats_log/1 deletes the team_stats_log" do
@@ -274,10 +312,24 @@ defmodule GoChampsApi.TeamStatsLogsTest do
                team_stats_log.tournament_id
              ]
 
-      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+      generate_game_results_queue =
+        all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults)
+
       # It needs to be two because we are calling create_team_stats_log once
-      assert Enum.count(queue) == 2
-      assert Enum.fetch!(queue, 1).args == %{"game_id" => team_stats_log.game_id}
+      assert Enum.count(generate_game_results_queue) == 2
+
+      assert Enum.fetch!(generate_game_results_queue, 1).args == %{
+               "game_id" => team_stats_log.game_id
+             }
+
+      generate_aggregated_team_stats_queue =
+        all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats)
+
+      assert Enum.count(generate_aggregated_team_stats_queue) == 1
+
+      assert Enum.fetch!(generate_aggregated_team_stats_queue, 0).args == %{
+               "phase_id" => team_stats_log.phase_id
+             }
     end
 
     test "change_team_stats_log/1 returns a team_stats_log changeset" do

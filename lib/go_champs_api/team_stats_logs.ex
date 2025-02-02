@@ -453,9 +453,16 @@ defmodule GoChampsApi.TeamStatsLogs do
       :ok
   """
   @spec start_side_effect_tasks(%TeamStatsLog{}) :: :ok
-  def start_side_effect_tasks(%TeamStatsLog{game_id: game_id}) do
+  def start_side_effect_tasks(%TeamStatsLog{game_id: game_id, phase_id: phase_id}) do
     %{game_id: game_id}
     |> GoChampsApi.Infrastructure.Jobs.GenerateGameResults.new()
+    |> Oban.insert()
+
+    %{phase_id: phase_id}
+    |> GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats.new(
+      schedule_in: 60,
+      unique: [period: 60]
+    )
     |> Oban.insert()
 
     :ok
