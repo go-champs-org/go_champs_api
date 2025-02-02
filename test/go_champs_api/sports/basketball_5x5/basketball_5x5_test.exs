@@ -1,6 +1,13 @@
 defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
-  use ExUnit.Case
   alias GoChampsApi.Sports.Basketball5x5.Basketball5x5
+  use GoChampsApi.DataCase
+  use ExUnit.Case
+
+  alias GoChampsApi.Games
+  alias GoChampsApi.TeamStatsLogs
+  alias GoChampsApi.Helpers.TeamHelpers
+  alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.GameHelpers
 
   describe "sport/0" do
     test "returns basketball 5x5 sport" do
@@ -80,6 +87,74 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
         |> Enum.map(fn statistic -> statistic.slug end)
 
       assert resulted_statistics_slugs == expected_statistics
+    end
+  end
+
+  describe "update_game_results/1" do
+    test "updates home score only based on team stats" do
+      {:ok, home_team_stats_log} =
+        %{stats: %{"points" => 100.0}}
+        |> TeamHelpers.map_team_id_and_tournament_id()
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      {:ok, game} =
+        Games.get_game!(home_team_stats_log.game_id)
+        |> GameHelpers.set_home_team_id(home_team_stats_log.team_id)
+
+      {:ok, result_game} = Basketball5x5.update_game_results(game)
+
+      assert result_game.home_score == 100
+      assert result_game.away_score == 0
+    end
+
+    test "updates away score only based on team stats" do
+      {:ok, away_team_stats_log} =
+        %{stats: %{"points" => 100.0}}
+        |> TeamHelpers.map_team_id_and_tournament_id()
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      {:ok, game} =
+        Games.get_game!(away_team_stats_log.game_id)
+        |> GameHelpers.set_away_team_id(away_team_stats_log.team_id)
+
+      {:ok, result_game} = Basketball5x5.update_game_results(game)
+
+      assert result_game.home_score == 0
+      assert result_game.away_score == 100
+    end
+
+    test "updates home and away score based on team stats" do
+      {:ok, home_team_stats_log} =
+        %{stats: %{"points" => 100.0}}
+        |> TeamHelpers.map_team_id_and_tournament_id()
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      {:ok, away_team_stats_log} =
+        %{
+          tournament_id: home_team_stats_log.tournament_id,
+          phase_id: home_team_stats_log.phase_id,
+          game_id: home_team_stats_log.game_id,
+          stats: %{"points" => 90.0}
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      {:ok, game} =
+        Games.get_game!(home_team_stats_log.game_id)
+        |> GameHelpers.set_home_team_id(home_team_stats_log.team_id)
+        |> elem(1)
+        |> GameHelpers.set_away_team_id(away_team_stats_log.team_id)
+
+      {:ok, result_game} = Basketball5x5.update_game_results(game)
+
+      assert result_game.home_score == 100
+      assert result_game.away_score == 90
     end
   end
 end

@@ -1,4 +1,5 @@
 defmodule GoChampsApi.GamesTest do
+  alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
 
   alias GoChampsApi.Helpers.PhaseHelpers
@@ -163,6 +164,13 @@ defmodule GoChampsApi.GamesTest do
       assert_raise Ecto.NoResultsError, fn ->
         Games.get_game!(game.id)
       end
+    end
+
+    test "generate_results/1 generates results for the game" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+      game = game_fixture(%{tournament_id: tournament.id})
+
+      assert {:ok, _} = Games.generate_results(game.id)
     end
 
     test "change_game/1 returns a game changeset" do

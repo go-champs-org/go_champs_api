@@ -8,6 +8,9 @@ defmodule GoChampsApi.Games do
 
   alias GoChampsApi.Games.Game
   alias GoChampsApi.Phases
+  alias GoChampsApi.Sports
+
+  require Logger
 
   @doc """
   Returns the list of games filter by keywork param.
@@ -114,6 +117,29 @@ defmodule GoChampsApi.Games do
   """
   def delete_game(%Game{} = game) do
     Repo.delete(game)
+  end
+
+  @doc """
+  Generates game results.
+
+  ## Examples
+
+      iex> generate_results("some-id")
+      {:ok, "Game results has been generated for game some-id"}
+
+      iex> generate_results("some-id")
+      {:error, "some error"}
+
+  """
+  def generate_results(game_id) do
+    case Sports.update_game_results(game_id) do
+      {:ok, updated_game} ->
+        Logger.info("Game results has been generated for game #{game_id}")
+        {:ok, "Game results has been generated for game #{game_id}"}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @doc """

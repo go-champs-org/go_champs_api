@@ -2,6 +2,9 @@ defmodule GoChampsApi.Sports do
   @moduledoc """
   This module contains functions to retrieve sports information.
   """
+  alias GoChampsApi.Sports.Basketball5x5.Basketball5x5
+  alias GoChampsApi.Games.Game
+  alias GoChampsApi.Repo
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Registry
 
@@ -80,5 +83,43 @@ defmodule GoChampsApi.Sports do
     rescue
       _ -> []
     end
+  end
+
+  @doc """
+  Returns {:ok, updated_game} for a given game_id if generated results successfully, otherwise {:error, reason}.
+  When no sport is found, it returns {:ok, %Game{}} the game without updating it.
+
+  ## Examples
+
+      iex> update_game_results("some-game-id")
+      {:ok, %Game{}} | {:error, any()}
+
+  """
+  @spec update_game_results(String.t()) ::
+          {:ok, %GoChampsApi.Games.Game{}} | {:error, any()}
+  def update_game_results(game_id) do
+    case Repo.get!(Game, game_id)
+         |> Repo.preload(phase: :tournament) do
+      game ->
+        try do
+          game.phase.tournament.sport_slug
+          |> update_game_result_for_sport(game)
+        rescue
+          _ -> {:ok, game}
+        end
+
+      _ ->
+        {:error, "Game not found"}
+    end
+  end
+
+  @spec update_game_result_for_sport(String.t(), Game.t()) :: {:ok, Game.t()}
+  defp update_game_result_for_sport("basketball_5x5", game) do
+    Basketball5x5.update_game_results(game)
+  end
+
+  @spec update_game_result_for_sport(String.t(), Game.t()) :: {:ok, Game.t()}
+  defp update_game_result_for_sport(_, game) do
+    {:ok, game}
   end
 end
