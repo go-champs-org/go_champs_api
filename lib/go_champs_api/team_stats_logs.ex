@@ -460,7 +460,6 @@ defmodule GoChampsApi.TeamStatsLogs do
     |> GoChampsApi.Infrastructure.Jobs.GenerateGameResults.new()
     |> Oban.insert()
 
-    # Generate game stats
     :ok
   end
 end

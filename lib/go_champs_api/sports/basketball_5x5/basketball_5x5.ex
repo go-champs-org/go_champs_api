@@ -4,7 +4,6 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   alias GoChampsApi.Games
   alias GoChampsApi.Games.Game
   alias GoChampsApi.TeamStatsLogs
-  alias GoChampsApi.TeamStatsLogs.TeamStatsLog
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
