@@ -1,6 +1,14 @@
 defmodule GoChampsApi.SportsTest do
-  use ExUnit.Case
   alias GoChampsApi.Sports
+  use ExUnit.Case
+  use GoChampsApi.DataCase
+
+  alias GoChampsApi.Helpers.GameHelpers
+  alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.TeamHelpers
+  alias GoChampsApi.Helpers.TournamentHelpers
+  alias GoChampsApi.Games
+  alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Sports.Basketball5x5.Basketball5x5
 
   describe "list_sports/0" do
@@ -63,6 +71,41 @@ defmodule GoChampsApi.SportsTest do
 
     test "returns empty list when sport is not found" do
       assert Sports.get_tournament_level_per_game_statistics!("invalid_sport") == []
+    end
+  end
+
+  describe "update_game_results/1" do
+    test "does not update game results when sport is not found" do
+      {:ok, tournament} = TournamentHelpers.create_simple_tournament()
+
+      {:ok, game} =
+        %{tournament_id: tournament.id}
+        |> PhaseHelpers.map_phase_id()
+        |> GameHelpers.create_game()
+
+      {:ok, result_game} = Sports.update_game_results(game.id)
+      assert result_game.id == game.id
+      assert result_game.updated_at == game.updated_at
+    end
+
+    test "updates game results when sport is basketball_5x5" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      {:ok, home_team_stats_log} =
+        %{tournament_id: tournament.id, stats: %{"points" => 100.0}}
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      {:ok, game} =
+        Games.get_game!(home_team_stats_log.game_id)
+        |> GameHelpers.set_home_team_id(home_team_stats_log.team_id)
+
+      {:ok, result_game} = Sports.update_game_results(game.id)
+
+      assert result_game.home_score == 100
+      assert result_game.away_score == 0
     end
   end
 end

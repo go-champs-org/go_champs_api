@@ -333,10 +333,10 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                player_stats_log.tournament_id
              ]
 
-      assert_enqueued(
-        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
-        args: %{game_id: player_stats_log.game_id}
-      )
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
+      # It needs to be two because we are calling create_player_stats_log once
+      assert Enum.count(queue) == 2
+      assert Enum.fetch!(queue, 1).args == %{"game_id" => player_stats_log.game_id}
     end
 
     test "update_player_stats_log/2 with invalid data returns error changeset" do
@@ -398,10 +398,10 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                attrs.tournament_id
              ]
 
-      assert_enqueued(
-        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
-        args: %{game_id: attrs.game_id}
-      )
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
+      # It needs to be three because we are calling create_player_stats_log twice
+      assert Enum.count(queue) == 3
+      assert Enum.fetch!(queue, 2).args == %{"game_id" => attrs.game_id}
     end
 
     test "delete_player_stats_log/1 deletes the player_stats_log" do
@@ -423,10 +423,10 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                player_stats_log.tournament_id
              ]
 
-      assert_enqueued(
-        worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
-        args: %{game_id: player_stats_log.game_id}
-      )
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
+      # It needs to be two because we are calling create_player_stats_log once
+      assert Enum.count(queue) == 2
+      assert Enum.fetch!(queue, 1).args == %{"game_id" => player_stats_log.game_id}
     end
 
     test "change_player_stats_log/1 returns a player_stats_log changeset" do

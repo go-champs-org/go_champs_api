@@ -1,4 +1,9 @@
 defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
+  @behaviour GoChampsApi.Sports.SportBehavior
+
+  alias GoChampsApi.Games
+  alias GoChampsApi.Games.Game
+  alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
@@ -356,6 +361,33 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
            @default_player_statistic_to_order_by
          )
 
+  @impl true
   @spec sport() :: Sport.t()
   def sport(), do: @sport
+
+  @impl true
+  @spec update_game_results(%Game{}) :: {:ok, %Game{}} | {:error, any()}
+  def update_game_results(%Game{} = game) do
+    home_score = team_score_from_team_stats_log(game.home_team_id, game.id)
+    away_score = team_score_from_team_stats_log(game.away_team_id, game.id)
+
+    game
+    |> Games.update_game(%{home_score: home_score, away_score: away_score})
+  end
+
+  defp team_score_from_team_stats_log(team_id, game_id) do
+    case TeamStatsLogs.list_team_stats_log(team_id: team_id, game_id: game_id) do
+      [team_stats] ->
+        team_stats
+        |> points_from_team_stats_log()
+        |> trunc()
+
+      _ ->
+        0
+    end
+  end
+
+  defp points_from_team_stats_log(team_stats) do
+    team_stats.stats["points"]
+  end
 end

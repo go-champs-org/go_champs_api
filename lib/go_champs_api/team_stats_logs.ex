@@ -169,6 +169,8 @@ defmodule GoChampsApi.TeamStatsLogs do
           )
           |> Repo.transaction()
 
+        start_side_effect_tasks(team_stats_logs)
+
         {:ok, team_stats_logs}
     end
   end
@@ -223,6 +225,9 @@ defmodule GoChampsApi.TeamStatsLogs do
 
         case Repo.transaction(multi_team_stats_logs_and_pending_aggregated_team_stats) do
           {:ok, transaction_result} ->
+            first_team_stat_log = Map.get(transaction_result, 0)
+            start_side_effect_tasks(first_team_stat_log)
+
             {:ok,
              transaction_result
              |> Map.drop([:pending_aggregated_team_stats_by_phase])}
@@ -273,6 +278,7 @@ defmodule GoChampsApi.TeamStatsLogs do
           )
           |> Repo.transaction()
 
+        start_side_effect_tasks(team_stats_logs)
         {:ok, team_stats_logs}
     end
   end
@@ -325,6 +331,10 @@ defmodule GoChampsApi.TeamStatsLogs do
 
         case Repo.transaction(multi_team_stats_logs_and_pending_aggregated_team_stats) do
           {:ok, transaction_result} ->
+            first_team_stat_id = List.first(MapSet.to_list(multi_team_stats_logs.names))
+            first_team_stat = Map.get(transaction_result, first_team_stat_id)
+            start_side_effect_tasks(first_team_stat)
+
             {:ok,
              transaction_result
              |> Map.drop([:pending_aggregated_team_stats_by_phase])}
@@ -365,6 +375,8 @@ defmodule GoChampsApi.TeamStatsLogs do
         pending_aggregated_team_stats_by_phase_changeset
       )
       |> Repo.transaction()
+
+    start_side_effect_tasks(team_stats_logs)
 
     {:ok, team_stats_logs}
   end
@@ -434,5 +446,20 @@ defmodule GoChampsApi.TeamStatsLogs do
       [team_stats_log] ->
         update_team_stats_log(team_stats_log, attrs)
     end
+  end
+
+  @doc """
+  Start side-effect task to generate results that depend on team stats log.
+  ## Examples
+      iex> start_side_effect_tasks(team_stats_log)
+      :ok
+  """
+  @spec start_side_effect_tasks(%TeamStatsLog{}) :: :ok
+  def start_side_effect_tasks(%TeamStatsLog{game_id: game_id}) do
+    %{game_id: game_id}
+    |> GoChampsApi.Infrastructure.Jobs.GenerateGameResults.new()
+    |> Oban.insert()
+
+    :ok
   end
 end

@@ -12,6 +12,14 @@ defmodule GoChampsApi.Helpers.GameHelpers do
     Map.merge(attrs, %{game_id: game.id})
   end
 
+  def create_game(attrs \\ %{}) do
+    game_attrs =
+      attrs
+      |> create_or_use_phase_id()
+
+    Games.create_game(game_attrs)
+  end
+
   defp create_or_use_phase_id(attrs) do
     case Map.fetch(attrs, :phase_id) do
       {:ok, phase_id} ->

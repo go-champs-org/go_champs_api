@@ -70,6 +70,13 @@ defmodule GoChampsApi.Helpers.TournamentHelpers do
     Map.merge(attrs, %{tournament_id: tournament.id, stat_id: player_stat.id})
   end
 
+  def create_simple_tournament(attrs \\ %{}) do
+    %{name: "Simple Tournament", slug: "simple-tournament"}
+    |> Map.merge(attrs)
+    |> OrganizationHelpers.map_organization_id()
+    |> Tournaments.create_tournament()
+  end
+
   def create_tournament_basketball_5x5(attrs \\ %{}) do
     basketball_slug = "basketball_5x5"
 

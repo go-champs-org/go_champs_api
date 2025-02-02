@@ -40,6 +40,24 @@ defmodule GoChampsApi.PendingAggregatedTeamStatsByPhases do
   end
 
   @doc """
+  Returns the list of phase_ids stored
+
+  ## Examples
+
+      iex> list_phase_ids()
+      ["some-id", ...]
+  """
+  @spec list_phase_ids() :: [String.t()]
+  def list_phase_ids do
+    query =
+      from p in PendingAggregatedTeamStatsByPhase,
+        group_by: p.phase_id,
+        select: p.phase_id
+
+    Repo.all(query)
+  end
+
+  @doc """
   Gets a single pending_aggregated_team_stats_by_phase.
 
   Raises `Ecto.NoResultsError` if the Pending aggregated team stats by phase does not exist.
