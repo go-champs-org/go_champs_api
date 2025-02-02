@@ -1,5 +1,6 @@
 defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest do
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
   import ExUnit.CaptureLog
 
   alias GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor
@@ -193,8 +194,11 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
 
       assert updated_game.live_state == :ended
       assert updated_game.live_ended_at != nil
-      assert updated_game.home_score == 17
-      assert updated_game.away_score == 5
+
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
+      # It needs to be two because we are calling create_player_stats_log once
+      assert Enum.count(queue) == 2
+      assert Enum.fetch!(queue, 1).args == %{"game_id" => updated_game.id}
     end
 
     test "creates player stats logs" do
@@ -258,6 +262,11 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.stats["points"] == to_string(player["stats_values"]["points"])
         assert player_stats_log.stats["rebounds"] == to_string(player["stats_values"]["rebounds"])
       end)
+
+      queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
+      # It needs to be two because we are calling create_player_stats_log once
+      assert Enum.count(queue) == 2
+      assert Enum.fetch!(queue, 1).args == %{"game_id" => game.id}
     end
 
     test "creates player when player when player id does not exist" do

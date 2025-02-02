@@ -9,8 +9,6 @@ defmodule GoChampsApi.TeamStatsLogs do
   alias GoChampsApi.TeamStatsLogs.TeamStatsLog
   alias GoChampsApi.Games.Game
   alias GoChampsApi.PlayerStatsLogs
-  alias GoChampsApi.Sports
-  alias GoChampsApi.Tournaments
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamStatsByPhase
 
   require Logger

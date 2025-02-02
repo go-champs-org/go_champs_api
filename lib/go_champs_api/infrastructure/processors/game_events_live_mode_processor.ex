@@ -68,16 +68,6 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
            live_state: :ended
          }) do
       {:ok, updated_game} ->
-        away_score = map_team_state_to_score(game_state.away_team)
-        home_score = map_team_state_to_score(game_state.home_team)
-
-        {:ok, _} =
-          updated_game
-          |> Games.update_game(%{
-            away_score: away_score,
-            home_score: home_score
-          })
-
         away_team_id = updated_game.away_team_id
         phase_id = updated_game.phase_id
         home_team_id = updated_game.home_team_id
@@ -144,9 +134,5 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
       |> Map.put(:player_id, db_player.id)
       |> Map.put(:stats, stats_values)
     end)
-  end
-
-  defp map_team_state_to_score(%TeamState{} = team_state) do
-    Map.get(team_state.total_player_stats, "points", 0)
   end
 end
