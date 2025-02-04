@@ -4,6 +4,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   alias GoChampsApi.Games
   alias GoChampsApi.Games.Game
   alias GoChampsApi.TeamStatsLogs
+  alias GoChampsApi.Tournaments
+  alias GoChampsApi.Tournaments.Tournament
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
@@ -380,6 +382,47 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     |> Games.update_game(%{home_score: home_score, away_score: away_score})
   end
 
+  @impl true
+  @spec apply_sport_package(%Tournament{}) :: {:ok, %Tournament{}} | {:error, any()}
+  def apply_sport_package(tournament) do
+    player_stats =
+      Enum.map(@sport.player_statistics, fn statistic ->
+        build_player_stat(
+          statistic,
+          Tournaments.get_player_stat_by_slug!(tournament, statistic.slug)
+        )
+      end)
+
+    other_player_stats =
+      tournament.player_stats
+      |> Enum.reject(fn stat ->
+        Enum.any?(@sport.player_statistics, fn s -> s.slug == stat.slug end)
+      end)
+      |> Enum.map(&build_player_stat(&1, &1))
+
+    team_stats =
+      Enum.map(@sport.team_statistics, fn statistic ->
+        build_team_stat(
+          statistic,
+          Tournaments.get_team_stat_by_slug!(tournament, statistic.slug)
+        )
+      end)
+
+    other_team_stats =
+      tournament.team_stats
+      |> Enum.reject(fn stat ->
+        Enum.any?(@sport.team_statistics, fn s -> s.slug == stat.slug end)
+      end)
+      |> Enum.map(&build_team_stat(&1, &1))
+
+    Tournaments.update_tournament(tournament, %{
+      sport_slug: @sport.slug,
+      sport_name: @sport.name,
+      player_stats: player_stats ++ other_player_stats,
+      team_stats: team_stats ++ other_team_stats
+    })
+  end
+
   defp team_score_from_team_stats_log(team_id, game_id) do
     case TeamStatsLogs.list_team_stats_log(team_id: team_id, game_id: game_id) do
       [team_stats] ->
@@ -394,5 +437,42 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
 
   defp points_from_team_stats_log(team_stats) do
     team_stats.stats["points"]
+  end
+
+  defp build_player_stat(statistic, player_stat) do
+    case player_stat do
+      nil ->
+        %{
+          slug: statistic.slug,
+          title: statistic.name
+        }
+
+      player_stat ->
+        %{
+          id: player_stat.id,
+          slug: player_stat.slug,
+          title: player_stat.title,
+          is_default_order: player_stat.is_default_order
+        }
+    end
+  end
+
+  defp build_team_stat(statistic, team_stat) do
+    case team_stat do
+      nil ->
+        %{
+          slug: statistic.slug,
+          title: statistic.name,
+          source: statistic.slug
+        }
+
+      team_stat ->
+        %{
+          id: team_stat.id,
+          slug: team_stat.slug,
+          title: team_stat.title,
+          source: team_stat.source
+        }
+    end
   end
 end

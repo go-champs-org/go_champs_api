@@ -119,4 +119,16 @@ defmodule GoChampsApi.Sports do
   defp update_game_result_for_sport(_, game) do
     {:ok, game}
   end
+
+  @spec apply_sport_package(String.t(), Tournament.t()) ::
+          {:ok, Tournament.t()} | {:error, Ecto.Changeset.t()}
+  def apply_sport_package("basketball_5x5", tournament) do
+    Basketball5x5.apply_sport_package(tournament)
+  end
+
+  @spec apply_sport_package(String.t(), Tournament.t()) ::
+          {:ok, Tournament.t()} | {:error, Ecto.Changeset.t()}
+  def apply_sport_package(_sport_slug, tournament) do
+    {:ok, tournament}
+  end
 end

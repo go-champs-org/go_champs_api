@@ -4,13 +4,13 @@ defmodule GoChampsApi.Tournaments do
   """
 
   import Ecto.Query, warn: false
-  alias GoChampsApi.Sports
   alias GoChampsApi.Repo
 
   alias GoChampsApi.Tournaments.Tournament
 
   alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament
   alias GoChampsApi.AggregatedPlayerStatsByTournaments.AggregatedPlayerStatsByTournament
+  alias GoChampsApi.Sports
   alias GoChampsApi.Players.Player
   alias GoChampsApi.PlayerStatsLogs.PlayerStatsLog
   alias GoChampsApi.RecentlyViews.RecentlyView
@@ -329,6 +329,25 @@ defmodule GoChampsApi.Tournaments do
   end
 
   @doc """
+  Returns a team stat of a tournament for a given team stat slug.
+
+  Returns `nil` if the team stat does not exist.
+
+  ## Examples
+
+      iex> get_team_stat_by_slug!(%Tournament{}, 123)
+      %TeamStat{}
+
+      iex> get_team_stat_by_slug!(%Tournament{}, 456)
+      nil
+  """
+  @spec get_team_stat_by_slug!(Tournament.t(), String.t()) :: TeamStatsLog.t() | nil
+  def get_team_stat_by_slug!(%Tournament{} = tournament, team_stat_slug) do
+    tournament.team_stats
+    |> Enum.find(&(&1.slug == team_stat_slug))
+  end
+
+  @doc """
   Returns a list of team stats keys for a given tournament.
   If team stats has slug it will return the slug, otherwise it will return the id.
 
@@ -344,5 +363,30 @@ defmodule GoChampsApi.Tournaments do
     |> Enum.map(fn stat ->
       stat.slug || stat.id
     end)
+  end
+
+  @doc """
+  Apply sport package to tournamet giving a tournament id
+
+  ## Examples
+
+      iex> apply_sport_package(123)
+      {:ok, %Tournament{}}
+
+      iex> apply_sport_package(456)
+      {:error, %Ecto.Changeset{}}
+  """
+  @spec apply_sport_package(id :: Ecto.UUID.t()) ::
+          {:ok, Tournament.t()} | {:error, Ecto.Changeset.t()}
+  def apply_sport_package(id) do
+    tournament = get_tournament!(id)
+
+    case tournament.sport_slug do
+      nil ->
+        {:ok, tournament}
+
+      sport_slug ->
+        Sports.apply_sport_package(sport_slug, tournament)
+    end
   end
 end

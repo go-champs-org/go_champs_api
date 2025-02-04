@@ -7,6 +7,7 @@ defmodule GoChampsApi.TournamentsTest do
   alias GoChampsApi.Helpers.PlayerHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.Players
+  alias GoChampsApi.Sports
   alias GoChampsApi.AggregatedPlayerStatsByTournaments
   alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Organizations
@@ -423,6 +424,39 @@ defmodule GoChampsApi.TournamentsTest do
                fixed_source_stat.slug,
                team_stat.id
              ]
+    end
+
+    test "get_team_stat_by_slug!/2 returns the team stats with the given slug" do
+      tournament = tournament_fixture()
+
+      team_stat = Enum.at(tournament.team_stats, 0)
+      assert Tournaments.get_team_stat_by_slug!(tournament, team_stat.slug) == team_stat
+    end
+
+    test "get_team_stat_by_slug!/2 returns nil if the team stats does not exist" do
+      tournament = tournament_fixture()
+
+      assert Tournaments.get_team_stat_by_slug!(tournament, "invalid-slug") == nil
+    end
+
+    test "apply_sport_package/1 does not apply any package when tournament has not a package set" do
+      tournament = tournament_fixture(%{sport_slug: nil})
+
+      {:ok, result_tournament} = Tournaments.apply_sport_package(tournament.id)
+
+      assert result_tournament.player_stats == tournament.player_stats
+    end
+
+    test "apply_sport_package/1 applies the basketball package to the tournament" do
+      tournament = tournament_fixture()
+
+      {:ok, result_tournament} = Tournaments.apply_sport_package(tournament.id)
+
+      basketball5x5 = Sports.get_sport("basketball_5x5")
+
+      Enum.each(basketball5x5.player_statistics, fn stat ->
+        assert Tournaments.get_player_stat_by_slug!(result_tournament, stat.slug)
+      end)
     end
   end
 end

@@ -8,6 +8,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
   alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Helpers.GameHelpers
+  alias GoChampsApi.Helpers.TournamentHelpers
 
   describe "sport/0" do
     test "returns basketball 5x5 sport" do
@@ -156,5 +157,98 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       assert result_game.home_score == 100
       assert result_game.away_score == 90
     end
+  end
+
+  describe "apply_sport_package/1" do
+    test "applies sport package to a tournament" do
+      sport = Basketball5x5.sport()
+      {:ok, tournament} = TournamentHelpers.create_simple_tournament()
+
+      {:ok, result_tournament} = Basketball5x5.apply_sport_package(tournament)
+
+      assert result_tournament.sport_slug == "basketball_5x5"
+      assert result_tournament.sport_name == "Basketball 5x5"
+
+      Enum.each(sport.player_statistics, fn statistic ->
+        player_stat = find_tournament_player_stats(result_tournament, statistic.slug)
+
+        assert player_stat != nil
+        assert player_stat.title == statistic.name
+        assert player_stat.slug == statistic.slug
+      end)
+
+      Enum.each(sport.team_statistics, fn statistic ->
+        team_stat = find_tournament_team_stats(result_tournament, statistic.slug)
+
+        assert team_stat != nil
+        assert team_stat.title == statistic.name
+        assert team_stat.slug == statistic.slug
+        assert team_stat.source == statistic.slug
+      end)
+    end
+
+    test "does not add player stats if they already exist" do
+      sport = Basketball5x5.sport()
+
+      {:ok, tournament} =
+        TournamentHelpers.create_simple_tournament(%{
+          player_stats: [
+            %{
+              title: "Assists",
+              slug: "assists",
+              is_default_order: true
+            },
+            %{
+              title: "Some other stat",
+              slug: "some_stat",
+              is_default_order: false
+            }
+          ]
+        })
+
+      original_assists_stat = find_tournament_player_stats(tournament, "assists")
+      {:ok, result_tournament} = Basketball5x5.apply_sport_package(tournament)
+      resulted_assists_stat = find_tournament_player_stats(result_tournament, "assists")
+
+      # +1 because we added the some other stat to the tournament
+      assert length(result_tournament.player_stats) == length(sport.player_statistics) + 1
+      assert original_assists_stat == resulted_assists_stat
+    end
+
+    test "does not add team stats if they already exist" do
+      sport = Basketball5x5.sport()
+
+      {:ok, tournament} =
+        TournamentHelpers.create_simple_tournament(%{
+          team_stats: [
+            %{
+              title: "Points",
+              slug: "points",
+              source: "points"
+            },
+            %{
+              title: "Some other stat",
+              slug: "some_stat",
+              source: "some_stat"
+            }
+          ]
+        })
+
+      original_points_stat = find_tournament_team_stats(tournament, "points")
+      {:ok, result_tournament} = Basketball5x5.apply_sport_package(tournament)
+      resulted_points_stat = find_tournament_team_stats(result_tournament, "points")
+
+      # +1 because we added the some other stat to the tournament
+      assert length(result_tournament.team_stats) == length(sport.team_statistics) + 1
+      assert original_points_stat == resulted_points_stat
+    end
+  end
+
+  def find_tournament_player_stats(tournament, stat_slug) do
+    Enum.find(tournament.player_stats, fn player_stat -> player_stat.slug == stat_slug end)
+  end
+
+  def find_tournament_team_stats(tournament, stat_slug) do
+    Enum.find(tournament.team_stats, fn team_stat -> team_stat.slug == stat_slug end)
   end
 end
