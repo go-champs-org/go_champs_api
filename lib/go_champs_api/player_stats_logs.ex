@@ -10,7 +10,6 @@ defmodule GoChampsApi.PlayerStatsLogs do
 
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Tournaments
-  alias GoChampsApi.Tournaments.Tournament
   alias GoChampsApi.Sports
 
   alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament

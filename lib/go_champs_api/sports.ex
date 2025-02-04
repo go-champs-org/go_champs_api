@@ -98,18 +98,15 @@ defmodule GoChampsApi.Sports do
   @spec update_game_results(String.t()) ::
           {:ok, %GoChampsApi.Games.Game{}} | {:error, any()}
   def update_game_results(game_id) do
-    case Repo.get!(Game, game_id)
-         |> Repo.preload(phase: :tournament) do
-      game ->
-        try do
-          game.phase.tournament.sport_slug
-          |> update_game_result_for_sport(game)
-        rescue
-          _ -> {:ok, game}
-        end
+    game =
+      Repo.get!(Game, game_id)
+      |> Repo.preload(phase: :tournament)
 
-      _ ->
-        {:error, "Game not found"}
+    try do
+      game.phase.tournament.sport_slug
+      |> update_game_result_for_sport(game)
+    rescue
+      _ -> {:ok, game}
     end
   end
 

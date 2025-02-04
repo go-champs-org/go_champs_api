@@ -3,6 +3,9 @@ defmodule GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamSt
   use GoChampsApi.Schema
   import Ecto.Changeset
 
+  alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Phases.Phase
+
   schema "pending_aggregated_team_stats_by_phase" do
     belongs_to :tournament, Tournament
     belongs_to :phase, Phase

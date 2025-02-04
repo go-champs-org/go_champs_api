@@ -133,7 +133,7 @@ defmodule GoChampsApi.Games do
   """
   def generate_results(game_id) do
     case Sports.update_game_results(game_id) do
-      {:ok, updated_game} ->
+      {:ok, _updated_game} ->
         Logger.info("Game results has been generated for game #{game_id}")
         {:ok, "Game results has been generated for game #{game_id}"}
 
