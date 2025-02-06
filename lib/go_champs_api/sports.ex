@@ -62,6 +62,30 @@ defmodule GoChampsApi.Sports do
   end
 
   @doc """
+  Returns the list of calculated game against team statistics for a sport.
+
+  ## Examples
+
+      iex> get_game_against_team_level_calculated_statistics("basketball-5x5")
+      [%GoChampsApi.Sports.Statistic{}, ...]
+  """
+  @spec get_game_against_team_level_calculated_statistics!(String.t()) :: [
+          GoChampsApi.Sports.Statistic.t()
+        ]
+  def get_game_against_team_level_calculated_statistics!(slug) do
+    try do
+      sport = get_sport(slug)
+
+      sport.player_statistics
+      |> Enum.filter(fn stat ->
+        stat.level == :game_against_team and stat.value_type == :calculated
+      end)
+    rescue
+      _ -> []
+    end
+  end
+
+  @doc """
   Returns the list of calculated player statistics for a sport.
 
   ## Examples

@@ -408,20 +408,29 @@ defmodule GoChampsApi.TeamStatsLogs do
           tournament_id: game.phase.tournament_id
         }
 
+        # {:ok, _home_team_stats} =
         base_team_stats_log
-        |> map_stats_and_team_id(game, game.home_team_id)
+        |> map_aggregated_player_stats_and_team_id(game, game.home_team_id)
         |> upsert_team_stats_log()
 
+        # {:ok, _away_team_stats} =
         base_team_stats_log
-        |> map_stats_and_team_id(game, game.away_team_id)
+        |> map_aggregated_player_stats_and_team_id(game, game.away_team_id)
         |> upsert_team_stats_log()
 
         :ok
     end
   end
 
-  @spec map_stats_and_team_id(base_attrs :: %{}, %Game{}, team_id :: String.t()) :: %{}
-  def map_stats_and_team_id(base_attrs, game, team_id) do
+  @spec map_aggregated_player_stats_and_team_id(base_attrs :: %{}, %Game{}, team_id :: String.t()) ::
+          %{}
+  @spec map_aggregated_player_stats_and_team_id(
+          map(),
+          atom() | %{:id => any(), optional(any()) => any()},
+          any()
+        ) ::
+          %{:team_id => any(), optional(any()) => any()}
+  def map_aggregated_player_stats_and_team_id(base_attrs, game, team_id) do
     case PlayerStatsLogs.list_player_stats_log(game_id: game.id, team_id: team_id) do
       [] ->
         Map.merge(base_attrs, %{team_id: team_id})

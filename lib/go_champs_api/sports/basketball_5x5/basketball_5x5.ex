@@ -357,14 +357,108 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   ]
 
   @team_log_statistics [
-    Statistic.new("points", "Points", :manual, :game, :aggregate)
+    Statistic.new("assists", "Assists", :manual, :game, :aggregate),
+    Statistic.new("blocks", "Blocks", :manual, :game, :aggregate),
+    Statistic.new("disqualifications", "Disqualifications", :manual, :game, :aggregate),
+    Statistic.new("ejections", "Ejections", :manual, :game, :aggregate),
+    Statistic.new("efficiency", "Efficiency", :manual, :game, :aggregate),
+    Statistic.new(
+      "field_goal_percentage",
+      "Field Goal Percentage",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_field_goal_percentage/1
+    ),
+    Statistic.new(
+      "field_goals_attempted",
+      "Field Goals Attempted",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_field_goals_attempted/1
+    ),
+    Statistic.new("field_goals_made", "Field Goals Made", :manual, :game, :aggregate),
+    Statistic.new("field_goals_missed", "Field Goals Missed", :manual, :game, :aggregate),
+    Statistic.new("fouls", "Fouls", :manual, :game, :aggregate),
+    Statistic.new("fouls_flagrant", "Flagrant Fouls", :manual, :game, :aggregate),
+    Statistic.new("fouls_personal", "Personal Fouls", :manual, :game, :aggregate),
+    Statistic.new("fouls_technical", "Technical Fouls", :manual, :game, :aggregate),
+    Statistic.new(
+      "free_throw_percentage",
+      "Free Throw Percentage",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_free_throw_percentage/1
+    ),
+    Statistic.new(
+      "free_throws_attempted",
+      "Free Throws Attempted",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_free_throws_attempted/1
+    ),
+    Statistic.new("free_throws_made", "Free Throws Made", :manual, :game, :aggregate),
+    Statistic.new("free_throws_missed", "Free Throws Missed", :manual, :game, :aggregate),
+    Statistic.new("game_played", "Game Played", :manual, :game, :aggregate),
+    Statistic.new("points", "Points", :manual, :game, :aggregate),
+    Statistic.new("rebounds", "Rebounds", :manual, :game, :aggregate),
+    Statistic.new("rebounds_defensive", "Defensive Rebounds", :manual, :game, :aggregate),
+    Statistic.new("rebounds_offensive", "Offensive Rebounds", :manual, :game, :aggregate),
+    Statistic.new("steals", "Steals", :manual, :game, :aggregate),
+    Statistic.new(
+      "three_point_field_goal_percentage",
+      "Three Point Field Goal Percentage",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_three_point_field_goal_percentage/1
+    ),
+    Statistic.new(
+      "three_point_field_goals_attempted",
+      "Three Point Field Goals Attempted",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_three_point_field_goals_attempted/1
+    ),
+    Statistic.new(
+      "three_point_field_goals_made",
+      "Three Point Field Goals Made",
+      :manual,
+      :game,
+      :aggregate
+    ),
+    Statistic.new(
+      "three_point_field_goals_missed",
+      "Three Point Field Goals Missed",
+      :manual,
+      :game,
+      :aggregate
+    ),
+    Statistic.new("turnovers", "Turnovers", :manual, :game, :aggregate)
+  ]
+
+  @team_log_against_team_statistics [
+    Statistic.new("wins", "Wins", :calculated, :game_against_team, :aggregate),
+    Statistic.new("loses", "Loses", :calculated, :game_against_team, :aggregate),
+    Statistic.new(
+      "points_against",
+      "Points Against",
+      :calculated,
+      :game_against_team,
+      :aggregate
+    ),
+    Statistic.new("points_balance", "Points Balance", :calculated, :game_against_team, :aggregate)
   ]
 
   @sport Sport.new(
            "basketball_5x5",
            "Basketball 5x5",
            @player_log_statistics ++ @calculated_player_statistics,
-           @team_log_statistics,
+           @team_log_statistics ++ @team_log_against_team_statistics,
            @default_player_statistic_to_order_by
          )
 
