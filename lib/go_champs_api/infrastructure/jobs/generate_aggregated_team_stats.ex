@@ -11,6 +11,9 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats do
 
       _ ->
         phase_id
+        |> AggregatedTeamStatsByPhases.delete_aggregated_team_stats_by_phase_id()
+
+        phase_id
         |> AggregatedTeamStatsByPhases.generate_aggregated_team_stats_for_phase()
 
         {:ok, "Aggregated team stats generated for phase #{phase_id}"}

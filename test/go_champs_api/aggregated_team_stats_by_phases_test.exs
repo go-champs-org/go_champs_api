@@ -138,6 +138,16 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
                )
     end
 
+    test "delete_aggregated_team_stats_by_phase_id/1 deletes the aggregated_team_stats_by_phase" do
+      aggregated_team_stats_by_phase = aggregated_team_stats_by_phase_fixture()
+
+      AggregatedTeamStatsByPhases.delete_aggregated_team_stats_by_phase_id(
+        aggregated_team_stats_by_phase.phase_id
+      )
+
+      assert AggregatedTeamStatsByPhases.list_aggregated_team_stats_by_phase() == []
+    end
+
     test "generate_aggregated_team_stats_for_phase/1 inserts aggregated team stats" do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_tournament_attrs)
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)

@@ -135,6 +135,26 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
   end
 
   @doc """
+  Deletes all aggregated_team_stats_by_phase pertaining to a phase_id.
+
+  ## Examples
+
+      iex> delete_aggregated_team_stats_by_phase_id(phase_id)
+      {:ok, %AggregatedTeamStatsByPhase{}}
+
+      iex> delete_aggregated_team_stats_by_phase_id(phase_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_aggregated_team_stats_by_phase_id(phase_id) do
+    query =
+      from a in AggregatedTeamStatsByPhase,
+        where: a.phase_id == ^phase_id
+
+    Repo.delete_all(query)
+  end
+
+  @doc """
   Generates a aggregated_team_stats_by_phase by phase id.
 
   ## Examples
