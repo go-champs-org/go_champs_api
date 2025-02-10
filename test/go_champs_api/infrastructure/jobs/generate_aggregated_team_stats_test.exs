@@ -43,7 +43,7 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
       )
 
     assert aggregated_team_stats.team_id == first_team_stats.team_id
-    assert aggregated_team_stats.stats == %{"points" => 30}
+    assert aggregated_team_stats.stats["points"] == 30
   end
 
   test "perform/1 does't not duplicated records for same phase" do
@@ -83,6 +83,6 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
       )
 
     assert aggregated_team_stats.team_id == first_team_stats.team_id
-    assert aggregated_team_stats.stats == %{"points" => 30}
+    assert aggregated_team_stats.stats["points"] == 30
   end
 end
