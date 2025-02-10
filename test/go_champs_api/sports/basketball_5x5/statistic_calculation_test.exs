@@ -2,6 +2,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
   use ExUnit.Case
   alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
 
+  alias GoChampsApi.TeamStatsLogs.TeamStatsLog
+
   @stats [
     {"assists", :calculate_assists_per_game},
     {"blocks", :calculate_blocks_per_game},
@@ -400,6 +402,120 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
     test "returns 10.5 when stat is 10.5" do
       stats = %{"field_goals_made" => 10.5}
       assert StatisticCalculation.retrieve_stat_value(stats, "field_goals_made") == 10.5
+    end
+  end
+
+  describe "calculate_wins/2 given team stats log A and team stats log B" do
+    test "returns 0 when team stats log A and team stats log B are nil" do
+      assert StatisticCalculation.calculate_wins(nil, nil) == 0
+    end
+
+    test "returns 0 when team stats log A is nil" do
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_wins(nil, team_stats_log_b) == 0
+    end
+
+    test "returns 0 when team stats log B is nil" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_wins(team_stats_log_a, nil) == 1
+    end
+
+    test "returns 0 when team stats log A and team stats log B have the same points" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_wins(team_stats_log_a, team_stats_log_b) == 0
+    end
+
+    test "returns 1 when team stats log A has more points than team stats log B" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 5.0}}
+      assert StatisticCalculation.calculate_wins(team_stats_log_a, team_stats_log_b) == 1
+    end
+
+    test "returns 0 when team stats log A has less points than team stats log B" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 5.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_wins(team_stats_log_a, team_stats_log_b) == 0
+    end
+  end
+
+  describe "calculate_losses/2 given team stats log A and team stats log B" do
+    test "returns 0 when team stats log A and team stats log B are nil" do
+      assert StatisticCalculation.calculate_losses(nil, nil) == 0
+    end
+
+    test "returns 0 when team stats log A is nil" do
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_losses(nil, team_stats_log_b) == 1
+    end
+
+    test "returns 0 when team stats log B is nil" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_losses(team_stats_log_a, nil) == 0
+    end
+
+    test "returns 0 when team stats log A and team stats log B have the same points" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_losses(team_stats_log_a, team_stats_log_b) == 0
+    end
+
+    test "returns 1 when team stats log A has less points than team stats log B" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 5.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_losses(team_stats_log_a, team_stats_log_b) == 1
+    end
+
+    test "returns 0 when team stats log A has more points than team stats log B" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 5.0}}
+      assert StatisticCalculation.calculate_losses(team_stats_log_a, team_stats_log_b) == 0
+    end
+  end
+
+  describe "calculate_points_against/2 given team stats log A and team stats log B" do
+    test "returns 0 when team stats log A and team stats log B are nil" do
+      assert StatisticCalculation.calculate_points_against(nil, nil) == 0
+    end
+
+    test "returns 10 when team stats log B has 10 points" do
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_points_against(nil, team_stats_log_b) == 10
+    end
+
+    test "returns 0 when team stats log B is nil" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_points_against(team_stats_log_a, nil) == 0
+    end
+  end
+
+  describe "calculate_points_balance/2 given team stats log A and team stats log B" do
+    test "returns 0 when team stats log A and team stats log B are nil" do
+      assert StatisticCalculation.calculate_points_balance(nil, nil) == 0
+    end
+
+    test "returns 10 when team stats log A has 10 points and team stats log B has 0 points" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 0.0}}
+
+      assert StatisticCalculation.calculate_points_balance(team_stats_log_a, team_stats_log_b) ==
+               10
+    end
+
+    test "returns -10 when team stats log A has 0 points and team stats log B has 10 points" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 0.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+
+      assert StatisticCalculation.calculate_points_balance(team_stats_log_a, team_stats_log_b) ==
+               -10
+    end
+
+    test "returns -5 when team stats log A has 5 points and team stats log B has 10 points" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 5.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+
+      assert StatisticCalculation.calculate_points_balance(team_stats_log_a, team_stats_log_b) ==
+               -5
     end
   end
 end
