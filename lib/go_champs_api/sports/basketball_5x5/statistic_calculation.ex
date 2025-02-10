@@ -1,4 +1,6 @@
 defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
+  alias GoChampsApi.TeamStatsLogs.TeamStatsLog
+
   def calculate_field_goal_percentage(stats) do
     field_goals_made = stats |> retrieve_stat_value("field_goals_made")
     field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
@@ -204,6 +206,73 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     else
       (made / (made + missed) * 100) |> Float.round(3)
     end
+  end
+
+  @spec calculate_stat_per_game(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
+  def calculate_wins(team_stats_log_a, team_stats_log_b) do
+    team_stats_log_a_points =
+      (team_stats_log_a ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    team_stats_log_b_points =
+      (team_stats_log_b ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    if team_stats_log_a_points > team_stats_log_b_points do
+      1
+    else
+      0
+    end
+  end
+
+  @spec calculate_losses(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
+  def calculate_losses(team_stats_log_a, team_stats_log_b) do
+    team_stats_log_a_points =
+      (team_stats_log_a ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    team_stats_log_b_points =
+      (team_stats_log_b ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    if team_stats_log_a_points < team_stats_log_b_points do
+      1
+    else
+      0
+    end
+  end
+
+  @spec calculate_points_against(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
+  def calculate_points_against(_team_stats_log_a, team_stats_log_b) do
+    (team_stats_log_b ||
+       %{})
+    |> Map.get(:stats, %{})
+    |> retrieve_stat_value("points")
+  end
+
+  @spec calculate_points_balance(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
+  def calculate_points_balance(team_stats_log_a, team_stats_log_b) do
+    team_stats_log_a_points =
+      (team_stats_log_a ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    team_stats_log_b_points =
+      (team_stats_log_b ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    team_stats_log_a_points - team_stats_log_b_points
   end
 
   def retrieve_stat_value(stats, stat_slug) do

@@ -1,5 +1,5 @@
 defmodule GoChampsApi.Sports.Statistic do
-  @type calculation_function() :: (map() -> float()) | nil
+  @type calculation_function() :: (map() -> float()) | (map(), map() -> float()) | nil
   @type value_type :: :manual | :calculated
   @type level :: :game | :game_against_team | :tournament
   @type scope :: :per_game | :aggregate

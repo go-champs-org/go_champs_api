@@ -442,16 +442,38 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   ]
 
   @team_log_against_team_statistics [
-    Statistic.new("wins", "Wins", :calculated, :game_against_team, :aggregate),
-    Statistic.new("loses", "Loses", :calculated, :game_against_team, :aggregate),
+    Statistic.new(
+      "wins",
+      "Wins",
+      :calculated,
+      :game_against_team,
+      :aggregate,
+      &StatisticCalculation.calculate_wins/2
+    ),
+    Statistic.new(
+      "losses",
+      "Losses",
+      :calculated,
+      :game_against_team,
+      :aggregate,
+      &StatisticCalculation.calculate_losses/2
+    ),
     Statistic.new(
       "points_against",
       "Points Against",
       :calculated,
       :game_against_team,
-      :aggregate
+      :aggregate,
+      &StatisticCalculation.calculate_points_against/2
     ),
-    Statistic.new("points_balance", "Points Balance", :calculated, :game_against_team, :aggregate)
+    Statistic.new(
+      "points_balance",
+      "Points Balance",
+      :calculated,
+      :game_against_team,
+      :aggregate,
+      &StatisticCalculation.calculate_points_balance/2
+    )
   ]
 
   @sport Sport.new(

@@ -9,6 +9,9 @@ defmodule GoChampsApi.TeamStatsLogs do
   alias GoChampsApi.TeamStatsLogs.TeamStatsLog
   alias GoChampsApi.Games.Game
   alias GoChampsApi.PlayerStatsLogs
+  alias GoChampsApi.Tournaments
+  alias GoChampsApi.Sports
+  alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases.PendingAggregatedTeamStatsByPhase
 
   require Logger
@@ -408,15 +411,25 @@ defmodule GoChampsApi.TeamStatsLogs do
           tournament_id: game.phase.tournament_id
         }
 
-        # {:ok, _home_team_stats} =
-        base_team_stats_log
-        |> map_aggregated_player_stats_and_team_id(game, game.home_team_id)
-        |> upsert_team_stats_log()
+        home_team_stats =
+          base_team_stats_log
+          |> map_aggregated_player_stats_and_team_id(game, game.home_team_id)
 
-        # {:ok, _away_team_stats} =
-        base_team_stats_log
-        |> map_aggregated_player_stats_and_team_id(game, game.away_team_id)
-        |> upsert_team_stats_log()
+        away_team_stats =
+          base_team_stats_log
+          |> map_aggregated_player_stats_and_team_id(game, game.away_team_id)
+
+        # Need to calculated against team stats after aggregating team stats
+        home_team_stats =
+          home_team_stats
+          |> map_against_team_stats(away_team_stats)
+
+        away_team_stats =
+          away_team_stats
+          |> map_against_team_stats(home_team_stats)
+
+        upsert_team_stats_log(home_team_stats)
+        upsert_team_stats_log(away_team_stats)
 
         :ok
     end
@@ -442,6 +455,50 @@ defmodule GoChampsApi.TeamStatsLogs do
 
         Map.merge(base_attrs, %{team_id: team_id, stats: stats})
     end
+  end
+
+  @doc """
+  Map against team stats.
+
+  ## Examples
+
+      iex> map_against_team_stats(%TeamStatsLog{team_id: "team-id", stats: %{}})
+      %{}
+  """
+  @spec map_against_team_stats(%TeamStatsLog{}, %TeamStatsLog{}) :: %{}
+  def map_against_team_stats(team_stats_log, against_team_stats_log) do
+    case Tournaments.get_tournament!(team_stats_log.tournament_id) do
+      nil ->
+        team_stats_log
+
+      tournament ->
+        against_team_stats =
+          tournament.sport_slug
+          |> Sports.get_game_against_team_level_calculated_statistics!()
+          |> calculate_against_team_stats(team_stats_log, against_team_stats_log)
+
+        team_stats =
+          Map.get(team_stats_log, :stats, %{})
+          |> Map.merge(against_team_stats)
+
+        Map.put(team_stats_log, :stats, team_stats)
+    end
+  end
+
+  @doc """
+  Calculate against team stats for a given array of statistics, team stats log A and team stats log B.
+
+  ## Examples
+
+      iex> calculate_against_team_stats([%Statistic], %TeamStatsLog{}, %TeamStatsLog{})
+      %{}
+  """
+  @spec calculate_against_team_stats([%Statistic{}], %TeamStatsLog{}, %TeamStatsLog{}) :: %{}
+  def calculate_against_team_stats(statistics, team_stats_log, against_team_stats_log) do
+    statistics
+    |> Enum.reduce(%{}, fn stat, acc ->
+      Map.put(acc, stat.slug, stat.calculation_function.(team_stats_log, against_team_stats_log))
+    end)
   end
 
   @spec upsert_team_stats_log(%{}) :: :ok | :error

@@ -76,7 +76,7 @@ defmodule GoChampsApi.Sports do
     try do
       sport = get_sport(slug)
 
-      sport.player_statistics
+      sport.team_statistics
       |> Enum.filter(fn stat ->
         stat.level == :game_against_team and stat.value_type == :calculated
       end)

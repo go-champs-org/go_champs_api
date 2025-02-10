@@ -9,9 +9,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
   alias GoChampsApi.Helpers.PlayerHelpers
   alias GoChampsApi.Helpers.PlayerStatsLogHelper
   alias GoChampsApi.Helpers.TeamHelpers
+  alias GoChampsApi.Helpers.TeamStatsLogHelper
   alias GoChampsApi.PendingAggregatedTeamStatsByPhases
   alias GoChampsApi.Phases
   alias GoChampsApi.Games
+  alias GoChampsApi.Sports
   alias GoChampsApi.PlayerStatsLogs
 
   describe "team_stats_log" do
@@ -625,14 +627,80 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert home_team.stats["points_against"] == 6.0
       assert home_team.stats["wins"] == 1.0
       assert home_team.stats["losses"] == 0.0
-      assert home_team.stats["points_balance"] == -6.0
+      assert home_team.stats["points_balance"] == 6.0
 
       assert away_team.stats["field_goals_made"] == 3.0
       assert away_team.stats["points"] == 6.0
       assert away_team.stats["points_against"] == 12.0
       assert away_team.stats["wins"] == 0.0
       assert away_team.stats["losses"] == 1.0
-      assert away_team.stats["points_balance"] == 6.0
+      assert away_team.stats["points_balance"] == -6.0
+    end
+
+    test "map_against_team_stats/2 returns the stats of the against team" do
+      first_team_stats_log =
+        TeamStatsLogHelper.create_team_stats_log_for_tournament_with_sport([
+          {"points", 6.0}
+        ])
+
+      {:ok, against_team_stats} =
+        %{
+          stats: %{
+            "points" => 3.0
+          },
+          tournament_id: first_team_stats_log.tournament_id,
+          phase_id: first_team_stats_log.phase_id,
+          game_id: first_team_stats_log.game_id
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      resulted_first_team =
+        TeamStatsLogs.map_against_team_stats(
+          first_team_stats_log,
+          against_team_stats
+        )
+
+      assert resulted_first_team.stats["points"] == 6.0
+      assert resulted_first_team.stats["points_against"] == 3.0
+      assert resulted_first_team.stats["points_balance"] == 3.0
+      assert resulted_first_team.stats["wins"] == 1.0
+      assert resulted_first_team.stats["losses"] == 0.0
+    end
+
+    test "calculate_against_team_stats/3 returns a map with against team stats slug as key and the calculated value as value" do
+      first_team_stats_log =
+        TeamStatsLogHelper.create_team_stats_log_for_tournament_with_sport([
+          {"points", 6.0}
+        ])
+
+      {:ok, against_team_stats} =
+        %{
+          stats: %{
+            "points" => 3.0
+          },
+          tournament_id: first_team_stats_log.tournament_id,
+          phase_id: first_team_stats_log.phase_id,
+          game_id: first_team_stats_log.game_id
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      basketball_statistics =
+        "basketball_5x5"
+        |> Sports.get_game_against_team_level_calculated_statistics!()
+
+      result =
+        TeamStatsLogs.calculate_against_team_stats(
+          basketball_statistics,
+          first_team_stats_log,
+          against_team_stats
+        )
+
+      assert result["points_against"] == 3.0
+      assert result["points_balance"] == 3.0
+      assert result["wins"] == 1.0
+      assert result["losses"] == 0.0
     end
   end
 end
