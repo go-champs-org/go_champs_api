@@ -4,7 +4,7 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
 
   def map_phase_id(attrs \\ %{}) do
     {:ok, phase} =
-      %{title: "some phase", type: "stadings"}
+      %{title: "some phase", type: "elimination"}
       |> create_or_use_tournament_id(attrs)
       |> Phases.create_phase()
 
@@ -13,7 +13,7 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
 
   def map_phase_id_and_tournament_id(attrs \\ %{}) do
     {:ok, phase} =
-      %{title: "some phase", type: "stadings"}
+      %{title: "some phase", type: "elimination"}
       |> TournamentHelpers.map_tournament_id()
       |> Phases.create_phase()
 
@@ -27,7 +27,7 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
         }
   def map_phase_id_for_tournament(attrs \\ %{tournament_id: ''}) do
     {:ok, phase} =
-      %{title: "some phase", type: "stadings", tournament_id: attrs.tournament_id}
+      %{title: "some phase", type: "elimination", tournament_id: attrs.tournament_id}
       |> Phases.create_phase()
 
     Map.merge(attrs, %{phase_id: phase.id})
@@ -35,7 +35,7 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
 
   def map_phase_id_with_other_member(attrs \\ %{}) do
     {:ok, phase} =
-      %{title: "some phase", type: "stadings"}
+      %{title: "some phase", type: "elimination"}
       |> TournamentHelpers.map_tournament_id_with_other_member()
       |> Phases.create_phase()
 

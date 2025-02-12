@@ -65,7 +65,7 @@ defmodule GoChampsApiWeb.GameControllerTest do
       {:ok, second_phase} =
         Phases.create_phase(%{
           title: "another phase",
-          type: "stadings",
+          type: "elimination",
           tournament_id: first_phase.tournament_id
         })
 
