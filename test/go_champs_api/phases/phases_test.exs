@@ -13,7 +13,12 @@ defmodule GoChampsApi.PhasesTest do
       is_in_progress: true,
       title: "some title",
       type: "elimination",
-      elimination_stats: [%{"title" => "stat title"}]
+      elimination_stats: [
+        %{"title" => "stat title", "team_stat_source" => "points", "ranking_order" => 1}
+      ],
+      ranking_tie_breakers: [
+        %{"type" => "head_to_head", "order" => 1}
+      ]
     }
     @update_attrs %{
       is_in_progress: false,
@@ -62,6 +67,18 @@ defmodule GoChampsApi.PhasesTest do
       assert phase.is_in_progress == true
       [elimination_stat] = phase.elimination_stats
       assert elimination_stat.title == "stat title"
+      assert elimination_stat.team_stat_source == "points"
+      assert elimination_stat.ranking_order == 1
+      [ranking_tie_breaker] = phase.ranking_tie_breakers
+      assert ranking_tie_breaker.type == "head_to_head"
+      assert ranking_tie_breaker.order == 1
+    end
+
+    test "create_phase/1 with invalid ranking tie breaker type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :ranking_tie_breakers, [%{"type" => "invalid", "order" => 1}])
+
+      assert {:error, %Ecto.Changeset{}} = Phases.create_phase(attrs)
     end
 
     test "create_phase/1 with invalid data returns error changeset" do
