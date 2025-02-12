@@ -39,6 +39,7 @@ defmodule GoChampsApi.Phases.Phase do
     |> cast_embed(:elimination_stats, with: &elimination_stats_changeset/2, required: false)
     |> cast_embed(:ranking_tie_breakers, with: &ranking_tie_breakers_changeset/2, required: false)
     |> validate_required([:title, :type, :tournament_id])
+    |> validate_inclusion(:type, ["draw", "elimination"])
   end
 
   defp elimination_stats_changeset(schema, params) do

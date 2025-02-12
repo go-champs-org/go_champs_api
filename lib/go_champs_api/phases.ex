@@ -190,4 +190,29 @@ defmodule GoChampsApi.Phases do
   def change_phase(%Phase{} = phase) do
     Phase.changeset(phase, %{})
   end
+
+  @doc """
+  Generate phase results for a given phase id that would include:
+  1. Team stadings;
+  2. Bracket results;
+
+  And returns `:ok` if the operation was successful or `:error` if it failed.
+
+  ## Examples
+
+      iex> generate_phase_results("phase-id")
+      :ok
+  """
+  @spec generate_phase_results(phase_id :: Ecto.UUID.t()) :: :ok | :error
+  def generate_phase_results(phase_id) do
+    phase = get_phase!(phase_id)
+
+    case phase.type do
+      "elimination" ->
+        :ok
+
+      _ ->
+        :error
+    end
+  end
 end

@@ -74,6 +74,31 @@ defmodule GoChampsApi.PhasesTest do
       assert ranking_tie_breaker.order == 1
     end
 
+    test "create_phase/1 for elimination type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :type, "elimination")
+
+      assert {:ok, %Phase{} = phase} = Phases.create_phase(attrs)
+
+      assert phase.type == "elimination"
+    end
+
+    test "create_phase/1 for draw type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :type, "draw")
+
+      assert {:ok, %Phase{} = phase} = Phases.create_phase(attrs)
+
+      assert phase.type == "draw"
+    end
+
+    test "create_phase/1 with invalid type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :type, "invalid")
+
+      assert {:error, %Ecto.Changeset{}} = Phases.create_phase(attrs)
+    end
+
     test "create_phase/1 with invalid ranking tie breaker type" do
       attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
       attrs = Map.put(attrs, :ranking_tie_breakers, [%{"type" => "invalid", "order" => 1}])
@@ -207,6 +232,11 @@ defmodule GoChampsApi.PhasesTest do
     test "change_phase/1 returns a phase changeset" do
       phase = phase_fixture()
       assert %Ecto.Changeset{} = Phases.change_phase(phase)
+    end
+
+    test "generate_phase_results/1 returns a phase results" do
+      phase = phase_fixture()
+      assert :ok = Phases.generate_phase_results(phase.id)
     end
   end
 end
