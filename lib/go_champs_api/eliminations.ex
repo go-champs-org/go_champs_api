@@ -4,9 +4,13 @@ defmodule GoChampsApi.Eliminations do
   """
 
   import Ecto.Query, warn: false
+  alias GoChampsApi.AggregatedTeamStatsByPhases
+  alias GoChampsApi.AggregatedTeamStatsByPhases.AggregatedTeamStatsByPhase
+  alias GoChampsApi.Phases.Phase
   alias GoChampsApi.Repo
 
   alias GoChampsApi.Eliminations.Elimination
+  alias GoChampsApi.Eliminations.TeamStats
   alias GoChampsApi.Phases
 
   @doc """
@@ -169,5 +173,87 @@ defmodule GoChampsApi.Eliminations do
   """
   def change_elimination(%Elimination{} = elimination) do
     Elimination.changeset(elimination, %{})
+  end
+
+  @doc """
+  Update team stats from AggregatedTeamStatsByPhase values for a give elimination id.
+
+  ## Examples
+
+      iex> update_team_stats_from_team_stats(123)
+      {:ok, %Elimination{}}
+
+      iex> update_team_stats_from_team_stats(456)
+      {:error, %Ecto.Changeset{}}
+  """
+  @spec update_team_stats_from_team_stats(Ecto.UUID.t()) ::
+          {:ok, %Elimination{}} | {:error, %Ecto.Changeset{}}
+  def update_team_stats_from_team_stats(elimination_id) do
+    elimination =
+      Repo.get!(Elimination, elimination_id)
+      |> Repo.preload([:phase])
+
+    updated_team_stats =
+      elimination.team_stats
+      |> Enum.map(fn team_stat ->
+        team_stat
+        |> update_stats_values_from_aggregated_team_stats_by_phase(elimination.phase)
+        |> Map.from_struct()
+      end)
+
+    elimination
+    |> update_elimination(%{team_stats: updated_team_stats})
+  end
+
+  @doc """
+  Update stats value based on phase and AggregatedTeamStatsByPhase values for a given TeamStats.
+
+  ## Examples
+
+      iex> update_stats_values_from_aggregated_team_stats_by_phase(%TeamStats{}, [%EliminationStats{}])
+      {:ok, %TeamStats{}}
+
+      iex> update_stats_values_from_aggregated_team_stats_by_phase(%TeamStats{}, [%EliminationStats{}])
+      {:error, %Ecto.Changeset{}}
+  """
+  @spec update_stats_values_from_aggregated_team_stats_by_phase(%TeamStats{}, [
+          %Phase{}
+        ]) ::
+          {:ok, %TeamStats{}} | {:error, %Ecto.Changeset{}}
+  def update_stats_values_from_aggregated_team_stats_by_phase(team_stats, phase) do
+    [aggregated_team_stats_by_phase] =
+      AggregatedTeamStatsByPhases.list_aggregated_team_stats_by_phase(
+        phase_id: phase.id,
+        team_id: team_stats.team_id
+      )
+
+    team_stats_stats =
+      phase.elimination_stats
+      |> Enum.reduce(%{}, fn elimination_stat, acc ->
+        stat_value =
+          aggregated_team_stats_by_phase
+          |> retrive_stat_value(elimination_stat.team_stat_source)
+
+        Map.put(acc, elimination_stat.id, stat_value)
+      end)
+
+    team_stats
+    |> Map.put(:stats, team_stats_stats)
+  end
+
+  @doc """
+  Retrive stat value from AggregatedTeamStatsByPhase values for a given team stat source.
+
+  ## Examples
+
+      iex> retrive_stat_value(%AggregatedTeamStatsByPhase{stats: %{"kills" => 10}}, "kills")
+      10
+
+      iex> retrive_stat_value(%AggregatedTeamStatsByPhase{stats: %{"deaths" => 5}}, "deaths")
+      5
+  """
+  @spec retrive_stat_value(%AggregatedTeamStatsByPhase{}, String.t()) :: any
+  def retrive_stat_value(aggregated_team_stats_by_phase, team_stat_source) do
+    Map.get(aggregated_team_stats_by_phase.stats, team_stat_source, 0)
   end
 end

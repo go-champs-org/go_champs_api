@@ -1,15 +1,17 @@
 defmodule GoChampsApi.EliminationsTest do
+  alias GoChampsApi.Eliminations.Elimination.TeamStats
+  alias GoChampsApi.Helpers.AggregatedTeamStatsByPhaseHelper
   use GoChampsApi.DataCase
 
   alias GoChampsApi.Eliminations
   alias GoChampsApi.Helpers.PhaseHelpers
 
+  alias GoChampsApi.Eliminations.Elimination
+  alias GoChampsApi.Phases
+
   random_uuid = "d6a40c15-7363-4179-9f7b-8b17cc6cf32c"
 
   describe "eliminations" do
-    alias GoChampsApi.Eliminations.Elimination
-    alias GoChampsApi.Phases
-
     @valid_attrs %{
       title: "some title",
       info: "some info",
@@ -236,5 +238,96 @@ defmodule GoChampsApi.EliminationsTest do
       elimination = elimination_fixture()
       assert %Ecto.Changeset{} = Eliminations.change_elimination(elimination)
     end
+  end
+
+  describe "update_team_stats_from_team_stats/1" do
+    test "generate stats keys based on the phase elimination_stats and the values based on AggregateTeamStatsByPhase" do
+      aggregated_team_stats_by_phase =
+        AggregatedTeamStatsByPhaseHelper.create_aggregated_team_stats_by_phase(%{
+          "wins" => 7,
+          "losses" => 3
+        })
+
+      {:ok, phase} =
+        aggregated_team_stats_by_phase.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins"},
+          %{"title" => "Losses", "team_stat_source" => "losses"}
+        ])
+
+      {:ok, elimination} =
+        @valid_attrs
+        |> Map.put(:phase_id, phase.id)
+        |> Map.put(:team_stats, [%{team_id: aggregated_team_stats_by_phase.team_id}])
+        |> Eliminations.create_elimination()
+
+      {:ok, result_elimination} = Eliminations.update_team_stats_from_team_stats(elimination.id)
+
+      [team_elimination_stats] = result_elimination.team_stats
+
+      [wins_stat, losses_stat] = phase.elimination_stats
+
+      assert team_elimination_stats.stats[wins_stat.id] == 7
+      assert team_elimination_stats.stats[losses_stat.id] == 3
+    end
+  end
+
+  describe "update_stats_values_from_aggregated_team_stats_by_phase/2" do
+    test "update stats values based on phase elimination_stats and AggregatedTeamStatsByPhase values for a given TeamStats" do
+      aggregate_team_stats_by_phase =
+        AggregatedTeamStatsByPhaseHelper.create_aggregated_team_stats_by_phase(%{
+          "points" => 10,
+          "points_against" => 5
+        })
+
+      team_stat = %TeamStats{
+        team_id: aggregate_team_stats_by_phase.team_id
+      }
+
+      {:ok, phase} =
+        aggregate_team_stats_by_phase.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Points", "team_stat_source" => "points"},
+          %{"title" => "Points against", "team_stat_source" => "points_against"}
+        ])
+
+      updated_team_stat =
+        Eliminations.update_stats_values_from_aggregated_team_stats_by_phase(team_stat, phase)
+
+      [points_stat, points_against_stat] = phase.elimination_stats
+
+      assert updated_team_stat.stats[points_stat.id] == 10
+      assert updated_team_stat.stats[points_against_stat.id] == 5
+    end
+  end
+
+  describe "retrive_stat_value/2" do
+    test "returns stat value from AggregatedTeamStatsByPhase values for a given team stat source" do
+      aggregate_team_stats_by_phase =
+        AggregatedTeamStatsByPhaseHelper.create_aggregated_team_stats_by_phase(%{
+          "kills" => 10,
+          "deaths" => 5
+        })
+
+      assert Eliminations.retrive_stat_value(aggregate_team_stats_by_phase, "kills") == 10
+      assert Eliminations.retrive_stat_value(aggregate_team_stats_by_phase, "deaths") == 5
+    end
+
+    test "returns 0 if the stat value is not found" do
+      aggregate_team_stats_by_phase =
+        AggregatedTeamStatsByPhaseHelper.create_aggregated_team_stats_by_phase(%{
+          "kills" => 10,
+          "deaths" => 5
+        })
+
+      assert Eliminations.retrive_stat_value(aggregate_team_stats_by_phase, "assists") == 0
+    end
+  end
+
+  defp set_elimination_stats(phase_id, elimination_stats) do
+    phase = Phases.get_phase!(phase_id)
+
+    phase
+    |> Phases.update_phase(%{elimination_stats: elimination_stats})
   end
 end

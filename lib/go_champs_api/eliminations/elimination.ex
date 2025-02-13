@@ -33,3 +33,7 @@ defmodule GoChampsApi.Eliminations.Elimination do
     |> cast(params, [:placeholder, :stats, :team_id])
   end
 end
+
+defmodule GoChampsApi.Eliminations.TeamStats do
+  defstruct [:placeholder, :team_id, :stats]
+end
