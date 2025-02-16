@@ -240,7 +240,217 @@ defmodule GoChampsApi.EliminationsTest do
     end
   end
 
-  describe "update_team_stats_from_team_stats/1" do
+  describe "sort_team_stats_based_on_phase_criteria/1" do
+    test "sorts team stats by ranking order" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+      team_id_3 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 8}},
+            %{team_id: team_id_2, stats: %{"wins" => 10, "points" => 5}},
+            %{team_id: team_id_3, stats: %{"wins" => 8, "points" => 10}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, _phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
+        ])
+
+      {:ok, result_elimination} =
+        Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
+
+      [first_team_stat, second_team_stat, third_team_stat] = result_elimination.team_stats
+
+      assert first_team_stat.team_id == team_id_2
+      assert second_team_stat.team_id == team_id_3
+      assert third_team_stat.team_id == team_id_1
+    end
+  end
+
+  describe "should_team_stats_a_be_placed_before_team_stats_b?/3" do
+    test "returns true if team stats a should be placed before team stats b based on phase criteria ranking order 1" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 12, "points" => 8}},
+            %{team_id: team_id_2, stats: %{"wins" => 10, "points" => 5}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      assert Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+
+    test "returns false if team stats a should not be placed before team stats b based on phase criteria" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 6, "points" => 5}},
+            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 8}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      refute Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+
+    test "returns true if team stats a should be placed before team stats b based on phase criteria ranking order 2" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 10}},
+            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 8}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      assert Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+
+    test "returns false if team stats a should not be placed before team stats b based on phase criteria ranking order 2" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 8}},
+            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 10}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      refute Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+
+    test "returns false if team stats a should not be placed before team stats b based on phase criteria ranking order 2 even with losing in ranking order 3" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 10, "average" => 3}},
+            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 8, "average" => 5}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 3},
+          %{"title" => "Average", "team_stat_source" => "average", "ranking_order" => 2},
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      refute Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+
+    test "returns false when ranking order is not defined" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 12}},
+            %{team_id: team_id_2, stats: %{"wins" => 10}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins"}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      refute Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+  end
+
+  describe "update_team_stats_from_aggregated_team_stats_by_phase/1" do
     test "generate stats keys based on the phase elimination_stats and the values based on AggregateTeamStatsByPhase" do
       aggregated_team_stats_by_phase =
         AggregatedTeamStatsByPhaseHelper.create_aggregated_team_stats_by_phase(%{
@@ -261,7 +471,8 @@ defmodule GoChampsApi.EliminationsTest do
         |> Map.put(:team_stats, [%{team_id: aggregated_team_stats_by_phase.team_id}])
         |> Eliminations.create_elimination()
 
-      {:ok, result_elimination} = Eliminations.update_team_stats_from_team_stats(elimination.id)
+      {:ok, result_elimination} =
+        Eliminations.update_team_stats_from_aggregated_team_stats_by_phase(elimination.id)
 
       [team_elimination_stats] = result_elimination.team_stats
 
