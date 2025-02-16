@@ -6,6 +6,7 @@ defmodule GoChampsApi.Phases do
   import Ecto.Query, warn: false
   alias GoChampsApi.Repo
 
+  alias GoChampsApi.Eliminations
   alias GoChampsApi.Phases.Phase
 
   @doc """
@@ -209,6 +210,12 @@ defmodule GoChampsApi.Phases do
 
     case phase.type do
       "elimination" ->
+        phase.eliminations
+        |> Enum.each(fn elimination ->
+          Eliminations.update_team_stats_from_aggregated_team_stats_by_phase(elimination.id)
+          Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
+        end)
+
         :ok
 
       _ ->

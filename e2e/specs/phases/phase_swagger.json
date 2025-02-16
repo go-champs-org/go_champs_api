@@ -184,48 +184,49 @@
                 "description": "Ranking order"
               }
             }
-          },
-          "ranking_tie_breakers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "Tie breaker id"
-                },
-                "type": {
-                  "type": "string",
-                  "description": "head_to_head"
-                }
-              }
-            }
-          },
-          "is_in_progress": {
-            "type": "boolean",
-            "description": "Mark if the phase is in progress."
-          },
-          "tournament_id": {
-            "type": "string",
-            "description": "Organization ID"
-          },
-          "inserted_at": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Creation timestamp"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "datetime",
-            "description": "Update timestamp"
           }
         },
-        "example": {
-          "id": "1d8ac55c-fb5c-4605-beaf-30db7d4c2fec",
-          "title": "First phase",
-          "type": "elimination"
+        "ranking_tie_breakers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Tie breaker id"
+              },
+              "type": {
+                "type": "string",
+                "description": "head_to_head"
+              }
+            }
+          }
         },
-        "description": "A tournament phases of the app"
-      }
+        "is_in_progress": {
+          "type": "boolean",
+          "description": "Mark if the phase is in progress."
+        },
+        "tournament_id": {
+          "type": "string",
+          "description": "Organization ID"
+        },
+        "inserted_at": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Creation timestamp"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Update timestamp"
+        }
+      },
+      "example": {
+        "id": "1d8ac55c-fb5c-4605-beaf-30db7d4c2fec",
+        "title": "First phase",
+        "type": "elimination"
+      },
+      "description": "A tournament phases of the app"
     }
   }
+}
