@@ -77,9 +77,17 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
 
   """
   def create_aggregated_team_stats_by_phase(attrs \\ %{}) do
-    %AggregatedTeamStatsByPhase{}
-    |> AggregatedTeamStatsByPhase.changeset(attrs)
-    |> Repo.insert()
+    case %AggregatedTeamStatsByPhase{}
+         |> AggregatedTeamStatsByPhase.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, aggregated_team_stats_by_phase} ->
+        start_side_effect_tasks(aggregated_team_stats_by_phase)
+
+        {:ok, aggregated_team_stats_by_phase}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -98,9 +106,17 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
         %AggregatedTeamStatsByPhase{} = aggregated_team_stats_by_phase,
         attrs
       ) do
-    aggregated_team_stats_by_phase
-    |> AggregatedTeamStatsByPhase.changeset(attrs)
-    |> Repo.update()
+    case aggregated_team_stats_by_phase
+         |> AggregatedTeamStatsByPhase.changeset(attrs)
+         |> Repo.update() do
+      {:ok, aggregated_team_stats_by_phase} ->
+        start_side_effect_tasks(aggregated_team_stats_by_phase)
+
+        {:ok, aggregated_team_stats_by_phase}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -118,7 +134,15 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
   def delete_aggregated_team_stats_by_phase(
         %AggregatedTeamStatsByPhase{} = aggregated_team_stats_by_phase
       ) do
-    Repo.delete(aggregated_team_stats_by_phase)
+    case Repo.delete(aggregated_team_stats_by_phase) do
+      {:ok, _} ->
+        start_side_effect_tasks(aggregated_team_stats_by_phase)
+
+        {:ok, aggregated_team_stats_by_phase}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -154,7 +178,14 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
       from a in AggregatedTeamStatsByPhase,
         where: a.phase_id == ^phase_id
 
-    Repo.delete_all(query)
+    case Repo.delete_all(query) do
+      {:error, changeset} ->
+        {:error, changeset}
+
+      result ->
+        start_side_effect_tasks(%AggregatedTeamStatsByPhase{phase_id: phase_id})
+        result
+    end
   end
 
   @doc """
@@ -234,5 +265,20 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
         Map.put(team_stats_map, team_stats_key, current_stat_value + aggregated_stat_value)
       end)
     end)
+  end
+
+  @doc """
+  Start side-effect task to generate results that depend on aggregated_team_stats.
+  ## Examples
+      iex> start_side_effect_tasks(aggregated_team_stats_by_phase)
+      :ok
+  """
+  @spec start_side_effect_tasks(%AggregatedTeamStatsByPhase{}) :: :ok
+  def start_side_effect_tasks(%AggregatedTeamStatsByPhase{phase_id: phase_id}) do
+    %{phase_id: phase_id}
+    |> GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults.new()
+    |> Oban.insert()
+
+    :ok
   end
 end

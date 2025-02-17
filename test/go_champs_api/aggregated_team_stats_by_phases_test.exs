@@ -1,5 +1,6 @@
 defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.AggregatedTeamStatsByPhases
   alias GoChampsApi.TeamStatsLogs
@@ -80,6 +81,11 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
                AggregatedTeamStatsByPhases.create_aggregated_team_stats_by_phase(valid_attrs)
 
       assert aggregated_team_stats_by_phase.stats == %{"some" => "8"}
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_stats_by_phase.phase_id}
+      )
     end
 
     test "create_aggregated_team_stats_by_phase/1 with invalid data returns error changeset" do
@@ -97,6 +103,11 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
                )
 
       assert aggregated_team_stats_by_phase.stats == %{"some" => "10"}
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_stats_by_phase.phase_id}
+      )
     end
 
     test "update_aggregated_team_stats_by_phase/2 with invalid data returns error changeset" do
@@ -127,6 +138,11 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
           aggregated_team_stats_by_phase.id
         )
       end
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_stats_by_phase.phase_id}
+      )
     end
 
     test "change_aggregated_team_stats_by_phase/1 returns a aggregated_team_stats_by_phase changeset" do
@@ -146,6 +162,11 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
       )
 
       assert AggregatedTeamStatsByPhases.list_aggregated_team_stats_by_phase() == []
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_stats_by_phase.phase_id}
+      )
     end
 
     test "generate_aggregated_team_stats_for_phase/1 inserts aggregated team stats" do
