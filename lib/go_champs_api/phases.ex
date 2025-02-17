@@ -9,6 +9,8 @@ defmodule GoChampsApi.Phases do
   alias GoChampsApi.Eliminations
   alias GoChampsApi.Phases.Phase
 
+  require Logger
+
   @doc """
   Gets a single phase.
 
@@ -206,6 +208,7 @@ defmodule GoChampsApi.Phases do
   """
   @spec generate_phase_results(phase_id :: Ecto.UUID.t()) :: :ok | :error
   def generate_phase_results(phase_id) do
+    Logger.info("Generating phase results for phase #{phase_id}")
     phase = get_phase!(phase_id)
 
     case phase.type do
@@ -215,6 +218,8 @@ defmodule GoChampsApi.Phases do
           Eliminations.update_team_stats_from_aggregated_team_stats_by_phase(elimination.id)
           Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
         end)
+
+        Logger.info("Phase results has been generated for phase #{phase_id}")
 
         :ok
 

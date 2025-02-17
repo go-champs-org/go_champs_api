@@ -8,7 +8,10 @@ defmodule GoChampsApiWeb.PhaseControllerTest do
   @create_attrs %{
     title: "some title",
     type: "elimination",
-    is_in_progress: true
+    is_in_progress: true,
+    elimination_stats: [
+      %{title: "some elimination stats", team_stat_source: "some_stat_source", ranking_order: 2}
+    ]
   }
   @update_attrs %{
     title: "some updated title",
@@ -48,7 +51,14 @@ defmodule GoChampsApiWeb.PhaseControllerTest do
                "id" => ^id,
                "title" => "some title",
                "type" => "elimination",
-               "is_in_progress" => true
+               "is_in_progress" => true,
+               "elimination_stats" => [
+                 %{
+                   "title" => "some elimination stats",
+                   "team_stat_source" => "some_stat_source",
+                   "ranking_order" => 2
+                 }
+               ]
              } = json_response(conn, 200)["data"]
     end
 

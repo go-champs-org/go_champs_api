@@ -284,24 +284,27 @@ defmodule GoChampsApi.Eliminations do
         ]) ::
           {:ok, %TeamStats{}} | {:error, %Ecto.Changeset{}}
   def update_stats_values_from_aggregated_team_stats_by_phase(team_stats, phase) do
-    [aggregated_team_stats_by_phase] =
-      AggregatedTeamStatsByPhases.list_aggregated_team_stats_by_phase(
-        phase_id: phase.id,
-        team_id: team_stats.team_id
-      )
+    case AggregatedTeamStatsByPhases.list_aggregated_team_stats_by_phase(
+           phase_id: phase.id,
+           team_id: team_stats.team_id
+         ) do
+      [aggregated_team_stats_by_phase] ->
+        team_stats_stats =
+          phase.elimination_stats
+          |> Enum.reduce(%{}, fn elimination_stat, acc ->
+            stat_value =
+              aggregated_team_stats_by_phase
+              |> retrive_stat_value(elimination_stat.team_stat_source)
 
-    team_stats_stats =
-      phase.elimination_stats
-      |> Enum.reduce(%{}, fn elimination_stat, acc ->
-        stat_value =
-          aggregated_team_stats_by_phase
-          |> retrive_stat_value(elimination_stat.team_stat_source)
+            Map.put(acc, elimination_stat.id, stat_value)
+          end)
 
-        Map.put(acc, elimination_stat.id, stat_value)
-      end)
+        team_stats
+        |> Map.put(:stats, team_stats_stats)
 
-    team_stats
-    |> Map.put(:stats, team_stats_stats)
+      _ ->
+        team_stats
+    end
   end
 
   @doc """

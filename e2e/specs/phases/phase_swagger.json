@@ -176,11 +176,17 @@
                 "description": "Stat title"
               },
               "team_stat_source": {
-                "type": "string",
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Stat source"
               },
               "ranking_order": {
-                "type": "string",
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Ranking order"
               }
             }

@@ -54,7 +54,9 @@ defmodule GoChampsApiWeb.PhaseView do
   def render("elimination_stats.json", %{phase: elimination_stats}) do
     %{
       id: elimination_stats.id,
-      title: elimination_stats.title
+      title: elimination_stats.title,
+      team_stat_source: elimination_stats.team_stat_source,
+      ranking_order: elimination_stats.ranking_order
     }
   end
 end

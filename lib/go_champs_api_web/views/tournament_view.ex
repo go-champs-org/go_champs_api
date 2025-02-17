@@ -55,6 +55,7 @@ defmodule GoChampsApiWeb.TournamentView do
     %{
       id: team_stats.id,
       title: team_stats.title,
+      slug: team_stats.slug,
       source: team_stats.source,
       is_default_order: team_stats.is_default_order
     }

@@ -510,6 +510,31 @@ defmodule GoChampsApi.EliminationsTest do
       assert updated_team_stat.stats[points_stat.id] == 10
       assert updated_team_stat.stats[points_against_stat.id] == 5
     end
+
+    test "does not update stats value when there is no AggregatedTeamStatsByPhase" do
+      team_stat = %TeamStats{
+        team_id: Ecto.UUID.autogenerate(),
+        stats: %{"some" => "value"}
+      }
+
+      {:ok, elimination} =
+        @valid_attrs
+        |> PhaseHelpers.map_phase_id()
+        |> Map.put(:team_stats, [%{team_id: team_stat.team_id}])
+        |> Eliminations.create_elimination()
+
+      {:ok, phase} =
+        elimination.phase_id
+        |> PhaseHelpers.set_elimination_stats([
+          %{"title" => "Points", "team_stat_source" => "points"},
+          %{"title" => "Points against", "team_stat_source" => "points_against"}
+        ])
+
+      updated_team_stat =
+        Eliminations.update_stats_values_from_aggregated_team_stats_by_phase(team_stat, phase)
+
+      assert updated_team_stat.stats == %{"some" => "value"}
+    end
   end
 
   describe "retrive_stat_value/2" do
