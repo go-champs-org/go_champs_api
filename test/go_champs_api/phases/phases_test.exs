@@ -1,7 +1,14 @@
 defmodule GoChampsApi.PhasesTest do
+  alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.TeamHelpers
   use GoChampsApi.DataCase
 
+  alias GoChampsApi.Helpers.AggregatedTeamStatsByPhaseHelper
+  alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
+  alias GoChampsApi.AggregatedTeamStatsByPhases
+  alias GoChampsApi.Eliminations
   alias GoChampsApi.Organizations
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Phases
@@ -13,7 +20,12 @@ defmodule GoChampsApi.PhasesTest do
       is_in_progress: true,
       title: "some title",
       type: "elimination",
-      elimination_stats: [%{"title" => "stat title"}]
+      elimination_stats: [
+        %{"title" => "stat title", "team_stat_source" => "points", "ranking_order" => 1}
+      ],
+      ranking_tie_breakers: [
+        %{"type" => "head_to_head", "order" => 1}
+      ]
     }
     @update_attrs %{
       is_in_progress: false,
@@ -62,6 +74,43 @@ defmodule GoChampsApi.PhasesTest do
       assert phase.is_in_progress == true
       [elimination_stat] = phase.elimination_stats
       assert elimination_stat.title == "stat title"
+      assert elimination_stat.team_stat_source == "points"
+      assert elimination_stat.ranking_order == 1
+      [ranking_tie_breaker] = phase.ranking_tie_breakers
+      assert ranking_tie_breaker.type == "head_to_head"
+      assert ranking_tie_breaker.order == 1
+    end
+
+    test "create_phase/1 for elimination type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :type, "elimination")
+
+      assert {:ok, %Phase{} = phase} = Phases.create_phase(attrs)
+
+      assert phase.type == "elimination"
+    end
+
+    test "create_phase/1 for draw type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :type, "draw")
+
+      assert {:ok, %Phase{} = phase} = Phases.create_phase(attrs)
+
+      assert phase.type == "draw"
+    end
+
+    test "create_phase/1 with invalid type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :type, "invalid")
+
+      assert {:error, %Ecto.Changeset{}} = Phases.create_phase(attrs)
+    end
+
+    test "create_phase/1 with invalid ranking tie breaker type" do
+      attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      attrs = Map.put(attrs, :ranking_tie_breakers, [%{"type" => "invalid", "order" => 1}])
+
+      assert {:error, %Ecto.Changeset{}} = Phases.create_phase(attrs)
     end
 
     test "create_phase/1 with invalid data returns error changeset" do
@@ -190,6 +239,114 @@ defmodule GoChampsApi.PhasesTest do
     test "change_phase/1 returns a phase changeset" do
       phase = phase_fixture()
       assert %Ecto.Changeset{} = Phases.change_phase(phase)
+    end
+  end
+
+  describe "generate_phase_results/1" do
+    test "for elimination, returns :ok and update eliminations team stats and sort them" do
+      second_team_stats_first_elimination =
+        AggregatedTeamStatsByPhaseHelper.create_aggregated_team_stats_by_phase(%{
+          "wins" => 7,
+          "losses" => 3,
+          "points" => 10
+        })
+
+      {:ok, first_team_stats_first_elimination} =
+        %{
+          phase_id: second_team_stats_first_elimination.phase_id,
+          tournament_id: second_team_stats_first_elimination.tournament_id,
+          stats: %{
+            "wins" => 7,
+            "losses" => 4,
+            "points" => 15
+          }
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> AggregatedTeamStatsByPhases.create_aggregated_team_stats_by_phase()
+
+      {:ok, first_team_stats_second_elimination} =
+        %{
+          phase_id: second_team_stats_first_elimination.phase_id,
+          tournament_id: second_team_stats_first_elimination.tournament_id,
+          stats: %{
+            "wins" => 10,
+            "losses" => 0,
+            "points" => 50
+          }
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> AggregatedTeamStatsByPhases.create_aggregated_team_stats_by_phase()
+
+      {:ok, second_team_stats_second_elimination} =
+        %{
+          phase_id: second_team_stats_first_elimination.phase_id,
+          tournament_id: second_team_stats_first_elimination.tournament_id,
+          stats: %{
+            "wins" => 7,
+            "losses" => 3,
+            "points" => 40
+          }
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> AggregatedTeamStatsByPhases.create_aggregated_team_stats_by_phase()
+
+      {:ok, phase} =
+        second_team_stats_first_elimination.phase_id
+        |> PhaseHelpers.set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{"title" => "Losses", "team_stat_source" => "losses"},
+          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
+        ])
+
+      {:ok, first_elimination} =
+        @valid_attrs
+        |> Map.put(:phase_id, phase.id)
+        |> Map.put(:team_stats, [
+          %{team_id: second_team_stats_first_elimination.team_id},
+          %{team_id: first_team_stats_first_elimination.team_id}
+        ])
+        |> Eliminations.create_elimination()
+
+      {:ok, second_elimination} =
+        @valid_attrs
+        |> Map.put(:phase_id, phase.id)
+        |> Map.put(:team_stats, [
+          %{team_id: second_team_stats_second_elimination.team_id},
+          %{team_id: first_team_stats_second_elimination.team_id}
+        ])
+        |> Eliminations.create_elimination()
+
+      assert :ok = Phases.generate_phase_results(phase.id)
+
+      [wins_stat, losses_stat, points_stat] = phase.elimination_stats
+
+      updated_first_elimination = Eliminations.get_elimination!(first_elimination.id)
+
+      [first_team_stats, second_team_stats] = updated_first_elimination.team_stats
+
+      assert first_team_stats.team_id == first_team_stats_first_elimination.team_id
+      assert first_team_stats.stats[wins_stat.id] == 7
+      assert first_team_stats.stats[losses_stat.id] == 4
+      assert first_team_stats.stats[points_stat.id] == 15
+
+      assert second_team_stats.team_id == second_team_stats_first_elimination.team_id
+      assert second_team_stats.stats[wins_stat.id] == 7
+      assert second_team_stats.stats[losses_stat.id] == 3
+      assert second_team_stats.stats[points_stat.id] == 10
+
+      updated_second_elimination = Eliminations.get_elimination!(second_elimination.id)
+
+      [first_team_stats, second_team_stats] = updated_second_elimination.team_stats
+
+      assert first_team_stats.team_id == first_team_stats_second_elimination.team_id
+      assert first_team_stats.stats[wins_stat.id] == 10
+      assert first_team_stats.stats[losses_stat.id] == 0
+      assert first_team_stats.stats[points_stat.id] == 50
+
+      assert second_team_stats.team_id == second_team_stats_second_elimination.team_id
+      assert second_team_stats.stats[wins_stat.id] == 7
+      assert second_team_stats.stats[losses_stat.id] == 3
+      assert second_team_stats.stats[points_stat.id] == 40
     end
   end
 end

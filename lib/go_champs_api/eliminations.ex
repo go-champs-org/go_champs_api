@@ -4,9 +4,13 @@ defmodule GoChampsApi.Eliminations do
   """
 
   import Ecto.Query, warn: false
+  alias GoChampsApi.AggregatedTeamStatsByPhases
+  alias GoChampsApi.AggregatedTeamStatsByPhases.AggregatedTeamStatsByPhase
+  alias GoChampsApi.Phases.Phase
   alias GoChampsApi.Repo
 
   alias GoChampsApi.Eliminations.Elimination
+  alias GoChampsApi.Eliminations.TeamStats
   alias GoChampsApi.Phases
 
   @doc """
@@ -169,5 +173,150 @@ defmodule GoChampsApi.Eliminations do
   """
   def change_elimination(%Elimination{} = elimination) do
     Elimination.changeset(elimination, %{})
+  end
+
+  @doc """
+  Sorts elimination team stats by the phase criteria for a given elimination_id.
+
+  ## Examples
+
+      iex> sort_team_stats_based_on_phase_criteria(123)
+      {:ok, %Elimination{}}
+
+      iex> sort_team_stats_based_on_phase_criteria(456)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec sort_team_stats_based_on_phase_criteria(Ecto.UUID.t()) ::
+          {:ok, %Elimination{}} | {:error, %Ecto.Changeset{}}
+  def sort_team_stats_based_on_phase_criteria(elimination_id) do
+    elimination =
+      Repo.get!(Elimination, elimination_id)
+      |> Repo.preload([:phase])
+
+    updated_team_stats =
+      elimination.team_stats
+      |> Enum.sort(fn team_stat_a, team_stat_b ->
+        elimination.phase
+        |> should_team_stats_a_be_placed_before_team_stats_b?(team_stat_a, team_stat_b)
+      end)
+      |> Enum.map(fn team_stat -> Map.from_struct(team_stat) end)
+
+    elimination
+    |> update_elimination(%{team_stats: updated_team_stats})
+  end
+
+  @doc """
+  Returns true or false if team stats a should be placed before team stats b based on phase criteria.
+
+  ## Examples
+
+      iex> should_team_stats_a_be_placed_before_team_stats_b?(%Phase{}, %TeamStats{}, %TeamStats{})
+      true
+
+      iex> should_team_stats_a_be_placed_before_team_stats_b?(%Phase{}, %TeamStats{}, %TeamStats{})
+      false
+  """
+  @spec should_team_stats_a_be_placed_before_team_stats_b?(%Phase{}, %TeamStats{}, %TeamStats{}) ::
+          boolean
+  def should_team_stats_a_be_placed_before_team_stats_b?(phase, team_stats_a, team_stats_b) do
+    # remove all elimination_stats where ranking_order is nil
+    Enum.filter(phase.elimination_stats, fn elimination_stat ->
+      elimination_stat.ranking_order != nil
+    end)
+    |> Enum.sort(fn elimination_stat_a, elimination_stat_b ->
+      elimination_stat_a.ranking_order < elimination_stat_b.ranking_order
+    end)
+    |> Enum.reduce_while(false, fn elimination_stat_a, _acc ->
+      stat_a = Map.get(team_stats_a.stats, elimination_stat_a.team_stat_source, 0)
+      stat_b = Map.get(team_stats_b.stats, elimination_stat_a.team_stat_source, 0)
+
+      case stat_a == stat_b do
+        true -> {:cont, false}
+        _ -> {:halt, stat_a > stat_b}
+      end
+    end)
+  end
+
+  @doc """
+  Update team stats from AggregatedTeamStatsByPhase values for a give elimination id.
+
+  ## Examples
+
+      iex> update_team_stats_from_aggregated_team_stats_by_phase(123)
+      {:ok, %Elimination{}}
+
+      iex> update_team_stats_from_aggregated_team_stats_by_phase(456)
+      {:error, %Ecto.Changeset{}}
+  """
+  @spec update_team_stats_from_aggregated_team_stats_by_phase(Ecto.UUID.t()) ::
+          {:ok, %Elimination{}} | {:error, %Ecto.Changeset{}}
+  def update_team_stats_from_aggregated_team_stats_by_phase(elimination_id) do
+    elimination =
+      Repo.get!(Elimination, elimination_id)
+      |> Repo.preload([:phase])
+
+    updated_team_stats =
+      elimination.team_stats
+      |> Enum.map(fn team_stat ->
+        team_stat
+        |> update_stats_values_from_aggregated_team_stats_by_phase(elimination.phase)
+        |> Map.from_struct()
+      end)
+
+    elimination
+    |> update_elimination(%{team_stats: updated_team_stats})
+  end
+
+  @doc """
+  Update stats value based on phase and AggregatedTeamStatsByPhase values for a given TeamStats.
+
+  ## Examples
+
+      iex> update_stats_values_from_aggregated_team_stats_by_phase(%TeamStats{}, [%EliminationStats{}])
+      {:ok, %TeamStats{}}
+
+      iex> update_stats_values_from_aggregated_team_stats_by_phase(%TeamStats{}, [%EliminationStats{}])
+      {:error, %Ecto.Changeset{}}
+  """
+  @spec update_stats_values_from_aggregated_team_stats_by_phase(%TeamStats{}, [
+          %Phase{}
+        ]) ::
+          {:ok, %TeamStats{}} | {:error, %Ecto.Changeset{}}
+  def update_stats_values_from_aggregated_team_stats_by_phase(team_stats, phase) do
+    [aggregated_team_stats_by_phase] =
+      AggregatedTeamStatsByPhases.list_aggregated_team_stats_by_phase(
+        phase_id: phase.id,
+        team_id: team_stats.team_id
+      )
+
+    team_stats_stats =
+      phase.elimination_stats
+      |> Enum.reduce(%{}, fn elimination_stat, acc ->
+        stat_value =
+          aggregated_team_stats_by_phase
+          |> retrive_stat_value(elimination_stat.team_stat_source)
+
+        Map.put(acc, elimination_stat.id, stat_value)
+      end)
+
+    team_stats
+    |> Map.put(:stats, team_stats_stats)
+  end
+
+  @doc """
+  Retrive stat value from AggregatedTeamStatsByPhase values for a given team stat source.
+
+  ## Examples
+
+      iex> retrive_stat_value(%AggregatedTeamStatsByPhase{stats: %{"kills" => 10}}, "kills")
+      10
+
+      iex> retrive_stat_value(%AggregatedTeamStatsByPhase{stats: %{"deaths" => 5}}, "deaths")
+      5
+  """
+  @spec retrive_stat_value(%AggregatedTeamStatsByPhase{}, String.t()) :: any
+  def retrive_stat_value(aggregated_team_stats_by_phase, team_stat_source) do
+    Map.get(aggregated_team_stats_by_phase.stats, team_stat_source, 0)
   end
 end

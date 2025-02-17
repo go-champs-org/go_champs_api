@@ -30,6 +30,7 @@ config :go_champs_api, Oban,
     default: 10,
     generate_aggregated_team_stats: 1,
     generate_game_results: 1,
+    generate_phase_results: 1,
     generate_team_stats_logs_for_game: 1
   ]
 

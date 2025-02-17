@@ -31,8 +31,11 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases do
 
       iex> list_aggregated_team_stats_by_phase([name: "some name"], "team-stats-id")
       [%AggregatedTeamStatsByPhase{}, ...]
+
+      iex> list_aggregated_team_stats_by_phase([name: "some name"])
+      [%AggregatedTeamStatsByPhase{}, ...]
   """
-  def list_aggregated_team_stats_by_phase(where, sort_stat_id, page \\ 0) do
+  def list_aggregated_team_stats_by_phase(where, sort_stat_id \\ "", page \\ 0) do
     select_stat = "#{sort_stat_id}"
 
     query =

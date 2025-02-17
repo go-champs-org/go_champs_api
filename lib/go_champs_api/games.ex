@@ -80,9 +80,16 @@ defmodule GoChampsApi.Games do
 
   """
   def create_game(attrs \\ %{}) do
-    %Game{}
-    |> Game.changeset(attrs)
-    |> Repo.insert()
+    case %Game{}
+         |> Game.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, game} ->
+        start_side_effect_tasks(game)
+        {:ok, game}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -98,9 +105,16 @@ defmodule GoChampsApi.Games do
 
   """
   def update_game(%Game{} = game, attrs) do
-    game
-    |> Game.changeset(attrs)
-    |> Repo.update()
+    case game
+         |> Game.changeset(attrs)
+         |> Repo.update() do
+      {:ok, updated_game} ->
+        start_side_effect_tasks(updated_game)
+        {:ok, updated_game}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -116,7 +130,14 @@ defmodule GoChampsApi.Games do
 
   """
   def delete_game(%Game{} = game) do
-    Repo.delete(game)
+    case Repo.delete(game) do
+      {:ok, _deleted_game} ->
+        start_side_effect_tasks(game)
+        {:ok, game}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -153,5 +174,21 @@ defmodule GoChampsApi.Games do
   """
   def change_game(%Game{} = game) do
     Game.changeset(game, %{})
+  end
+
+  @doc """
+  Start side-effect task to generate results that depend on game.
+  ## Examples
+      iex> start_side_effect_tasks(game)
+      :ok
+  """
+  @spec start_side_effect_tasks(%Game{}) :: :ok
+  def start_side_effect_tasks(%Game{phase_id: phase_id}) do
+    %{phase_id: phase_id}
+    |> GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults.new()
+    |> Oban.insert()
+
+    # Generate game stats
+    :ok
   end
 end

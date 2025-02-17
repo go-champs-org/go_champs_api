@@ -6,6 +6,7 @@ defmodule GoChampsApi.Phases do
   import Ecto.Query, warn: false
   alias GoChampsApi.Repo
 
+  alias GoChampsApi.Eliminations
   alias GoChampsApi.Phases.Phase
 
   @doc """
@@ -189,5 +190,36 @@ defmodule GoChampsApi.Phases do
   """
   def change_phase(%Phase{} = phase) do
     Phase.changeset(phase, %{})
+  end
+
+  @doc """
+  Generate phase results for a given phase id that would include:
+  1. Team stadings;
+  2. Bracket results;
+
+  And returns `:ok` if the operation was successful or `:error` if it failed.
+
+  ## Examples
+
+      iex> generate_phase_results("phase-id")
+      :ok
+  """
+  @spec generate_phase_results(phase_id :: Ecto.UUID.t()) :: :ok | :error
+  def generate_phase_results(phase_id) do
+    phase = get_phase!(phase_id)
+
+    case phase.type do
+      "elimination" ->
+        phase.eliminations
+        |> Enum.each(fn elimination ->
+          Eliminations.update_team_stats_from_aggregated_team_stats_by_phase(elimination.id)
+          Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
+        end)
+
+        :ok
+
+      _ ->
+        :error
+    end
   end
 end
