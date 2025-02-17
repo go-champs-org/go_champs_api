@@ -1,6 +1,7 @@
 defmodule GoChampsApi.GamesTest do
   alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Games
@@ -55,7 +56,7 @@ defmodule GoChampsApi.GamesTest do
       assert organization.id == game_organization.id
     end
 
-    test "create_game/1 with valid data creates a game" do
+    test "create_game/1 with valid data creates a game and queue side effects" do
       attrs = PhaseHelpers.map_phase_id(@valid_attrs)
 
       assert {:ok, %Game{} = game} = Games.create_game(attrs)
@@ -64,13 +65,18 @@ defmodule GoChampsApi.GamesTest do
       assert game.home_score == attrs.home_score
       assert game.location == attrs.location
       assert game.youtube_code == attrs.youtube_code
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: game.phase_id}
+      )
     end
 
     test "create_game/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Games.create_game(@invalid_attrs)
     end
 
-    test "update_game/2 with valid data updates the game" do
+    test "update_game/2 with valid data updates the game and queue side efffects" do
       game = game_fixture()
 
       attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id})
@@ -81,6 +87,11 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.home_score == attrs.home_score
       assert updated_game.location == attrs.location
       assert updated_game.youtube_code == attrs.youtube_code
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: game.phase_id}
+      )
     end
 
     test "update_game/2 with is_finished false but current game live_state is :ended updates the game" do
@@ -157,9 +168,14 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.live_ended_at != nil
     end
 
-    test "delete_game/1 deletes the game" do
+    test "delete_game/1 deletes the game and queue side effects" do
       game = game_fixture()
       assert {:ok, %Game{}} = Games.delete_game(game)
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: game.phase_id}
+      )
 
       assert_raise Ecto.NoResultsError, fn ->
         Games.get_game!(game.id)

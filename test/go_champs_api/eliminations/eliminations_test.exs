@@ -258,7 +258,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, _phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
         ])
@@ -290,7 +290,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
         ])
@@ -319,7 +319,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
         ])
@@ -348,7 +348,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
         ])
@@ -377,7 +377,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
         ])
@@ -406,7 +406,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 3},
           %{"title" => "Average", "team_stat_source" => "average", "ranking_order" => 2},
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1}
@@ -436,7 +436,7 @@ defmodule GoChampsApi.EliminationsTest do
       # Phase should sort by wins first and then by points
       {:ok, phase} =
         elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins"}
         ])
 
@@ -460,7 +460,7 @@ defmodule GoChampsApi.EliminationsTest do
 
       {:ok, phase} =
         aggregated_team_stats_by_phase.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins"},
           %{"title" => "Losses", "team_stat_source" => "losses"}
         ])
@@ -497,7 +497,7 @@ defmodule GoChampsApi.EliminationsTest do
 
       {:ok, phase} =
         aggregate_team_stats_by_phase.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Points", "team_stat_source" => "points"},
           %{"title" => "Points against", "team_stat_source" => "points_against"}
         ])
@@ -533,12 +533,5 @@ defmodule GoChampsApi.EliminationsTest do
 
       assert Eliminations.retrive_stat_value(aggregate_team_stats_by_phase, "assists") == 0
     end
-  end
-
-  defp set_elimination_stats(phase_id, elimination_stats) do
-    phase = Phases.get_phase!(phase_id)
-
-    phase
-    |> Phases.update_phase(%{elimination_stats: elimination_stats})
   end
 end

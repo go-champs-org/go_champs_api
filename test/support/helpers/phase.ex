@@ -52,4 +52,11 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
         |> TournamentHelpers.map_tournament_id()
     end
   end
+
+  def set_elimination_stats(phase_id, elimination_stats) do
+    phase = Phases.get_phase!(phase_id)
+
+    phase
+    |> Phases.update_phase(%{elimination_stats: elimination_stats})
+  end
 end

@@ -1,8 +1,10 @@
 defmodule GoChampsApi.PhasesTest do
+  alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Helpers.TeamHelpers
   use GoChampsApi.DataCase
 
   alias GoChampsApi.Helpers.AggregatedTeamStatsByPhaseHelper
+  alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.AggregatedTeamStatsByPhases
@@ -290,7 +292,7 @@ defmodule GoChampsApi.PhasesTest do
 
       {:ok, phase} =
         second_team_stats_first_elimination.phase_id
-        |> set_elimination_stats([
+        |> PhaseHelpers.set_elimination_stats([
           %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
           %{"title" => "Losses", "team_stat_source" => "losses"},
           %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
@@ -346,12 +348,5 @@ defmodule GoChampsApi.PhasesTest do
       assert second_team_stats.stats[losses_stat.id] == 3
       assert second_team_stats.stats[points_stat.id] == 40
     end
-  end
-
-  defp set_elimination_stats(phase_id, elimination_stats) do
-    phase = Phases.get_phase!(phase_id)
-
-    phase
-    |> Phases.update_phase(%{elimination_stats: elimination_stats})
   end
 end
