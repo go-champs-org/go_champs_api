@@ -1,10 +1,11 @@
 defmodule GoChampsApi.EliminationsTest do
-  alias GoChampsApi.Eliminations.Elimination.TeamStats
-  alias GoChampsApi.Helpers.AggregatedTeamStatsByPhaseHelper
+  alias GoChampsApi.Eliminations
   use GoChampsApi.DataCase
 
-  alias GoChampsApi.Eliminations
+  alias GoChampsApi.Eliminations.Elimination.TeamStats
+  alias GoChampsApi.Helpers.AggregatedTeamStatsByPhaseHelper
   alias GoChampsApi.Helpers.PhaseHelpers
+  alias GoChampsApi.Helpers.EliminationsHelpers
 
   alias GoChampsApi.Eliminations.Elimination
   alias GoChampsApi.Phases
@@ -246,22 +247,25 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_2 = Ecto.UUID.autogenerate()
       team_id_3 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 8}},
-            %{team_id: team_id_2, stats: %{"wins" => 10, "points" => 5}},
-            %{team_id: team_id_3, stats: %{"wins" => 8, "points" => 10}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, _phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
-          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
-        ])
+      [wins_stat, points_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 8, points_stat.id => 8}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 10, points_stat.id => 5}},
+            %{team_id: team_id_3, stats: %{wins_stat.id => 8, points_stat.id => 10}}
+          ]
+        })
 
       {:ok, result_elimination} =
         Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
@@ -280,28 +284,31 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_4 = Ecto.UUID.autogenerate()
       team_id_5 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 0, "points_balance" => -64}},
-            %{team_id: team_id_4, stats: %{"wins" => 1, "points_balance" => -44}},
-            %{team_id: team_id_3, stats: %{"wins" => 1, "points_balance" => 55}},
-            %{team_id: team_id_5, stats: %{"wins" => 2, "points_balance" => 13}},
-            %{team_id: team_id_2, stats: %{"wins" => 0, "points_balance" => -12}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{
+              "title" => "Points Balance",
+              "team_stat_source" => "points_balance",
+              "ranking_order" => 2
+            }
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, _phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
-          %{
-            "title" => "Points Balance",
-            "team_stat_source" => "points_balance",
-            "ranking_order" => 2
-          }
-        ])
+      [wins_stat, points_balance_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 0, points_balance_stat.id => -64}},
+            %{team_id: team_id_4, stats: %{wins_stat.id => 1, points_balance_stat.id => -44}},
+            %{team_id: team_id_3, stats: %{wins_stat.id => 1, points_balance_stat.id => 55}},
+            %{team_id: team_id_5, stats: %{wins_stat.id => 2, points_balance_stat.id => 13}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 0, points_balance_stat.id => -12}}
+          ]
+        })
 
       {:ok, result_elimination} =
         Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
@@ -322,21 +329,24 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 12, "points" => 8}},
-            %{team_id: team_id_2, stats: %{"wins" => 10, "points" => 5}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
-          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
-        ])
+      [wins_stat, points_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 12, points_stat.id => 8}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 10, points_stat.id => 5}}
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
@@ -351,21 +361,24 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 6, "points" => 5}},
-            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 8}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
-          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
-        ])
+      [wins_stat, points_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 6, points_stat.id => 5}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 8, points_stat.id => 8}}
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
@@ -380,21 +393,24 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 10}},
-            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 8}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
-          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
-        ])
+      [wins_stat, points_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 8, points_stat.id => 10}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 8, points_stat.id => 8}}
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
@@ -409,21 +425,24 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 8}},
-            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 10}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
-          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2}
-        ])
+      [wins_stat, points_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 8, points_stat.id => 8}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 8, points_stat.id => 10}}
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
@@ -434,30 +453,39 @@ defmodule GoChampsApi.EliminationsTest do
              )
     end
 
-    test "returns false if team stats a should not be placed before team stats b based on phase criteria ranking order 2 even with losing in ranking order 3" do
+    test "returns true if team stats a should be placed before team stats b based on phase criteria ranking order 2 even with losing in ranking order 3" do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 8, "points" => 10, "average" => 3}},
-            %{team_id: team_id_2, stats: %{"wins" => 8, "points" => 8, "average" => 5}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+            %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 2},
+            %{"title" => "Average", "team_stat_source" => "average", "ranking_order" => 3}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Points", "team_stat_source" => "points", "ranking_order" => 3},
-          %{"title" => "Average", "team_stat_source" => "average", "ranking_order" => 2},
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1}
-        ])
+      [wins_stat, points_stat, average_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{
+              team_id: team_id_1,
+              stats: %{wins_stat.id => 8, points_stat.id => 10, average_stat.id => 3}
+            },
+            %{
+              team_id: team_id_2,
+              stats: %{wins_stat.id => 8, points_stat.id => 8, average_stat.id => 5}
+            }
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
-      refute Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+      assert Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
                phase,
                team_stat_a,
                team_stat_b
@@ -468,20 +496,23 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 12}},
-            %{team_id: team_id_2, stats: %{"wins" => 10}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins"}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins"}
-        ])
+      [wins_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 12}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 10}}
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
@@ -496,20 +527,23 @@ defmodule GoChampsApi.EliminationsTest do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
-      elimination =
-        elimination_fixture(%{
-          team_stats: [
-            %{team_id: team_id_1, stats: %{"wins" => 12}},
-            %{team_id: team_id_2, stats: %{"wins" => 10}}
+      phase =
+        PhaseHelpers.create_phase(%{
+          elimination_stats: [
+            %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 0}
           ]
         })
 
-      # Phase should sort by wins first and then by points
-      {:ok, phase} =
-        elimination.phase_id
-        |> PhaseHelpers.set_elimination_stats([
-          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 0}
-        ])
+      [wins_stat] = phase.elimination_stats
+
+      elimination =
+        EliminationsHelpers.create_elimination(%{
+          phase_id: phase.id,
+          team_stats: [
+            %{team_id: team_id_1, stats: %{wins_stat.id => 12}},
+            %{team_id: team_id_2, stats: %{wins_stat.id => 10}}
+          ]
+        })
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 

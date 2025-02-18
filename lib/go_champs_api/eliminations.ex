@@ -228,8 +228,8 @@ defmodule GoChampsApi.Eliminations do
       elimination_stat_a.ranking_order < elimination_stat_b.ranking_order
     end)
     |> Enum.reduce_while(true, fn elimination_stat_a, _acc ->
-      stat_a = Map.get(team_stats_a.stats, elimination_stat_a.team_stat_source, 0)
-      stat_b = Map.get(team_stats_b.stats, elimination_stat_a.team_stat_source, 0)
+      stat_a = Map.get(team_stats_a.stats, elimination_stat_a.id, 0)
+      stat_b = Map.get(team_stats_b.stats, elimination_stat_a.id, 0)
 
       case stat_a == stat_b do
         true -> {:cont, true}

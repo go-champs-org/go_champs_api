@@ -53,6 +53,16 @@ defmodule GoChampsApi.Helpers.PhaseHelpers do
     end
   end
 
+  def create_phase(attrs \\ %{}) do
+    {:ok, phase} =
+      %{title: "some phase", type: "elimination"}
+      |> Map.merge(attrs)
+      |> create_or_use_tournament_id(attrs)
+      |> Phases.create_phase()
+
+    phase
+  end
+
   def set_elimination_stats(phase_id, elimination_stats) do
     phase = Phases.get_phase!(phase_id)
 
