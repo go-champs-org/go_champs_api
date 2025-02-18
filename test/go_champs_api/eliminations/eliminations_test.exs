@@ -272,6 +272,49 @@ defmodule GoChampsApi.EliminationsTest do
       assert second_team_stat.team_id == team_id_3
       assert third_team_stat.team_id == team_id_1
     end
+
+    test "sorts team stats by ranking order with negative stats values" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+      team_id_3 = Ecto.UUID.autogenerate()
+      team_id_4 = Ecto.UUID.autogenerate()
+      team_id_5 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 0, "points_balance" => -64}},
+            %{team_id: team_id_4, stats: %{"wins" => 1, "points_balance" => -44}},
+            %{team_id: team_id_3, stats: %{"wins" => 1, "points_balance" => 55}},
+            %{team_id: team_id_5, stats: %{"wins" => 2, "points_balance" => 13}},
+            %{team_id: team_id_2, stats: %{"wins" => 0, "points_balance" => -12}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, _phase} =
+        elimination.phase_id
+        |> PhaseHelpers.set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 1},
+          %{
+            "title" => "Points Balance",
+            "team_stat_source" => "points_balance",
+            "ranking_order" => 2
+          }
+        ])
+
+      {:ok, result_elimination} =
+        Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
+
+      [first_team_stat, second_team_stat, third_team_stat, fourth_team_stat, fifth_team_stat] =
+        result_elimination.team_stats
+
+      assert first_team_stat.team_id == team_id_5
+      assert second_team_stat.team_id == team_id_3
+      assert third_team_stat.team_id == team_id_4
+      assert fourth_team_stat.team_id == team_id_2
+      assert fifth_team_stat.team_id == team_id_1
+    end
   end
 
   describe "should_team_stats_a_be_placed_before_team_stats_b?/3" do
@@ -421,7 +464,7 @@ defmodule GoChampsApi.EliminationsTest do
              )
     end
 
-    test "returns false when ranking order is not defined" do
+    test "returns true when ranking order is not defined" do
       team_id_1 = Ecto.UUID.autogenerate()
       team_id_2 = Ecto.UUID.autogenerate()
 
@@ -442,7 +485,35 @@ defmodule GoChampsApi.EliminationsTest do
 
       [team_stat_a, team_stat_b] = elimination.team_stats
 
-      refute Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+      assert Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
+               phase,
+               team_stat_a,
+               team_stat_b
+             )
+    end
+
+    test "returns true when ranking order is 0" do
+      team_id_1 = Ecto.UUID.autogenerate()
+      team_id_2 = Ecto.UUID.autogenerate()
+
+      elimination =
+        elimination_fixture(%{
+          team_stats: [
+            %{team_id: team_id_1, stats: %{"wins" => 12}},
+            %{team_id: team_id_2, stats: %{"wins" => 10}}
+          ]
+        })
+
+      # Phase should sort by wins first and then by points
+      {:ok, phase} =
+        elimination.phase_id
+        |> PhaseHelpers.set_elimination_stats([
+          %{"title" => "Wins", "team_stat_source" => "wins", "ranking_order" => 0}
+        ])
+
+      [team_stat_a, team_stat_b] = elimination.team_stats
+
+      assert Eliminations.should_team_stats_a_be_placed_before_team_stats_b?(
                phase,
                team_stat_a,
                team_stat_b

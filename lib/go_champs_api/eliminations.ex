@@ -222,17 +222,17 @@ defmodule GoChampsApi.Eliminations do
   def should_team_stats_a_be_placed_before_team_stats_b?(phase, team_stats_a, team_stats_b) do
     # remove all elimination_stats where ranking_order is nil
     Enum.filter(phase.elimination_stats, fn elimination_stat ->
-      elimination_stat.ranking_order != nil
+      elimination_stat.ranking_order != nil && elimination_stat.ranking_order > 0
     end)
     |> Enum.sort(fn elimination_stat_a, elimination_stat_b ->
       elimination_stat_a.ranking_order < elimination_stat_b.ranking_order
     end)
-    |> Enum.reduce_while(false, fn elimination_stat_a, _acc ->
+    |> Enum.reduce_while(true, fn elimination_stat_a, _acc ->
       stat_a = Map.get(team_stats_a.stats, elimination_stat_a.team_stat_source, 0)
       stat_b = Map.get(team_stats_b.stats, elimination_stat_a.team_stat_source, 0)
 
       case stat_a == stat_b do
-        true -> {:cont, false}
+        true -> {:cont, true}
         _ -> {:halt, stat_a > stat_b}
       end
     end)
