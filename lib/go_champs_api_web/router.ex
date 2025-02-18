@@ -64,6 +64,8 @@ defmodule GoChampsApiWeb.Router do
 
     resources "/recently-view", RecentlyViewController
 
+    resources "/registrations", RegistrationController, only: [:index, :show]
+
     get "/search", SearchController, :index
 
     resources "/sports", SportsController, only: [:index, :show]
@@ -108,6 +110,8 @@ defmodule GoChampsApiWeb.Router do
 
     resources "/player-stats-logs", PlayerStatsLogController, only: [:create, :update, :delete]
     patch "/player-stats-logs", PlayerStatsLogController, :batch_update
+
+    resources "/registrations", RegistrationController, only: [:create, :update, :delete]
 
     resources "/teams", TeamController, only: [:create, :update, :delete]
 
