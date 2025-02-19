@@ -3,6 +3,7 @@ defmodule GoChampsApi.Registrations.Registration do
   use GoChampsApi.Schema
   import Ecto.Changeset
   alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Registrations.RegistrationInvite
 
   schema "registrations" do
     field :title, :string
@@ -18,6 +19,7 @@ defmodule GoChampsApi.Registrations.Registration do
     end
 
     belongs_to :tournament, Tournament
+    has_many :registration_invites, RegistrationInvite
 
     timestamps()
   end
@@ -39,6 +41,7 @@ defmodule GoChampsApi.Registrations.Registration do
       :type,
       :tournament_id
     ])
+    |> validate_inclusion(:type, ["team_roster_invites"])
   end
 
   defp custom_field_changeset(schema, params) do

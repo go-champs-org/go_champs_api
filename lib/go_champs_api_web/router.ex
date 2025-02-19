@@ -113,6 +113,7 @@ defmodule GoChampsApiWeb.Router do
     patch "/player-stats-logs", PlayerStatsLogController, :batch_update
 
     resources "/registrations", RegistrationController, only: [:create, :update, :delete]
+    put "/registrations/:id/generate-invites", RegistrationController, :generate_invites
 
     resources "/registration-invites", RegistrationInviteController,
       only: [:create, :update, :delete]

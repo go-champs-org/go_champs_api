@@ -1,4 +1,5 @@
 defmodule GoChampsApi.RegistrationsTest do
+  alias GoChampsApi.Helpers.TeamHelpers
   use GoChampsApi.DataCase
 
   alias GoChampsApi.Registrations
@@ -14,14 +15,14 @@ defmodule GoChampsApi.RegistrationsTest do
       end_date: "2010-04-17T14:00:00Z",
       start_date: "2010-04-17T14:00:00Z",
       title: "some title",
-      type: "some type"
+      type: "team_roster_invites"
     }
     @update_attrs %{
       auto_approve: false,
       end_date: "2011-05-18T15:01:01Z",
       start_date: "2011-05-18T15:01:01Z",
       title: "some updated title",
-      type: "some updated type"
+      type: "team_roster_invites"
     }
     @invalid_attrs %{
       auto_approve: nil,
@@ -49,7 +50,18 @@ defmodule GoChampsApi.RegistrationsTest do
 
     test "get_registration!/1 returns the registration with given id" do
       registration = registration_fixture()
-      assert Registrations.get_registration!(registration.id) == registration
+      registration_result = Registrations.get_registration!(registration.id)
+
+      assert registration_result.title == "some title"
+      assert registration_result.type == "team_roster_invites"
+      assert registration_result.auto_approve == true
+      assert registration_result.custom_fields == []
+
+      assert registration_result.end_date ==
+               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+
+      assert registration_result.start_date ==
+               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
     end
 
     test "get_registration_organization!/1 returns the organization of the registration with given id" do
@@ -77,7 +89,16 @@ defmodule GoChampsApi.RegistrationsTest do
       assert registration.end_date == DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
       assert registration.start_date == DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
       assert registration.title == "some title"
-      assert registration.type == "some type"
+      assert registration.type == "team_roster_invites"
+    end
+
+    test "create_registration/1 with invalid type returns error changeset" do
+      invalid_attrs =
+        @valid_attrs
+        |> Map.merge(%{type: "invalid_type"})
+        |> TournamentHelpers.map_tournament_id()
+
+      assert {:error, %Ecto.Changeset{}} = Registrations.create_registration(invalid_attrs)
     end
 
     test "create_registration/1 with invalid data returns error changeset" do
@@ -94,7 +115,7 @@ defmodule GoChampsApi.RegistrationsTest do
       assert registration.end_date == DateTime.from_naive!(~N[2011-05-18T15:01:01Z], "Etc/UTC")
       assert registration.start_date == DateTime.from_naive!(~N[2011-05-18T15:01:01Z], "Etc/UTC")
       assert registration.title == "some updated title"
-      assert registration.type == "some updated type"
+      assert registration.type == "team_roster_invites"
     end
 
     test "update_registration/2 with invalid data returns error changeset" do
@@ -103,7 +124,18 @@ defmodule GoChampsApi.RegistrationsTest do
       assert {:error, %Ecto.Changeset{}} =
                Registrations.update_registration(registration, @invalid_attrs)
 
-      assert registration == Registrations.get_registration!(registration.id)
+      result_registration = Registrations.get_registration!(registration.id)
+
+      assert result_registration.auto_approve == true
+
+      assert result_registration.end_date ==
+               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+
+      assert result_registration.start_date ==
+               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+
+      assert result_registration.title == "some title"
+      assert result_registration.type == "team_roster_invites"
     end
 
     test "delete_registration/1 deletes the registration" do
@@ -115,6 +147,46 @@ defmodule GoChampsApi.RegistrationsTest do
     test "change_registration/1 returns a registration changeset" do
       registration = registration_fixture()
       assert %Ecto.Changeset{} = Registrations.change_registration(registration)
+    end
+
+    test "generate_registration_invites/1 when registration is type of team_roster_invites generates registration invites" do
+      registration = registration_fixture()
+
+      team_a =
+        TeamHelpers.create_team(%{name: "Team A", tournament_id: registration.tournament_id})
+
+      team_b =
+        TeamHelpers.create_team(%{name: "Team B", tournament_id: registration.tournament_id})
+
+      assert {:ok, _registration_invites} =
+               Registrations.generate_registration_invites(registration.id)
+
+      updated_registration = Registrations.get_registration!(registration.id)
+
+      assert Enum.count(updated_registration.registration_invites) == 2
+      assert Enum.at(updated_registration.registration_invites, 0).invitee_id == team_b.id
+      assert Enum.at(updated_registration.registration_invites, 0).invitee_type == "team"
+      assert Enum.at(updated_registration.registration_invites, 1).invitee_id == team_a.id
+      assert Enum.at(updated_registration.registration_invites, 1).invitee_type == "team"
+    end
+
+    test "generate_team_roster_invites/1 generates registration invites for teams" do
+      registration = registration_fixture()
+
+      team_a =
+        TeamHelpers.create_team(%{name: "Team A", tournament_id: registration.tournament_id})
+
+      team_b =
+        TeamHelpers.create_team(%{name: "Team B", tournament_id: registration.tournament_id})
+
+      assert {:ok, registration_invites} =
+               Registrations.generate_team_roster_invites(registration)
+
+      assert Enum.count(registration_invites) == 2
+      assert Enum.at(registration_invites, 0).invitee_id == team_b.id
+      assert Enum.at(registration_invites, 0).invitee_type == "team"
+      assert Enum.at(registration_invites, 1).invitee_id == team_a.id
+      assert Enum.at(registration_invites, 1).invitee_type == "team"
     end
   end
 

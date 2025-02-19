@@ -1,4 +1,5 @@
 defmodule GoChampsApiWeb.RegistrationControllerTest do
+  alias GoChampsApi.Helpers.TeamHelpers
   use GoChampsApiWeb.ConnCase
 
   alias GoChampsApi.Registrations
@@ -11,14 +12,14 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
     end_date: "2010-04-17T14:00:00Z",
     start_date: "2010-04-17T14:00:00Z",
     title: "some title",
-    type: "some type"
+    type: "team_roster_invites"
   }
   @update_attrs %{
     auto_approve: false,
     end_date: "2011-05-18T15:01:01Z",
     start_date: "2011-05-18T15:01:01Z",
     title: "some updated title",
-    type: "some updated type"
+    type: "team_roster_invites"
   }
   @invalid_attrs %{
     auto_approve: nil,
@@ -75,7 +76,7 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
                "end_date" => "2010-04-17T14:00:00Z",
                "start_date" => "2010-04-17T14:00:00Z",
                "title" => "some title",
-               "type" => "some type"
+               "type" => "team_roster_invites"
              } = json_response(conn, 200)["data"]
     end
 
@@ -124,7 +125,7 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
                "end_date" => "2011-05-18T15:01:01Z",
                "start_date" => "2011-05-18T15:01:01Z",
                "title" => "some updated title",
-               "type" => "some updated type"
+               "type" => "team_roster_invites"
              } = json_response(conn, 200)["data"]
     end
 
@@ -173,6 +174,49 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
       assert_error_sent 404, fn ->
         get(conn, Routes.v1_registration_path(conn, :show, registration))
       end
+    end
+  end
+
+  describe "put /registration/{id}/generate-invites" do
+    setup [:create_registration]
+
+    @tag :authenticated
+    test "generates invites for the registration", %{conn: conn, registration: registration} do
+      team_a =
+        TeamHelpers.create_team(%{name: "Team A", tournament_id: registration.tournament_id})
+
+      team_b =
+        TeamHelpers.create_team(%{name: "Team B", tournament_id: registration.tournament_id})
+
+      conn = put(conn, Routes.v1_registration_path(conn, :generate_invites, registration))
+      assert response(conn, 200)
+
+      conn = get(conn, Routes.v1_registration_path(conn, :show, registration.id))
+      response = json_response(conn, 200)["data"]
+
+      registration_id = registration.id
+      tournament_id = registration.tournament_id
+      team_a_id = team_a.id
+      team_b_id = team_b.id
+
+      assert response["id"] == registration_id
+      assert response["auto_approve"] == true
+      assert response["end_date"] == "2010-04-17T14:00:00Z"
+      assert response["start_date"] == "2010-04-17T14:00:00Z"
+      assert response["title"] == "some title"
+      assert response["type"] == "team_roster_invites"
+      assert response["custom_fields"] == []
+      assert response["tournament_id"] == tournament_id
+
+      registration_invites = response["registration_invites"]
+
+      assert length(registration_invites) == 2
+      assert Enum.at(registration_invites, 0)["registration_id"] == registration_id
+      assert Enum.at(registration_invites, 0)["invitee_id"] == team_b_id
+      assert Enum.at(registration_invites, 0)["invitee_type"] == "team"
+      assert Enum.at(registration_invites, 1)["registration_id"] == registration_id
+      assert Enum.at(registration_invites, 1)["invitee_id"] == team_a_id
+      assert Enum.at(registration_invites, 1)["invitee_type"] == "team"
     end
   end
 

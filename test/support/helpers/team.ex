@@ -47,4 +47,13 @@ defmodule GoChampsApi.Helpers.TeamHelpers do
         |> TournamentHelpers.map_tournament_id()
     end
   end
+
+  def create_team(attrs \\ %{}) do
+    {:ok, team} =
+      %{name: "some team"}
+      |> create_or_use_tournament_id(attrs)
+      |> Teams.create_team()
+
+    team
+  end
 end

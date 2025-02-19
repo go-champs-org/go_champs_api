@@ -45,4 +45,12 @@ defmodule GoChampsApiWeb.RegistrationController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  def generate_invites(conn, %{"id" => id}) do
+    with {:ok, _} <-
+           Registrations.generate_registration_invites(id) do
+      registration = Registrations.get_registration!(id)
+      render(conn, "show.json", registration: registration)
+    end
+  end
 end

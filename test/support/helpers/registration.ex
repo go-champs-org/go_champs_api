@@ -7,7 +7,7 @@ defmodule GoChampsApi.Helpers.RegistrationHelpers do
     end_date: "2010-04-17T14:00:00Z",
     start_date: "2010-04-17T14:00:00Z",
     title: "some title",
-    type: "some type"
+    type: "team_roster_invites"
   }
 
   def map_registration_id_in_attrs(attrs \\ %{}) do

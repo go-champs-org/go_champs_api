@@ -7,6 +7,7 @@ defmodule GoChampsApi.Registrations do
   alias GoChampsApi.Repo
 
   alias GoChampsApi.Registrations.Registration
+  alias GoChampsApi.Tournaments
 
   @doc """
   Returns the list of registrations.
@@ -35,7 +36,8 @@ defmodule GoChampsApi.Registrations do
       ** (Ecto.NoResultsError)
 
   """
-  def get_registration!(id), do: Repo.get!(Registration, id)
+  def get_registration!(id),
+    do: Repo.get!(Registration, id) |> Repo.preload(:registration_invites)
 
   @doc """
   Gets the organization of a registration.
@@ -128,6 +130,68 @@ defmodule GoChampsApi.Registrations do
   """
   def change_registration(%Registration{} = registration, attrs \\ %{}) do
     Registration.changeset(registration, attrs)
+  end
+
+  @doc """
+  Generate registration invites for a given registration id.
+
+  ## Examples
+
+      iex> generate_registration_invites(registration_id)
+      {:ok, [%RegistrationInvite{}]}
+
+  """
+  @spec generate_registration_invites(registration_id :: Ecto.UUID.t()) ::
+          {:ok, [RegistrationInvite.t()]}
+  def generate_registration_invites(registration_id) do
+    registration = get_registration!(registration_id)
+
+    case registration.type do
+      "team_roster_invites" ->
+        registration
+        |> generate_team_roster_invites()
+
+      _ ->
+        {:error, "Unsupported registration type"}
+    end
+  end
+
+  @doc """
+  Generate team roster invites for a given registration.
+
+  ## Examples
+
+      iex> generate_team_roster_invites(registration)
+      {:ok, [%RegistrationInvite{}]}
+
+  """
+  @spec generate_team_roster_invites(Registration.t()) :: {:ok, [RegistrationInvite.t()]}
+  def generate_team_roster_invites(registration) do
+    teams =
+      Tournaments.get_tournament!(registration.tournament_id)
+      |> Map.fetch!(:teams)
+
+    batch_result =
+      teams
+      |> Enum.map(fn team ->
+        %{
+          registration_id: registration.id,
+          invitee_id: team.id,
+          invitee_type: "team"
+        }
+      end)
+      |> Enum.map(&create_registration_invite/1)
+
+    case Enum.find(batch_result, fn
+           {:error, _} -> true
+           _ -> false
+         end) do
+      nil ->
+        {:ok, Enum.map(batch_result, &elem(&1, 1))}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   alias GoChampsApi.Registrations.RegistrationInvite
