@@ -3,6 +3,7 @@ defmodule GoChampsApi.RegistrationsTest do
 
   alias GoChampsApi.Registrations
   alias GoChampsApi.Helpers.TournamentHelpers
+  alias GoChampsApi.Tournaments
 
   describe "registrations" do
     alias GoChampsApi.Registrations.Registration
@@ -48,6 +49,18 @@ defmodule GoChampsApi.RegistrationsTest do
     test "get_registration!/1 returns the registration with given id" do
       registration = registration_fixture()
       assert Registrations.get_registration!(registration.id) == registration
+    end
+
+    test "get_registration_organization!/1 returns the organization of the registration with given id" do
+      registration = registration_fixture()
+
+      organization = Registrations.get_registration_organization!(registration.id)
+
+      tournament = Tournaments.get_tournament!(registration.tournament_id)
+
+      assert organization.name == "some organization"
+      assert organization.slug == "some-slug"
+      assert organization.id == tournament.organization_id
     end
 
     test "create_registration/1 with valid data creates a registration" do

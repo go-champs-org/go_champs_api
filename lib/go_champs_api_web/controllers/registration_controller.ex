@@ -6,6 +6,9 @@ defmodule GoChampsApiWeb.RegistrationController do
 
   action_fallback GoChampsApiWeb.FallbackController
 
+  plug GoChampsApiWeb.Plugs.AuthorizedRegistration, :id when action in [:delete, :update]
+  plug GoChampsApiWeb.Plugs.AuthorizedRegistration, :registration when action in [:create]
+
   def index(conn, _params) do
     registrations = Registrations.list_registrations()
     render(conn, "index.json", registrations: registrations)

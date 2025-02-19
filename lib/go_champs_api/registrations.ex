@@ -38,6 +38,34 @@ defmodule GoChampsApi.Registrations do
   def get_registration!(id), do: Repo.get!(Registration, id)
 
   @doc """
+  Gets the organization of a registration.
+
+  Raises `Ecto.NoResultsError` if the Registration does not exist.
+
+  ## Examples
+
+      iex> get_registration_organization!(123)
+      %Organization{}
+
+      iex> get_registration_organization!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  @spec get_registration_organization!(id :: Ecto.UUID.t()) :: Organization.t()
+  def get_registration_organization!(id) do
+    {:ok, tournament} =
+      Repo.get_by!(Registration, id: id)
+      |> Repo.preload(tournament: :organization)
+      |> Map.fetch(:tournament)
+
+    {:ok, organization} =
+      tournament
+      |> Map.fetch(:organization)
+
+    organization
+  end
+
+  @doc """
   Creates a registration.
 
   ## Examples

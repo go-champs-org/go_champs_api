@@ -37,6 +37,15 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
     registration
   end
 
+  def fixture(:registration_with_different_member) do
+    create_attrs =
+      @create_attrs
+      |> TournamentHelpers.map_tournament_id_with_other_member()
+
+    {:ok, registration} = Registrations.create_registration(create_attrs)
+    registration
+  end
+
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
@@ -72,8 +81,23 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
 
     @tag :authenticated
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.v1_registration_path(conn, :create), registration: @invalid_attrs)
+      invalid_attrs =
+        @invalid_attrs
+        |> TournamentHelpers.map_tournament_id()
+
+      conn = post(conn, Routes.v1_registration_path(conn, :create), registration: invalid_attrs)
       assert json_response(conn, 422)["errors"] != %{}
+    end
+  end
+
+  describe "create registration with different organization member" do
+    @tag :authenticated
+    test "returns forbidden for an user that is not a member", %{conn: conn} do
+      attrs = TournamentHelpers.map_tournament_id_with_other_member(@create_attrs)
+
+      conn = post(conn, Routes.v1_registration_path(conn, :create), registration: attrs)
+
+      assert text_response(conn, 403) == "Forbidden"
     end
   end
 
@@ -115,6 +139,29 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
     end
   end
 
+  describe "update registration with different member" do
+    setup [:create_registration_with_different_member]
+
+    @tag :authenticated
+    test "returns forbidden for an user that is not a member", %{
+      conn: conn,
+      registration: registration
+    } do
+      conn =
+        put(
+          conn,
+          Routes.v1_registration_path(
+            conn,
+            :update,
+            registration
+          ),
+          registration: @update_attrs
+        )
+
+      assert text_response(conn, 403) == "Forbidden"
+    end
+  end
+
   describe "delete registration" do
     setup [:create_registration]
 
@@ -129,8 +176,35 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
     end
   end
 
+  describe "delete registration with different member" do
+    setup [:create_registration_with_different_member]
+
+    @tag :authenticated
+    test "returns forbidden for an user that is not a member", %{
+      conn: conn,
+      registration: registration
+    } do
+      conn =
+        delete(
+          conn,
+          Routes.v1_registration_path(
+            conn,
+            :delete,
+            registration
+          )
+        )
+
+      assert text_response(conn, 403) == "Forbidden"
+    end
+  end
+
   defp create_registration(_) do
     registration = fixture(:registration)
     %{registration: registration}
+  end
+
+  defp create_registration_with_different_member(_) do
+    registration = fixture(:registration_with_different_member)
+    {:ok, registration: registration}
   end
 end
