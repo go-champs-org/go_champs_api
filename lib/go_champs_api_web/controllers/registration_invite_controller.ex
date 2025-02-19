@@ -6,6 +6,11 @@ defmodule GoChampsApiWeb.RegistrationInviteController do
 
   action_fallback GoChampsApiWeb.FallbackController
 
+  plug GoChampsApiWeb.Plugs.AuthorizedRegistrationInvite, :id when action in [:delete, :update]
+
+  plug GoChampsApiWeb.Plugs.AuthorizedRegistrationInvite,
+       :registration_invite when action in [:create]
+
   def create(conn, %{"registration_invite" => registration_invite_params}) do
     with {:ok, %RegistrationInvite{} = registration_invite} <-
            Registrations.create_registration_invite(registration_invite_params) do
