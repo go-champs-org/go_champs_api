@@ -129,4 +129,100 @@ defmodule GoChampsApi.Registrations do
   def change_registration(%Registration{} = registration, attrs \\ %{}) do
     Registration.changeset(registration, attrs)
   end
+
+  alias GoChampsApi.Registrations.RegistrationInvite
+
+  @doc """
+  Returns the list of registration_invites.
+
+  ## Examples
+
+      iex> list_registration_invites()
+      [%RegistrationInvite{}, ...]
+
+  """
+  def list_registration_invites do
+    Repo.all(RegistrationInvite)
+  end
+
+  @doc """
+  Gets a single registration_invite.
+
+  Raises `Ecto.NoResultsError` if the Registration invite does not exist.
+
+  ## Examples
+
+      iex> get_registration_invite!(123)
+      %RegistrationInvite{}
+
+      iex> get_registration_invite!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_registration_invite!(id), do: Repo.get!(RegistrationInvite, id)
+
+  @doc """
+  Creates a registration_invite.
+
+  ## Examples
+
+      iex> create_registration_invite(%{field: value})
+      {:ok, %RegistrationInvite{}}
+
+      iex> create_registration_invite(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_registration_invite(attrs \\ %{}) do
+    %RegistrationInvite{}
+    |> RegistrationInvite.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a registration_invite.
+
+  ## Examples
+
+      iex> update_registration_invite(registration_invite, %{field: new_value})
+      {:ok, %RegistrationInvite{}}
+
+      iex> update_registration_invite(registration_invite, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_registration_invite(%RegistrationInvite{} = registration_invite, attrs) do
+    registration_invite
+    |> RegistrationInvite.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a registration_invite.
+
+  ## Examples
+
+      iex> delete_registration_invite(registration_invite)
+      {:ok, %RegistrationInvite{}}
+
+      iex> delete_registration_invite(registration_invite)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_registration_invite(%RegistrationInvite{} = registration_invite) do
+    Repo.delete(registration_invite)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking registration_invite changes.
+
+  ## Examples
+
+      iex> change_registration_invite(registration_invite)
+      %Ecto.Changeset{data: %RegistrationInvite{}}
+
+  """
+  def change_registration_invite(%RegistrationInvite{} = registration_invite, attrs \\ %{}) do
+    RegistrationInvite.changeset(registration_invite, attrs)
+  end
 end

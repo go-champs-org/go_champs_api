@@ -3,6 +3,7 @@ defmodule GoChampsApi.RegistrationsTest do
 
   alias GoChampsApi.Registrations
   alias GoChampsApi.Helpers.TournamentHelpers
+  alias GoChampsApi.Helpers.RegistrationHelpers
   alias GoChampsApi.Tournaments
 
   describe "registrations" do
@@ -114,6 +115,100 @@ defmodule GoChampsApi.RegistrationsTest do
     test "change_registration/1 returns a registration changeset" do
       registration = registration_fixture()
       assert %Ecto.Changeset{} = Registrations.change_registration(registration)
+    end
+  end
+
+  describe "registration_invites" do
+    alias GoChampsApi.Registrations.RegistrationInvite
+
+    @valid_attrs %{
+      invitee_id: Ecto.UUID.autogenerate(),
+      invitee_type: "some invitee_type",
+      registration_id: "7488a646-e31f-11e4-aace-600308960662"
+    }
+    @update_attrs %{
+      invitee_id: Ecto.UUID.autogenerate(),
+      invitee_type: "some updated invitee_type",
+      registration_id: "7488a646-e31f-11e4-aace-600308960668"
+    }
+    @invalid_attrs %{invitee_id: nil, invitee_type: nil, registration_id: nil}
+
+    def registration_invite_fixture(attrs \\ %{}) do
+      {:ok, registration_invite} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> RegistrationHelpers.map_registration_id_in_attrs()
+        |> Registrations.create_registration_invite()
+
+      registration_invite
+    end
+
+    test "list_registration_invites/0 returns all registration_invites" do
+      registration_invite = registration_invite_fixture()
+      assert Registrations.list_registration_invites() == [registration_invite]
+    end
+
+    test "get_registration_invite!/1 returns the registration_invite with given id" do
+      registration_invite = registration_invite_fixture()
+      assert Registrations.get_registration_invite!(registration_invite.id) == registration_invite
+    end
+
+    test "create_registration_invite/1 with valid data creates a registration_invite" do
+      valid_attrs =
+        @valid_attrs
+        |> RegistrationHelpers.map_registration_id_in_attrs()
+
+      assert {:ok, %RegistrationInvite{} = registration_invite} =
+               Registrations.create_registration_invite(valid_attrs)
+
+      assert registration_invite.invitee_id == valid_attrs.invitee_id
+      assert registration_invite.invitee_type == "some invitee_type"
+      assert registration_invite.registration_id == valid_attrs.registration_id
+    end
+
+    test "create_registration_invite/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Registrations.create_registration_invite(@invalid_attrs)
+    end
+
+    test "update_registration_invite/2 with valid data updates the registration_invite" do
+      registration_invite = registration_invite_fixture()
+
+      update_attrs =
+        @update_attrs
+        |> Map.merge(%{registration_id: registration_invite.registration_id})
+
+      assert {:ok, %RegistrationInvite{} = registration_invite} =
+               Registrations.update_registration_invite(registration_invite, update_attrs)
+
+      assert registration_invite.invitee_id == update_attrs.invitee_id
+      assert registration_invite.invitee_type == "some updated invitee_type"
+      assert registration_invite.registration_id == update_attrs.registration_id
+    end
+
+    test "update_registration_invite/2 with invalid data returns error changeset" do
+      registration_invite = registration_invite_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Registrations.update_registration_invite(registration_invite, @invalid_attrs)
+
+      assert registration_invite == Registrations.get_registration_invite!(registration_invite.id)
+    end
+
+    test "delete_registration_invite/1 deletes the registration_invite" do
+      registration_invite = registration_invite_fixture()
+
+      assert {:ok, %RegistrationInvite{}} =
+               Registrations.delete_registration_invite(registration_invite)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Registrations.get_registration_invite!(registration_invite.id)
+      end
+    end
+
+    test "change_registration_invite/1 returns a registration_invite changeset" do
+      registration_invite = registration_invite_fixture()
+      assert %Ecto.Changeset{} = Registrations.change_registration_invite(registration_invite)
     end
   end
 end

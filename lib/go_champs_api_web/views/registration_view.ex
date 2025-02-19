@@ -11,13 +11,15 @@ defmodule GoChampsApiWeb.RegistrationView do
   end
 
   def render("registration.json", %{registration: registration}) do
-    %{id: registration.id,
+    %{
+      id: registration.id,
       title: registration.title,
       start_date: registration.start_date,
       end_date: registration.end_date,
       type: registration.type,
       auto_approve: registration.auto_approve,
       custom_fields: registration.custom_fields,
-      tournament_id: registration.tournament_id}
+      tournament_id: registration.tournament_id
+    }
   end
 end
