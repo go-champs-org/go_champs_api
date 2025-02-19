@@ -194,6 +194,13 @@
             "type": "object"
           }
         },
+        "registrations": {
+          "type": "array",
+          "description": "Tournament registrations",
+          "items": {
+            "type": "object"
+          }
+        },
         "player_stats": {
           "type": "array",
           "items": {

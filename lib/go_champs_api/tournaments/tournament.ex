@@ -5,6 +5,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
   alias GoChampsApi.Organizations.Organization
   alias GoChampsApi.Phases.Phase
   alias GoChampsApi.Players.Player
+  alias GoChampsApi.Registrations.Registration
   alias GoChampsApi.Teams.Team
   alias GoChampsApi.Sports
 
@@ -38,6 +39,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     has_many :phases, Phase
     has_many :players, Player
     has_many :teams, Team
+    has_many :registrations, Registration
 
     timestamps()
   end
