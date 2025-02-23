@@ -22,7 +22,27 @@ defmodule GoChampsApi.Teams do
       ** (Ecto.NoResultsError)
 
   """
-  def get_team!(id), do: Repo.get!(Team, id)
+  def get_team!(id),
+    do: Repo.get!(Team, id)
+
+  @doc """
+  Gets a single team with preaload data.
+
+  Raises `Ecto.NoResultsError` if the Team does not exist.
+
+  ## Examples
+
+      iex> get_team_preload!(123)
+      %Team{}
+
+      iex> get_team_preload!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_team_preload!(id, preload) do
+    Repo.get!(Team, id)
+    |> Repo.preload(preload)
+  end
 
   @doc """
   Gets a team organization for a given team id..

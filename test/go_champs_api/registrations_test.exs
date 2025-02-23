@@ -1,11 +1,13 @@
 defmodule GoChampsApi.RegistrationsTest do
   alias GoChampsApi.Helpers.TeamHelpers
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.Registrations
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.Helpers.RegistrationHelpers
   alias GoChampsApi.Tournaments
+  alias GoChampsApi.Teams
 
   describe "registrations" do
     alias GoChampsApi.Registrations.Registration
@@ -195,13 +197,11 @@ defmodule GoChampsApi.RegistrationsTest do
 
     @valid_attrs %{
       invitee_id: Ecto.UUID.autogenerate(),
-      invitee_type: "some invitee_type",
-      registration_id: "7488a646-e31f-11e4-aace-600308960662"
+      invitee_type: "some invitee_type"
     }
     @update_attrs %{
       invitee_id: Ecto.UUID.autogenerate(),
-      invitee_type: "some updated invitee_type",
-      registration_id: "7488a646-e31f-11e4-aace-600308960668"
+      invitee_type: "some updated invitee_type"
     }
     @invalid_attrs %{invitee_id: nil, invitee_type: nil, registration_id: nil}
 
@@ -282,6 +282,43 @@ defmodule GoChampsApi.RegistrationsTest do
       registration_invite = registration_invite_fixture()
       assert %Ecto.Changeset{} = Registrations.change_registration_invite(registration_invite)
     end
+
+    test "process_registration_invite/1 when registration is auto_approve and type is team_roster_invites" do
+      registration = registration_fixture(%{auto_approve: true, type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{invitee_id: team.id, invitee_type: "team", registration_id: registration.id}
+        |> Registrations.create_registration_invite()
+
+      {:ok, _first_registration_response} =
+        %{
+          response: %{"name" => "First Name", "shirt_number" => "8", "shirt_name" => "F Name"},
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:ok, _second_registration_response} =
+        %{
+          response: %{"name" => "Second Name", "shirt_number" => "10", "shirt_name" => "S Name"},
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      :ok = Registrations.process_registration_invite(registration_invite.id)
+
+      team = Teams.get_team_preload!(team.id, [:players])
+
+      assert Enum.count(team.players) == 2
+      assert Enum.at(team.players, 0).name == "First Name"
+      assert Enum.at(team.players, 0).shirt_number == "8"
+      assert Enum.at(team.players, 0).shirt_name == "F Name"
+      assert Enum.at(team.players, 1).name == "Second Name"
+      assert Enum.at(team.players, 1).shirt_number == "10"
+      assert Enum.at(team.players, 1).shirt_name == "S Name"
+    end
   end
 
   describe "registration_responses" do
@@ -333,6 +370,11 @@ defmodule GoChampsApi.RegistrationsTest do
 
       assert registration_response.response == %{"some" => "response"}
       assert registration_response.status == "pending"
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.ProcessRegistrationInvite,
+        args: %{registration_invite_id: registration_response.registration_invite_id}
+      )
     end
 
     test "create_registration_response/1 with invalid data returns error changeset" do
@@ -374,6 +416,192 @@ defmodule GoChampsApi.RegistrationsTest do
     test "change_registration_response/1 returns a registration_response changeset" do
       registration_response = registration_response_fixture()
       assert %Ecto.Changeset{} = Registrations.change_registration_response(registration_response)
+    end
+
+    test "approve_registration_responses/1 when registration type is team_roster_invites, create player on invitee team and mark registration_response as approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, registration_response} =
+        %{
+          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      [{:ok, _}] = Registrations.approve_registration_responses(registration_invite.id)
+
+      team = Teams.get_team_preload!(team.id, [:players])
+
+      assert Enum.count(team.players) == 1
+      assert Enum.at(team.players, 0).name == "Player Name"
+      assert Enum.at(team.players, 0).shirt_number == "8"
+      assert Enum.at(team.players, 0).shirt_name == "P Name"
+
+      registration_response = Registrations.get_registration_response!(registration_response.id)
+
+      assert registration_response.status == "approved"
+    end
+
+    test "approve_registration_responses/1 when registration type is team_roster_invites, create players on invitee team and mark as registration_responses as approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, first_registration_response} =
+        %{
+          response: %{"name" => "First Name", "shirt_number" => "8", "shirt_name" => "F Name"},
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:ok, second_registration_response} =
+        %{
+          response: %{"name" => "Second Name", "shirt_number" => "10", "shirt_name" => "S Name"},
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      [_, _] = Registrations.approve_registration_responses(registration_invite.id)
+
+      team = Teams.get_team_preload!(team.id, [:players])
+
+      assert Enum.count(team.players) == 2
+      assert Enum.at(team.players, 0).name == "First Name"
+      assert Enum.at(team.players, 0).shirt_number == "8"
+      assert Enum.at(team.players, 0).shirt_name == "F Name"
+      assert Enum.at(team.players, 1).name == "Second Name"
+      assert Enum.at(team.players, 1).shirt_number == "10"
+      assert Enum.at(team.players, 1).shirt_name == "S Name"
+
+      first_registration_response =
+        Registrations.get_registration_response!(first_registration_response.id)
+
+      second_registration_response =
+        Registrations.get_registration_response!(second_registration_response.id)
+
+      assert first_registration_response.status == "approved"
+      assert second_registration_response.status == "approved"
+    end
+
+    test "approve_registration_responses/1 when registration type is team_roster_invites, does not create player on invitee team if response is approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, registration_response} =
+        %{
+          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          registration_invite_id: registration_invite.id,
+          status: "approved"
+        }
+        |> Registrations.create_registration_response()
+
+      [] = Registrations.approve_registration_responses(registration_invite.id)
+
+      team = Teams.get_team_preload!(team.id, [:players])
+
+      assert Enum.count(team.players) == 0
+
+      registration_response = Registrations.get_registration_response!(registration_response.id)
+
+      assert registration_response.status == "approved"
+    end
+
+    test "approve_team_roster_response/1 creates a player in the invitee team and mark response as approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, registration_response} =
+        %{
+          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:ok, _} = Registrations.approve_team_roster_response(registration_response)
+
+      team = Teams.get_team_preload!(team.id, [:players])
+
+      assert Enum.count(team.players) == 1
+      assert Enum.at(team.players, 0).name == "Player Name"
+      assert Enum.at(team.players, 0).shirt_number == "8"
+      assert Enum.at(team.players, 0).shirt_name == "P Name"
+
+      registration_response = Registrations.get_registration_response!(registration_response.id)
+
+      assert registration_response.status == "approved"
+    end
+
+    test "approve_team_roster_response/1 does not create a player in the invitee team if response is approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, registration_response} =
+        %{
+          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          registration_invite_id: registration_invite.id,
+          status: "approved"
+        }
+        |> Registrations.create_registration_response()
+
+      :ok = Registrations.approve_team_roster_response(registration_response)
+
+      team = Teams.get_team_preload!(team.id, [:players])
+
+      assert Enum.count(team.players) == 0
+
+      registration_response = Registrations.get_registration_response!(registration_response.id)
+
+      assert registration_response.status == "approved"
     end
   end
 end
