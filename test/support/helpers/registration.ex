@@ -53,6 +53,15 @@ defmodule GoChampsApi.Helpers.RegistrationHelpers do
     Map.merge(attrs, %{registration_invite_id: registration_invite.id})
   end
 
+  def create_registration(attrs \\ %{}) do
+    {:ok, registration} =
+      @valid_registration_attrs
+      |> create_or_use_tournament_id(attrs)
+      |> Registrations.create_registration()
+
+    registration
+  end
+
   def create_registration_invite(attrs \\ %{}) do
     {:ok, registration_invite} =
       @valid_registration_invite_attrs
