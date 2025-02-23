@@ -289,4 +289,136 @@ defmodule GoChampsApi.Registrations do
   def change_registration_invite(%RegistrationInvite{} = registration_invite, attrs \\ %{}) do
     RegistrationInvite.changeset(registration_invite, attrs)
   end
+
+  alias GoChampsApi.Registrations.RegistrationResponse
+
+  @doc """
+  Returns the list of registration_responses.
+
+  ## Examples
+
+      iex> list_registration_responses()
+      [%RegistrationResponse{}, ...]
+
+  """
+  def list_registration_responses do
+    Repo.all(RegistrationResponse)
+  end
+
+  @doc """
+  Gets a single registration_response.
+
+  Raises `Ecto.NoResultsError` if the Registration response does not exist.
+
+  ## Examples
+
+      iex> get_registration_response!(123)
+      %RegistrationResponse{}
+
+      iex> get_registration_response!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_registration_response!(id), do: Repo.get!(RegistrationResponse, id)
+
+  @doc """
+  Gets the organization of a registration_response.
+
+  Raises `Ecto.NoResultsError` if the Registration response does not exist.
+
+  ## Examples
+
+      iex> get_registration_response_organization!(123)
+      %Organization{}
+
+      iex> get_registration_response_organization!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  @spec get_registration_response_organization!(id :: Ecto.UUID.t()) :: Organization.t()
+  def get_registration_response_organization!(id) do
+    registration_response =
+      Repo.get_by!(RegistrationResponse, id: id)
+      |> Repo.preload(
+        registration_invite: [
+          registration: [
+            tournament: :organization
+          ]
+        ]
+      )
+
+    {:ok, organization} =
+      registration_response
+      |> Map.fetch!(:registration_invite)
+      |> Map.fetch!(:registration)
+      |> Map.fetch!(:tournament)
+      |> Map.fetch(:organization)
+
+    organization
+  end
+
+  @doc """
+  Creates a registration_response.
+
+  ## Examples
+
+      iex> create_registration_response(%{field: value})
+      {:ok, %RegistrationResponse{}}
+
+      iex> create_registration_response(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_registration_response(attrs \\ %{}) do
+    %RegistrationResponse{}
+    |> RegistrationResponse.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a registration_response.
+
+  ## Examples
+
+      iex> update_registration_response(registration_response, %{field: new_value})
+      {:ok, %RegistrationResponse{}}
+
+      iex> update_registration_response(registration_response, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_registration_response(%RegistrationResponse{} = registration_response, attrs) do
+    registration_response
+    |> RegistrationResponse.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a registration_response.
+
+  ## Examples
+
+      iex> delete_registration_response(registration_response)
+      {:ok, %RegistrationResponse{}}
+
+      iex> delete_registration_response(registration_response)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_registration_response(%RegistrationResponse{} = registration_response) do
+    Repo.delete(registration_response)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking registration_response changes.
+
+  ## Examples
+
+      iex> change_registration_response(registration_response)
+      %Ecto.Changeset{data: %RegistrationResponse{}}
+
+  """
+  def change_registration_response(%RegistrationResponse{} = registration_response, attrs \\ %{}) do
+    RegistrationResponse.changeset(registration_response, attrs)
+  end
 end

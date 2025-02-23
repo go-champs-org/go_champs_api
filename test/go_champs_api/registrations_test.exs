@@ -283,4 +283,97 @@ defmodule GoChampsApi.RegistrationsTest do
       assert %Ecto.Changeset{} = Registrations.change_registration_invite(registration_invite)
     end
   end
+
+  describe "registration_responses" do
+    alias GoChampsApi.Registrations.RegistrationResponse
+
+    @valid_attrs %{response: %{"some" => "response"}}
+    @update_attrs %{response: %{"some" => "updated response"}, status: "approved"}
+    @invalid_attrs %{response: nil}
+
+    def registration_response_fixture(attrs \\ %{}) do
+      {:ok, registration_response} =
+        attrs
+        |> Enum.into(@valid_attrs)
+        |> RegistrationHelpers.map_registration_invite_id_in_attrs()
+        |> Registrations.create_registration_response()
+
+      registration_response
+    end
+
+    test "list_registration_responses/0 returns all registration_responses" do
+      registration_response = registration_response_fixture()
+      assert Registrations.list_registration_responses() == [registration_response]
+    end
+
+    test "get_registration_response!/1 returns the registration_response with given id" do
+      registration_response = registration_response_fixture()
+
+      assert Registrations.get_registration_response!(registration_response.id) ==
+               registration_response
+    end
+
+    test "get_registration_response_organization!/1 returns the organization of the registration with given id" do
+      registration_response = registration_response_fixture()
+
+      organization =
+        Registrations.get_registration_response_organization!(registration_response.id)
+
+      assert organization.name == "some organization"
+      assert organization.slug == "some-slug"
+    end
+
+    test "create_registration_response/1 with valid data creates a registration_response" do
+      valid_attrs =
+        @valid_attrs
+        |> RegistrationHelpers.map_registration_invite_id_in_attrs()
+
+      assert {:ok, %RegistrationResponse{} = registration_response} =
+               Registrations.create_registration_response(valid_attrs)
+
+      assert registration_response.response == %{"some" => "response"}
+      assert registration_response.status == "pending"
+    end
+
+    test "create_registration_response/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Registrations.create_registration_response(@invalid_attrs)
+    end
+
+    test "update_registration_response/2 with valid data updates the registration_response" do
+      registration_response = registration_response_fixture()
+
+      assert {:ok, %RegistrationResponse{} = registration_response} =
+               Registrations.update_registration_response(registration_response, @update_attrs)
+
+      assert registration_response.response == %{"some" => "updated response"}
+      assert registration_response.status == "approved"
+    end
+
+    test "update_registration_response/2 with invalid data returns error changeset" do
+      registration_response = registration_response_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Registrations.update_registration_response(registration_response, @invalid_attrs)
+
+      assert registration_response ==
+               Registrations.get_registration_response!(registration_response.id)
+    end
+
+    test "delete_registration_response/1 deletes the registration_response" do
+      registration_response = registration_response_fixture()
+
+      assert {:ok, %RegistrationResponse{}} =
+               Registrations.delete_registration_response(registration_response)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Registrations.get_registration_response!(registration_response.id)
+      end
+    end
+
+    test "change_registration_response/1 returns a registration_response changeset" do
+      registration_response = registration_response_fixture()
+      assert %Ecto.Changeset{} = Registrations.change_registration_response(registration_response)
+    end
+  end
 end
