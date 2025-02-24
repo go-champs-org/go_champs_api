@@ -1,4 +1,5 @@
 defmodule GoChampsApiWeb.RegistrationInviteController do
+  alias GoChampsApiWeb.IncludeParser
   use GoChampsApiWeb, :controller
 
   alias GoChampsApi.Registrations
@@ -24,8 +25,16 @@ defmodule GoChampsApiWeb.RegistrationInviteController do
     end
   end
 
+  def show(conn, %{"id" => id, "include" => include}) do
+    preload = IncludeParser.parse_include_string(include)
+    registration_invite = Registrations.get_registration_invite!(id, preload)
+
+    render(conn, "show.json", registration_invite: registration_invite)
+  end
+
   def show(conn, %{"id" => id}) do
     registration_invite = Registrations.get_registration_invite!(id)
+
     render(conn, "show.json", registration_invite: registration_invite)
   end
 

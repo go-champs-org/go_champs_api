@@ -8,6 +8,7 @@ defmodule GoChampsApi.Registrations do
 
   alias GoChampsApi.Registrations.Registration
   alias GoChampsApi.Tournaments
+  alias GoChampsApi.Players
 
   @doc """
   Returns the list of registrations.
@@ -223,7 +224,27 @@ defmodule GoChampsApi.Registrations do
       ** (Ecto.NoResultsError)
 
   """
-  def get_registration_invite!(id), do: Repo.get!(RegistrationInvite, id)
+  def get_registration_invite!(id),
+    do: Repo.get!(RegistrationInvite, id)
+
+  @doc """
+  Gets a single registration_invite and associated entities.
+
+  Raises `Ecto.NoResultsError` if the Registration invite does not exist.
+
+  ## Examples
+
+    iex> get_registration_invite!(123, [:registration])
+    %RegistrationInvite{}
+
+    iex> get_registration_invite!(456, []:registration])
+    ** (Ecto.NoResultsError)
+  """
+  @spec get_registration_invite!(id :: Ecto.UUID.t(), preload :: any()) :: %RegistrationInvite{}
+  def get_registration_invite!(id, preload),
+    do:
+      Repo.get!(RegistrationInvite, id)
+      |> Repo.preload(preload)
 
   @doc """
   Creates a registration_invite.
@@ -288,5 +309,311 @@ defmodule GoChampsApi.Registrations do
   """
   def change_registration_invite(%RegistrationInvite{} = registration_invite, attrs \\ %{}) do
     RegistrationInvite.changeset(registration_invite, attrs)
+  end
+
+  @doc """
+  Process a registration invite for a give registraion invite id. This logic contains:
+  - Loop through all the registration responses for the invitee
+  - If the invite is pending, it checks if registration is auto-approve and will process the invite
+
+  ## Examples
+
+      iex> process_registration_invite("some-id")
+      :ok
+  """
+  @spec process_registration_invite(registration_invite_id :: Ecto.UUID.t()) :: :ok
+  def process_registration_invite(registration_invite_id) do
+    registration_invite =
+      Repo.get_by!(RegistrationInvite, id: registration_invite_id)
+      |> Repo.preload(:registration)
+
+    registration = registration_invite.registration
+
+    case registration.auto_approve do
+      true ->
+        registration_invite.id
+        |> approve_registration_responses()
+
+        :ok
+
+      _ ->
+        :ok
+    end
+  end
+
+  alias GoChampsApi.Registrations.RegistrationResponse
+
+  @doc """
+  Returns the list of registration_responses.
+
+  ## Examples
+
+      iex> list_registration_responses()
+      [%RegistrationResponse{}, ...]
+
+  """
+  def list_registration_responses do
+    Repo.all(RegistrationResponse)
+  end
+
+  @doc """
+  Returns the list of registration_responses for a given where clause.
+
+  ## Examples
+
+      iex> list_registration_responses_where([status: "pending"])
+      [%RegistrationResponse{}, ...]
+  """
+  @spec list_registration_responses(where :: [any()]) :: [%RegistrationResponse{}]
+  def list_registration_responses(where) do
+    Repo.all(from(r in RegistrationResponse, where: ^where))
+  end
+
+  @doc """
+  Lists registration responses by registration_invite_id and a property inside the response attribute.
+
+  ## Examples
+
+      iex> list_registration_responses_by_property(registration_response_id, registration_invite_id, "name", "John Doe")
+      [%RegistrationResponse{}, ...]
+
+  """
+  @spec list_registration_responses_by_property(Ecto.UUID.t(), Ecto.UUID.t(), String.t(), any()) ::
+          [
+            RegistrationResponse.t()
+          ]
+  def list_registration_responses_by_property(id, registration_invite_id, property, value) do
+    query =
+      from(r in RegistrationResponse,
+        where:
+          r.registration_invite_id == ^registration_invite_id and
+            fragment("?->>? = ?", r.response, ^property, ^value)
+      )
+
+    query =
+      if id do
+        from(r in query, where: r.id != ^id)
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
+  @doc """
+  Gets a single registration_response.
+
+  Raises `Ecto.NoResultsError` if the Registration response does not exist.
+
+  ## Examples
+
+      iex> get_registration_response!(123)
+      %RegistrationResponse{}
+
+      iex> get_registration_response!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_registration_response!(id), do: Repo.get!(RegistrationResponse, id)
+
+  @doc """
+  Gets the organization of a registration_response.
+
+  Raises `Ecto.NoResultsError` if the Registration response does not exist.
+
+  ## Examples
+
+      iex> get_registration_response_organization!(123)
+      %Organization{}
+
+      iex> get_registration_response_organization!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  @spec get_registration_response_organization!(id :: Ecto.UUID.t()) :: Organization.t()
+  def get_registration_response_organization!(id) do
+    registration_response =
+      Repo.get_by!(RegistrationResponse, id: id)
+      |> Repo.preload(
+        registration_invite: [
+          registration: [
+            tournament: :organization
+          ]
+        ]
+      )
+
+    {:ok, organization} =
+      registration_response
+      |> Map.fetch!(:registration_invite)
+      |> Map.fetch!(:registration)
+      |> Map.fetch!(:tournament)
+      |> Map.fetch(:organization)
+
+    organization
+  end
+
+  @doc """
+  Creates a registration_response.
+
+  ## Examples
+
+      iex> create_registration_response(%{field: value})
+      {:ok, %RegistrationResponse{}}
+
+      iex> create_registration_response(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_registration_response(attrs \\ %{}) do
+    case %RegistrationResponse{}
+         |> RegistrationResponse.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, registration_response} ->
+        start_registration_response_side_effects(registration_response)
+
+        {:ok, registration_response}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Updates a registration_response.
+
+  ## Examples
+
+      iex> update_registration_response(registration_response, %{field: new_value})
+      {:ok, %RegistrationResponse{}}
+
+      iex> update_registration_response(registration_response, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_registration_response(%RegistrationResponse{} = registration_response, attrs) do
+    registration_response
+    |> RegistrationResponse.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a registration_response.
+
+  ## Examples
+
+      iex> delete_registration_response(registration_response)
+      {:ok, %RegistrationResponse{}}
+
+      iex> delete_registration_response(registration_response)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_registration_response(%RegistrationResponse{} = registration_response) do
+    Repo.delete(registration_response)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking registration_response changes.
+
+  ## Examples
+
+      iex> change_registration_response(registration_response)
+      %Ecto.Changeset{data: %RegistrationResponse{}}
+
+  """
+  def change_registration_response(%RegistrationResponse{} = registration_response, attrs \\ %{}) do
+    RegistrationResponse.changeset(registration_response, attrs)
+  end
+
+  @doc """
+  Start side effects for a creation of a registration_response.
+
+  ## Examples
+
+      iex> start_registration_response_side_effects(%RegistrationResponse{})
+      :ok
+  """
+  @spec start_registration_response_side_effects(RegistrationResponse.t()) :: :ok
+  def start_registration_response_side_effects(
+        %RegistrationResponse{registration_invite_id: registration_invite_id} =
+          _registration_response
+      ) do
+    %{registration_invite_id: registration_invite_id}
+    |> GoChampsApi.Infrastructure.Jobs.ProcessRegistrationInvite.new()
+    |> Oban.insert()
+
+    :ok
+  end
+
+  @doc """
+  Approve registration responses for a given registration invite id.
+
+  ## Examples
+
+      iex> approve_registration_responses(registration_invite_id)
+      :ok
+  """
+  @spec approve_registration_responses(registration_invite_id :: Ecto.UUID.t()) :: :ok
+  def approve_registration_responses(registration_invite_id) do
+    registration_invite =
+      Repo.get_by!(RegistrationInvite, id: registration_invite_id)
+      |> Repo.preload([:registration, :registration_responses])
+
+    case registration_invite.registration.type do
+      "team_roster_invites" ->
+        Enum.filter(registration_invite.registration_responses, fn response ->
+          response.status == "pending"
+        end)
+        |> Enum.map(&approve_team_roster_response/1)
+
+      _ ->
+        :ok
+    end
+  end
+
+  @doc """
+  Approve team roster response for a given registration response.
+
+  ## Examples
+
+      iex> approve_team_roster_response(registration_response)
+      :ok
+  """
+  @spec approve_team_roster_response(RegistrationResponse.t()) :: :ok
+  def approve_team_roster_response(%RegistrationResponse{} = registration_response) do
+    case registration_response.status do
+      "pending" ->
+        registration_response
+        |> preload_registration_invite()
+        |> create_player_from_response()
+        |> handle_player_creation_result()
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp preload_registration_invite(registration_response) do
+    Repo.preload(registration_response, registration_invite: :registration)
+  end
+
+  defp create_player_from_response(%RegistrationResponse{} = registration_response) do
+    player_attrs = %{
+      tournament_id: registration_response.registration_invite.registration.tournament_id,
+      team_id: registration_response.registration_invite.invitee_id,
+      name: registration_response.response["name"],
+      shirt_number: registration_response.response["shirt_number"],
+      shirt_name: registration_response.response["shirt_name"]
+    }
+
+    {Players.create_player(player_attrs), registration_response}
+  end
+
+  defp handle_player_creation_result({{:ok, _player}, registration_response}) do
+    update_registration_response(registration_response, %{status: "approved"})
+  end
+
+  defp handle_player_creation_result({{:error, _error}, _registration_response}) do
+    :error
   end
 end
