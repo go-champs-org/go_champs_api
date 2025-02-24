@@ -225,6 +225,22 @@ defmodule GoChampsApi.RegistrationsTest do
       assert Registrations.get_registration_invite!(registration_invite.id) == registration_invite
     end
 
+    test "get_registration_invite!/1 returns the registration_invite with given id and preloads" do
+      registration_invite = registration_invite_fixture()
+      registration = Registrations.get_registration!(registration_invite.registration_id)
+
+      result = Registrations.get_registration_invite!(registration_invite.id, [:registration])
+
+      assert result.id == registration_invite.id
+      assert result.invitee_id == registration_invite.invitee_id
+      assert result.invitee_type == registration_invite.invitee_type
+      assert result.registration.id == registration.id
+      assert result.registration.title == registration.title
+      assert result.registration.start_date == registration.start_date
+      assert result.registration.end_date == registration.end_date
+      assert result.registration.type == registration.type
+    end
+
     test "create_registration_invite/1 with valid data creates a registration_invite" do
       valid_attrs =
         @valid_attrs

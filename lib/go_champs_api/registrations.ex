@@ -228,6 +228,25 @@ defmodule GoChampsApi.Registrations do
     do: Repo.get!(RegistrationInvite, id)
 
   @doc """
+  Gets a single registration_invite and associated entities.
+
+  Raises `Ecto.NoResultsError` if the Registration invite does not exist.
+
+  ## Examples
+
+    iex> get_registration_invite!(123, [:registration])
+    %RegistrationInvite{}
+
+    iex> get_registration_invite!(456, []:registration])
+    ** (Ecto.NoResultsError)
+  """
+  @spec get_registration_invite!(id :: Ecto.UUID.t(), preload :: any()) :: %RegistrationInvite{}
+  def get_registration_invite!(id, preload),
+    do:
+      Repo.get!(RegistrationInvite, id)
+      |> Repo.preload(preload)
+
+  @doc """
   Creates a registration_invite.
 
   ## Examples

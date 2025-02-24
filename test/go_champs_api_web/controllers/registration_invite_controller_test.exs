@@ -39,6 +39,39 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
+  describe "get registration_invite" do
+    setup [:create_registration_invite]
+
+    test "renders registration_invite and its associated entities", %{
+      conn: conn,
+      registration_invite: %RegistrationInvite{id: id} = registration_invite
+    } do
+      include = "registration,registration.tournament,registration_responses"
+
+      conn =
+        get(
+          conn,
+          Routes.v1_registration_invite_path(conn, :show, id, include: include)
+        )
+
+      invitee_id = registration_invite.invitee_id
+      registration_id = registration_invite.registration_id
+
+      registration = Registrations.get_registration!(registration_invite.registration_id)
+
+      response = json_response(conn, 200)["data"]
+
+      assert response["id"] == id
+      assert response["invitee_id"] == invitee_id
+      assert response["invitee_type"] == "some invitee_type"
+      assert response["registration_id"] == registration_id
+      assert response["registration"]["id"] == registration.id
+      assert response["registration"]["title"] == registration.title
+      assert response["registration"]["tournament"]["id"] == registration.tournament_id
+      assert response["registration"]["tournament"]["name"] == "some tournament"
+    end
+  end
+
   describe "create registration_invite" do
     @tag :authenticated
     test "renders registration_invite when data is valid", %{conn: conn} do

@@ -3,6 +3,7 @@ defmodule GoChampsApiWeb.RegistrationView do
   alias GoChampsApiWeb.RegistrationView
 
   alias GoChampsApiWeb.RegistrationInviteView
+  alias GoChampsApiWeb.TournamentView
 
   def render("index.json", %{registrations: registrations}) do
     %{data: render_many(registrations, RegistrationView, "registration.json")}
@@ -22,6 +23,7 @@ defmodule GoChampsApiWeb.RegistrationView do
       auto_approve: registration.auto_approve,
       custom_fields: registration.custom_fields,
       tournament_id: registration.tournament_id,
+      tournament: render_tournament(registration),
       registration_invites: render_registration_invites(registration)
     }
   end
@@ -35,6 +37,14 @@ defmodule GoChampsApiWeb.RegistrationView do
       )
     else
       []
+    end
+  end
+
+  defp render_tournament(registration) do
+    if Ecto.assoc_loaded?(registration.tournament) do
+      render_one(registration.tournament, TournamentView, "tournament.json")
+    else
+      nil
     end
   end
 end
