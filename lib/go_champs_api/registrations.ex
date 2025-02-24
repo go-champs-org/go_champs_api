@@ -357,6 +357,50 @@ defmodule GoChampsApi.Registrations do
   end
 
   @doc """
+  Returns the list of registration_responses for a given where clause.
+
+  ## Examples
+
+      iex> list_registration_responses_where([status: "pending"])
+      [%RegistrationResponse{}, ...]
+  """
+  @spec list_registration_responses(where :: [any()]) :: [%RegistrationResponse{}]
+  def list_registration_responses(where) do
+    Repo.all(from(r in RegistrationResponse, where: ^where))
+  end
+
+  @doc """
+  Lists registration responses by registration_invite_id and a property inside the response attribute.
+
+  ## Examples
+
+      iex> list_registration_responses_by_property(registration_response_id, registration_invite_id, "name", "John Doe")
+      [%RegistrationResponse{}, ...]
+
+  """
+  @spec list_registration_responses_by_property(Ecto.UUID.t(), Ecto.UUID.t(), String.t(), any()) ::
+          [
+            RegistrationResponse.t()
+          ]
+  def list_registration_responses_by_property(id, registration_invite_id, property, value) do
+    query =
+      from(r in RegistrationResponse,
+        where:
+          r.registration_invite_id == ^registration_invite_id and
+            fragment("?->>? = ?", r.response, ^property, ^value)
+      )
+
+    query =
+      if id do
+        from(r in query, where: r.id != ^id)
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
+  @doc """
   Gets a single registration_response.
 
   Raises `Ecto.NoResultsError` if the Registration response does not exist.

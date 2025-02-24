@@ -4,8 +4,8 @@ defmodule GoChampsApi.Helpers.RegistrationHelpers do
 
   @valid_registration_attrs %{
     auto_approve: true,
-    end_date: "2010-04-17T14:00:00Z",
-    start_date: "2010-04-17T14:00:00Z",
+    start_date: DateTime.to_iso8601(DateTime.add(DateTime.utc_now(), -10, :day)),
+    end_date: DateTime.to_iso8601(DateTime.add(DateTime.utc_now(), 10, :day)),
     title: "some title",
     type: "team_roster_invites"
   }

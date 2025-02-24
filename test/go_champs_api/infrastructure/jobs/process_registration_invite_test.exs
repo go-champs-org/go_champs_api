@@ -20,14 +20,24 @@ defmodule GoChampsApi.Infrastructure.Jobs.ProcessRegistrationInviteTest do
 
     {:ok, _first_registration_response} =
       %{
-        response: %{"name" => "First Name", "shirt_number" => "8", "shirt_name" => "F Name"},
+        response: %{
+          "name" => "First Name",
+          "shirt_number" => "8",
+          "shirt_name" => "F Name",
+          "email" => "email@go-champs.com"
+        },
         registration_invite_id: registration_invite.id
       }
       |> Registrations.create_registration_response()
 
     {:ok, _second_registration_response} =
       %{
-        response: %{"name" => "Second Name", "shirt_number" => "10", "shirt_name" => "S Name"},
+        response: %{
+          "name" => "Second Name",
+          "shirt_number" => "10",
+          "shirt_name" => "S Name",
+          "email" => "test@go-champs.com"
+        },
         registration_invite_id: registration_invite.id
       }
       |> Registrations.create_registration_response()

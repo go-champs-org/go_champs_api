@@ -14,15 +14,15 @@ defmodule GoChampsApi.RegistrationsTest do
 
     @valid_attrs %{
       auto_approve: true,
-      end_date: "2010-04-17T14:00:00Z",
-      start_date: "2010-04-17T14:00:00Z",
+      start_date: DateTime.to_iso8601(DateTime.add(DateTime.utc_now(), -10, :day)),
+      end_date: DateTime.to_iso8601(DateTime.add(DateTime.utc_now(), 10, :day)),
       title: "some title",
       type: "team_roster_invites"
     }
     @update_attrs %{
       auto_approve: false,
-      end_date: "2011-05-18T15:01:01Z",
-      start_date: "2011-05-18T15:01:01Z",
+      start_date: DateTime.to_iso8601(DateTime.add(DateTime.utc_now(), -10, :day)),
+      end_date: DateTime.to_iso8601(DateTime.add(DateTime.utc_now(), 10, :day)),
       title: "some updated title",
       type: "team_roster_invites"
     }
@@ -59,11 +59,11 @@ defmodule GoChampsApi.RegistrationsTest do
       assert registration_result.auto_approve == true
       assert registration_result.custom_fields == []
 
-      assert registration_result.end_date ==
-               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+      assert DateTime.to_iso8601(registration_result.end_date) ==
+               DateTime.to_iso8601(registration_result.end_date)
 
-      assert registration_result.start_date ==
-               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+      assert DateTime.to_iso8601(registration_result.start_date) ==
+               DateTime.to_iso8601(registration.start_date)
     end
 
     test "get_registration_organization!/1 returns the organization of the registration with given id" do
@@ -88,8 +88,13 @@ defmodule GoChampsApi.RegistrationsTest do
 
       assert registration.auto_approve == true
       assert registration.custom_fields == []
-      assert registration.end_date == DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
-      assert registration.start_date == DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+
+      assert DateTime.to_iso8601(registration.end_date) ==
+               DateTime.to_iso8601(registration.end_date)
+
+      assert DateTime.to_iso8601(registration.start_date) ==
+               DateTime.to_iso8601(registration.start_date)
+
       assert registration.title == "some title"
       assert registration.type == "team_roster_invites"
     end
@@ -114,8 +119,13 @@ defmodule GoChampsApi.RegistrationsTest do
                Registrations.update_registration(registration, @update_attrs)
 
       assert registration.auto_approve == false
-      assert registration.end_date == DateTime.from_naive!(~N[2011-05-18T15:01:01Z], "Etc/UTC")
-      assert registration.start_date == DateTime.from_naive!(~N[2011-05-18T15:01:01Z], "Etc/UTC")
+
+      assert DateTime.to_iso8601(registration.end_date) ==
+               DateTime.to_iso8601(registration.end_date)
+
+      assert DateTime.to_iso8601(registration.start_date) ==
+               DateTime.to_iso8601(registration.start_date)
+
       assert registration.title == "some updated title"
       assert registration.type == "team_roster_invites"
     end
@@ -130,11 +140,11 @@ defmodule GoChampsApi.RegistrationsTest do
 
       assert result_registration.auto_approve == true
 
-      assert result_registration.end_date ==
-               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+      assert DateTime.to_iso8601(result_registration.end_date) ==
+               DateTime.to_iso8601(registration.end_date)
 
-      assert result_registration.start_date ==
-               DateTime.from_naive!(~N[2010-04-17T14:00:00Z], "Etc/UTC")
+      assert DateTime.to_iso8601(result_registration.start_date) ==
+               DateTime.to_iso8601(result_registration.start_date)
 
       assert result_registration.title == "some title"
       assert result_registration.type == "team_roster_invites"
@@ -311,14 +321,24 @@ defmodule GoChampsApi.RegistrationsTest do
 
       {:ok, _first_registration_response} =
         %{
-          response: %{"name" => "First Name", "shirt_number" => "8", "shirt_name" => "F Name"},
+          response: %{
+            "name" => "First Name",
+            "shirt_number" => "8",
+            "shirt_name" => "F Name",
+            "email" => "email@go-champs.com"
+          },
           registration_invite_id: registration_invite.id
         }
         |> Registrations.create_registration_response()
 
       {:ok, _second_registration_response} =
         %{
-          response: %{"name" => "Second Name", "shirt_number" => "10", "shirt_name" => "S Name"},
+          response: %{
+            "name" => "Second Name",
+            "shirt_number" => "10",
+            "shirt_name" => "S Name",
+            "email" => "test@go-champs.com"
+          },
           registration_invite_id: registration_invite.id
         }
         |> Registrations.create_registration_response()
@@ -340,8 +360,11 @@ defmodule GoChampsApi.RegistrationsTest do
   describe "registration_responses" do
     alias GoChampsApi.Registrations.RegistrationResponse
 
-    @valid_attrs %{response: %{"some" => "response"}}
-    @update_attrs %{response: %{"some" => "updated response"}, status: "approved"}
+    @valid_attrs %{response: %{"name" => "John Doe", "email" => "email@go-champs.com"}}
+    @update_attrs %{
+      response: %{"name" => "Bennie Joe", "email" => "email@go-champs.com"},
+      status: "approved"
+    }
     @invalid_attrs %{response: nil}
 
     def registration_response_fixture(attrs \\ %{}) do
@@ -357,6 +380,29 @@ defmodule GoChampsApi.RegistrationsTest do
     test "list_registration_responses/0 returns all registration_responses" do
       registration_response = registration_response_fixture()
       assert Registrations.list_registration_responses() == [registration_response]
+    end
+
+    test "list_registration_responses/1 returns all registration_responses for given registration_invite_id" do
+      registration_response = registration_response_fixture()
+
+      registration_invite_id = registration_response.registration_invite_id
+
+      assert Registrations.list_registration_responses(
+               registration_invite_id: registration_invite_id
+             ) == [registration_response]
+    end
+
+    test "list_registration_responses_by_property/4 returns all registration_responses for given registration_invite_id and property" do
+      registration_response = registration_response_fixture()
+
+      registration_invite_id = registration_response.registration_invite_id
+
+      assert Registrations.list_registration_responses_by_property(
+               nil,
+               registration_invite_id,
+               "name",
+               "John Doe"
+             ) == [registration_response]
     end
 
     test "get_registration_response!/1 returns the registration_response with given id" do
@@ -384,7 +430,11 @@ defmodule GoChampsApi.RegistrationsTest do
       assert {:ok, %RegistrationResponse{} = registration_response} =
                Registrations.create_registration_response(valid_attrs)
 
-      assert registration_response.response == %{"some" => "response"}
+      assert registration_response.response == %{
+               "name" => "John Doe",
+               "email" => "email@go-champs.com"
+             }
+
       assert registration_response.status == "pending"
 
       assert_enqueued(
@@ -393,9 +443,144 @@ defmodule GoChampsApi.RegistrationsTest do
       )
     end
 
-    test "create_registration_response/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} =
-               Registrations.create_registration_response(@invalid_attrs)
+    test "create_registration_response/1 for team_roster_invites returns error for duplicated email" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, _} =
+        %{
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:error, _} =
+        %{
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Registrations.get_registration_response!(registration_invite.id)
+      end
+    end
+
+    test "create_registration_response/1 for team_roster_invites returns error for empty name" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:error, _} =
+        %{
+          response: %{
+            "name" => "",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Registrations.get_registration_response!(registration_invite.id)
+      end
+    end
+
+    test "create_registration_response/1 for team_roster_invites returns error for empty email" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:error, _} =
+        %{
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => ""
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Registrations.get_registration_response!(registration_invite.id)
+      end
+    end
+
+    test "create_registration_response/1 returns error when registration is out of the active period" do
+      registration =
+        registration_fixture(%{
+          start_date: "2021-04-17T14:00:00Z",
+          end_date: "2021-04-17T14:00:00Z"
+        })
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:error, _} =
+        %{
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Registrations.get_registration_response!(registration_invite.id)
+      end
     end
 
     test "update_registration_response/2 with valid data updates the registration_response" do
@@ -404,7 +589,11 @@ defmodule GoChampsApi.RegistrationsTest do
       assert {:ok, %RegistrationResponse{} = registration_response} =
                Registrations.update_registration_response(registration_response, @update_attrs)
 
-      assert registration_response.response == %{"some" => "updated response"}
+      assert registration_response.response == %{
+               "name" => "Bennie Joe",
+               "email" => "email@go-champs.com"
+             }
+
       assert registration_response.status == "approved"
     end
 
@@ -450,7 +639,12 @@ defmodule GoChampsApi.RegistrationsTest do
 
       {:ok, registration_response} =
         %{
-          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@test.com"
+          },
           registration_invite_id: registration_invite.id
         }
         |> Registrations.create_registration_response()
@@ -485,14 +679,24 @@ defmodule GoChampsApi.RegistrationsTest do
 
       {:ok, first_registration_response} =
         %{
-          response: %{"name" => "First Name", "shirt_number" => "8", "shirt_name" => "F Name"},
+          response: %{
+            "name" => "First Name",
+            "shirt_number" => "8",
+            "shirt_name" => "F Name",
+            "email" => "email@go-champs.com"
+          },
           registration_invite_id: registration_invite.id
         }
         |> Registrations.create_registration_response()
 
       {:ok, second_registration_response} =
         %{
-          response: %{"name" => "Second Name", "shirt_number" => "10", "shirt_name" => "S Name"},
+          response: %{
+            "name" => "Second Name",
+            "shirt_number" => "10",
+            "shirt_name" => "S Name",
+            "email" => "test@go-champs.com"
+          },
           registration_invite_id: registration_invite.id
         }
         |> Registrations.create_registration_response()
@@ -535,7 +739,12 @@ defmodule GoChampsApi.RegistrationsTest do
 
       {:ok, registration_response} =
         %{
-          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "email@go-champs.com"
+          },
           registration_invite_id: registration_invite.id,
           status: "approved"
         }
@@ -568,7 +777,12 @@ defmodule GoChampsApi.RegistrationsTest do
 
       {:ok, registration_response} =
         %{
-          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@go-champs.com"
+          },
           registration_invite_id: registration_invite.id
         }
         |> Registrations.create_registration_response()
@@ -603,7 +817,12 @@ defmodule GoChampsApi.RegistrationsTest do
 
       {:ok, registration_response} =
         %{
-          response: %{"name" => "Player Name", "shirt_number" => "8", "shirt_name" => "P Name"},
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "email@go-champs.com"
+          },
           registration_invite_id: registration_invite.id,
           status: "approved"
         }

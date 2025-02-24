@@ -7,10 +7,10 @@ defmodule GoChampsApiWeb.RegistrationResponseControllerTest do
   alias GoChampsApi.Helpers.RegistrationHelpers
 
   @create_attrs %{
-    response: %{"some" => "data"}
+    response: %{"name" => "P Name", "email" => "email@go-champs.com"}
   }
   @update_attrs %{
-    response: %{"some" => "other data"},
+    response: %{"name" => "P updated name"},
     status: "approved"
   }
   @invalid_attrs %{registration_id: nil, response: nil}
@@ -66,15 +66,19 @@ defmodule GoChampsApiWeb.RegistrationResponseControllerTest do
 
       assert %{
                "id" => ^id,
-               "response" => %{"some" => "data"},
+               "response" => %{"email" => "email@go-champs.com", "name" => "P Name"},
                "status" => "pending"
              } = json_response(conn, 200)["data"]
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
+      invalid_attrs =
+        @invalid_attrs
+        |> RegistrationHelpers.map_registration_invite_id_in_attrs()
+
       conn =
         post(conn, Routes.v1_registration_response_path(conn, :create),
-          registration_response: @invalid_attrs
+          registration_response: invalid_attrs
         )
 
       assert json_response(conn, 422)["errors"] != %{}
@@ -100,7 +104,7 @@ defmodule GoChampsApiWeb.RegistrationResponseControllerTest do
 
       assert %{
                "id" => ^id,
-               "response" => %{"some" => "other data"},
+               "response" => %{"name" => "P updated name"},
                "status" => "approved"
              } = json_response(conn, 200)["data"]
     end
