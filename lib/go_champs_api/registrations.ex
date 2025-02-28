@@ -181,6 +181,7 @@ defmodule GoChampsApi.Registrations do
           invitee_type: "team"
         }
       end)
+      |> Enum.filter(&registration_invite_not_exists?/1)
       |> Enum.map(&create_registration_invite/1)
 
     case Enum.find(batch_result, fn
@@ -226,6 +227,44 @@ defmodule GoChampsApi.Registrations do
   """
   def get_registration_invite!(id),
     do: Repo.get!(RegistrationInvite, id)
+
+  @doc """
+  Checks if a registration invite exists for a given registration id, invitee id and invitee type.
+
+  ## Examples
+
+      iex> registration_invite_not_exists?(%{
+      ...>   registration_id: "some-id",
+      ...>   invitee_id: "some-id",
+      ...>   invitee_type: "team"
+      ...> })
+      true
+
+      iex> registration_invite_not_exists?(%{
+      ...>   registration_id: "some-id",
+      ...>   invitee_id: "some-id",
+      ...>   invitee_type: "team"
+      ...> })
+      false
+  """
+  @spec registration_invite_not_exists?(%{
+          registration_id: Ecto.UUID.t(),
+          invitee_id: Ecto.UUID.t(),
+          invitee_type: String.t()
+        }) :: boolean
+  defp registration_invite_not_exists?(%{
+         registration_id: registration_id,
+         invitee_id: invitee_id,
+         invitee_type: invitee_type
+       }) do
+    query =
+      from r in RegistrationInvite,
+        where:
+          r.registration_id == ^registration_id and r.invitee_id == ^invitee_id and
+            r.invitee_type == ^invitee_type
+
+    !Repo.exists?(query)
+  end
 
   @doc """
   Gets a single registration_invite and associated entities.

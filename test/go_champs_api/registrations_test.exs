@@ -200,6 +200,34 @@ defmodule GoChampsApi.RegistrationsTest do
       assert Enum.at(registration_invites, 1).invitee_id == team_a.id
       assert Enum.at(registration_invites, 1).invitee_type == "team"
     end
+
+    test "generate_team_roster_invites/1 does not generate registration invites for teams that have already been invited" do
+      registration = registration_fixture()
+
+      team_a =
+        TeamHelpers.create_team(%{name: "Team A", tournament_id: registration.tournament_id})
+
+      team_b =
+        TeamHelpers.create_team(%{name: "Team B", tournament_id: registration.tournament_id})
+
+      %{
+        invitee_id: team_a.id,
+        invitee_type: "team",
+        registration_id: registration.id
+      }
+      |> Registrations.create_registration_invite()
+
+      assert {:ok, _registration_invites} =
+               Registrations.generate_team_roster_invites(registration)
+
+      registration = Registrations.get_registration!(registration.id)
+
+      assert Enum.count(registration.registration_invites) == 2
+      assert Enum.at(registration.registration_invites, 0).invitee_id == team_a.id
+      assert Enum.at(registration.registration_invites, 0).invitee_type == "team"
+      assert Enum.at(registration.registration_invites, 1).invitee_id == team_b.id
+      assert Enum.at(registration.registration_invites, 1).invitee_type == "team"
+    end
   end
 
   describe "registration_invites" do
