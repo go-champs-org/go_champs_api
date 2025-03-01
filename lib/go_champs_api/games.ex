@@ -183,10 +183,20 @@ defmodule GoChampsApi.Games do
       :ok
   """
   @spec start_side_effect_tasks(%Game{}) :: :ok
-  def start_side_effect_tasks(%Game{phase_id: phase_id}) do
+  def start_side_effect_tasks(%Game{phase_id: phase_id, live_state: live_state}) do
     %{phase_id: phase_id}
     |> GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults.new()
     |> Oban.insert()
+
+    if live_state in [:ended, :in_progress] do
+      tournament_id =
+        Phases.get_phase!(phase_id)
+        |> Map.get(:tournament_id)
+
+      %{tournament_id: tournament_id}
+      |> GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate.new()
+      |> Oban.insert()
+    end
 
     # Generate game stats
     :ok

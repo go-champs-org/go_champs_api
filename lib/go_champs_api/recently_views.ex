@@ -9,6 +9,7 @@ defmodule GoChampsApi.RecentlyViews do
   alias GoChampsApi.RecentlyViews.RecentlyView
   alias GoChampsApi.Tournaments.Tournament
 
+  @spec list_recently_view() :: any()
   @doc """
   Returns the list of recently_view.
 
@@ -28,10 +29,11 @@ defmodule GoChampsApi.RecentlyViews do
         select: %{
           tournament: t,
           tournament_id: t.id,
+          last_relevant_update_at: t.last_relevant_update_at,
           views: count()
         },
         preload: [:organization],
-        order_by: [desc: count()]
+        order_by: [desc_nulls_last: :last_relevant_update_at, desc: count()]
 
     Repo.all(query)
   end

@@ -72,6 +72,64 @@ defmodule GoChampsApi.GamesTest do
       )
     end
 
+    test "create_game/1 with live_state ended creates a game and queue process relevant update for the game tournament" do
+      attrs =
+        Map.merge(@valid_attrs, %{live_state: :ended})
+        |> PhaseHelpers.map_phase_id()
+
+      assert {:ok, %Game{} = game} = Games.create_game(attrs)
+
+      assert game.away_score == attrs.away_score
+      assert game.home_score == attrs.home_score
+      assert game.location == attrs.location
+      assert game.youtube_code == attrs.youtube_code
+      assert game.is_finished == true
+
+      {:ok, tournament_id} = Phases.get_phases_tournament_id([%{"id" => game.phase_id}])
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate,
+        args: %{tournament_id: tournament_id}
+      )
+    end
+
+    test "create_game/1 with live_state in_progress creates a game and queue process relevant update for the game tournament" do
+      attrs =
+        Map.merge(@valid_attrs, %{live_state: :in_progress})
+        |> PhaseHelpers.map_phase_id()
+
+      assert {:ok, %Game{} = game} = Games.create_game(attrs)
+
+      assert game.away_score == attrs.away_score
+      assert game.home_score == attrs.home_score
+      assert game.location == attrs.location
+      assert game.youtube_code == attrs.youtube_code
+      assert game.is_finished == nil
+
+      {:ok, tournament_id} = Phases.get_phases_tournament_id([%{"id" => game.phase_id}])
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate,
+        args: %{tournament_id: tournament_id}
+      )
+    end
+
+    test "create_game/1 with live_state not_started creates a game and does not queue process relevant update for the game tournament" do
+      attrs =
+        Map.merge(@valid_attrs, %{live_state: :not_started})
+        |> PhaseHelpers.map_phase_id()
+
+      assert {:ok, %Game{} = game} = Games.create_game(attrs)
+
+      assert game.away_score == attrs.away_score
+      assert game.home_score == attrs.home_score
+      assert game.location == attrs.location
+      assert game.youtube_code == attrs.youtube_code
+      assert game.is_finished == nil
+
+      refute_enqueued(worker: GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate)
+    end
+
     test "create_game/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Games.create_game(@invalid_attrs)
     end
@@ -92,6 +150,16 @@ defmodule GoChampsApi.GamesTest do
         worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
         args: %{phase_id: game.phase_id}
       )
+    end
+
+    test "update_game/2 with not_started does not queue process relevant update for the game tournament" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :not_started})
+
+      {:ok, %Game{} = _updated_game} = Games.update_game(game, attrs)
+
+      refute_enqueued(worker: GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate)
     end
 
     test "update_game/2 with is_finished false but current game live_state is :ended updates the game" do
@@ -136,6 +204,21 @@ defmodule GoChampsApi.GamesTest do
       assert updated_game.live_started_at != nil
     end
 
+    test "update_game/2 with in_progress live_state queues process relevant update for the game tournament" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :in_progress})
+
+      {:ok, %Game{} = _updated_game} = Games.update_game(game, attrs)
+
+      {:ok, tournament_id} = Phases.get_phases_tournament_id([%{"id" => game.phase_id}])
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate,
+        args: %{tournament_id: tournament_id}
+      )
+    end
+
     test "update_game/2 with ended live_state updates the is_finished field to true and live_ended_at" do
       game = game_fixture()
 
@@ -145,6 +228,21 @@ defmodule GoChampsApi.GamesTest do
 
       assert updated_game.is_finished == true
       assert updated_game.live_ended_at != nil
+    end
+
+    test "update_game/2 with ended live_state queues process relevant update for the game tournament" do
+      game = game_fixture()
+
+      attrs = Map.merge(@update_attrs, %{phase_id: game.phase_id, live_state: :ended})
+
+      {:ok, %Game{} = _updated_game} = Games.update_game(game, attrs)
+
+      {:ok, tournament_id} = Phases.get_phases_tournament_id([%{"id" => game.phase_id}])
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.ProcessRelevantUpdate,
+        args: %{tournament_id: tournament_id}
+      )
     end
 
     test "update_game/2 with invalid data returns error changeset" do

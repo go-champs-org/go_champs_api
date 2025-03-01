@@ -73,7 +73,7 @@ defmodule GoChampsApi.Helpers.TournamentHelpers do
   def create_simple_tournament(attrs \\ %{}) do
     %{name: "Simple Tournament", slug: "simple-tournament"}
     |> Map.merge(attrs)
-    |> OrganizationHelpers.map_organization_id()
+    |> create_or_use_organization_id()
     |> Tournaments.create_tournament()
   end
 
@@ -100,5 +100,16 @@ defmodule GoChampsApi.Helpers.TournamentHelpers do
     )
     |> OrganizationHelpers.map_organization_id()
     |> Tournaments.create_tournament()
+  end
+
+  defp create_or_use_organization_id(attrs \\ %{}) do
+    case Map.get(attrs, :organization_id) do
+      nil ->
+        attrs
+        |> OrganizationHelpers.map_organization_id()
+
+      _ ->
+        attrs
+    end
   end
 end

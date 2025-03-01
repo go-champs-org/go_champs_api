@@ -22,6 +22,23 @@ defmodule GoChampsApiWeb.SearchControllerTest do
       assert json_response(conn, 200)["data"] == []
     end
 
+    test "list all tournaments that are public", %{conn: conn} do
+      tournament = fixture(:tournament)
+
+      {:ok, _private_tournamet} =
+        %{
+          organization_id: tournament.organization_id,
+          visibility: "private",
+          name: "private tournament",
+          slug: "private-tournament"
+        }
+        |> Tournaments.create_tournament()
+
+      conn = get(conn, Routes.v1_search_path(conn, :index))
+      [tournament_result] = json_response(conn, 200)["data"]
+      assert tournament_result["id"] == tournament.id
+    end
+
     test "lists all tournaments matching where", %{conn: conn} do
       fixture(:tournament)
 

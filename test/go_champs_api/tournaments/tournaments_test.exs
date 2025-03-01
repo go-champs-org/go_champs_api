@@ -87,6 +87,37 @@ defmodule GoChampsApi.TournamentsTest do
       assert result_tournament.slug == tournament.slug
     end
 
+    test "list_tournaments/0 returns all tournaments sorted by last_relevant_update_at" do
+      old_tournament =
+        tournament_fixture(%{
+          last_relevant_update_at: DateTime.add(DateTime.utc_now(), -366, :day)
+        })
+
+      {:ok, tournament_with_no_recent_update} =
+        %{
+          name: "tournament with no recent update",
+          slug: "tournament-with-no-recent-update",
+          last_relevant_update_at: nil,
+          organization_id: old_tournament.organization_id
+        }
+        |> Tournaments.create_tournament()
+
+      {:ok, recent_tournament} =
+        %{
+          name: "recent tournament",
+          slug: "recent-tournament",
+          last_relevant_update_at: DateTime.utc_now(),
+          organization_id: old_tournament.organization_id
+        }
+        |> Tournaments.create_tournament()
+
+      [first_tournament, second_tournament, third_tournament] = Tournaments.list_tournaments()
+
+      assert first_tournament.id == recent_tournament.id
+      assert second_tournament.id == old_tournament.id
+      assert third_tournament.id == tournament_with_no_recent_update.id
+    end
+
     test "list_tournaments/1 returns all tournaments pertaining to some organization" do
       {:ok, another_organization} =
         Organizations.create_organization(%{name: "another organization", slug: "another-slug"})
@@ -102,6 +133,43 @@ defmodule GoChampsApi.TournamentsTest do
       assert result_tournament.id == second_tournament.id
       assert result_tournament.name == second_tournament.name
       assert result_tournament.slug == second_tournament.slug
+    end
+
+    test "list_tournaments/1 returns all tournaments pertaining to some organization sorted by last_relevant_update_at" do
+      {:ok, another_organization} =
+        Organizations.create_organization(%{name: "another organization", slug: "another-slug"})
+
+      {:ok, old_tournament} =
+        %{name: "old tournament", slug: "old-tournament"}
+        |> Map.merge(%{organization_id: another_organization.id})
+        |> Tournaments.create_tournament()
+
+      {:ok, tournament_with_no_recent_update} =
+        %{
+          name: "tournament with no recent update",
+          slug: "tournament-with-no-recent-update",
+          last_relevant_update_at: nil,
+          organization_id: another_organization.id
+        }
+        |> Tournaments.create_tournament()
+
+      {:ok, recent_tournament} =
+        %{
+          name: "recent tournament",
+          slug: "recent-tournament",
+          last_relevant_update_at: DateTime.utc_now(),
+          organization_id: another_organization.id
+        }
+        |> Tournaments.create_tournament()
+
+      where = [organization_id: another_organization.id]
+
+      [first_tournament, second_tournament, third_tournament] =
+        Tournaments.list_tournaments(where)
+
+      assert first_tournament.id == recent_tournament.id
+      assert second_tournament.id == old_tournament.id
+      assert third_tournament.id == tournament_with_no_recent_update.id
     end
 
     test "get_tournament!/1 returns the tournament with given id" do
@@ -327,23 +395,24 @@ defmodule GoChampsApi.TournamentsTest do
       assert %Ecto.Changeset{} = Tournaments.change_tournament(tournament)
     end
 
-    test "search_tournaments/1 returns all tournaments matching common term" do
+    test "search_tournaments/1 returns all tournaments matching common term sorted by last_relevant_update_at" do
       {:ok, another_organization} =
         Organizations.create_organization(%{name: "another organization", slug: "another-slug"})
 
-      {:ok, first_tournament} =
-        %{name: "another name", slug: "some-slug"}
+      older_tournament =
+        tournament_fixture(%{last_relevant_update_at: DateTime.add(DateTime.utc_now(), -1, :day)})
+
+      {:ok, recent_tournament} =
+        %{name: "another name", slug: "some-slug", last_relevant_update_at: DateTime.utc_now()}
         |> Map.merge(%{organization_id: another_organization.id})
         |> Tournaments.create_tournament()
-
-      second_tournament = tournament_fixture()
 
       term = "name"
 
       [first_result, second_result] = Tournaments.search_tournaments(term)
 
-      assert first_result.id == first_tournament.id
-      assert second_result.id == second_tournament.id
+      assert first_result.id == recent_tournament.id
+      assert second_result.id == older_tournament.id
     end
 
     test "search_tournaments/1 returns all tournaments matching second tournament term" do
@@ -364,6 +433,20 @@ defmodule GoChampsApi.TournamentsTest do
       assert first_result.id == first_tournament.id
     end
 
+    test "search_tournaments/1 does not returns tournament with private visibility" do
+      {:ok, another_organization} =
+        Organizations.create_organization(%{name: "another organization", slug: "another-slug"})
+
+      {:ok, _private_tournament} =
+        %{name: "private tournament", slug: "private-slug", visibility: "private"}
+        |> Map.merge(%{organization_id: another_organization.id})
+        |> Tournaments.create_tournament()
+
+      term = "private"
+
+      assert Tournaments.search_tournaments(term) == []
+    end
+
     test "set_aggregated_player_stats/1 updates to true the aggregated_player_stats property" do
       tournament = tournament_fixture()
 
@@ -374,6 +457,17 @@ defmodule GoChampsApi.TournamentsTest do
 
       tournament_after = Tournaments.get_tournament!(tournament.id)
       assert tournament_after.has_aggregated_player_stats == true
+    end
+
+    test "set_last_relevant_update_at/1 updates the last_relevant_update_at property" do
+      tournament = tournament_fixture()
+
+      Tournaments.set_last_relevant_update_at!(tournament.id)
+
+      tournament_after = Tournaments.get_tournament!(tournament.id)
+
+      assert DateTime.diff(tournament_after.last_relevant_update_at, DateTime.utc_now(), :second) <
+               1
     end
 
     test "get_player_stat_by_id!/2 returns the player stats with the given id" do

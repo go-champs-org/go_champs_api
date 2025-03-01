@@ -21,6 +21,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     field :sport_slug, :string
     field :sport_name, :string
     field :visibility, :string, default: "public"
+    field :last_relevant_update_at, :utc_datetime
 
     embeds_many :player_stats, PlayerStats, on_replace: :delete do
       field :title, :string
@@ -58,7 +59,8 @@ defmodule GoChampsApi.Tournaments.Tournament do
       :organization_slug,
       :sport_slug,
       :sport_name,
-      :visibility
+      :visibility,
+      :last_relevant_update_at
     ])
     |> cast_embed(:player_stats, with: &player_stats_changeset/2, required: false)
     |> cast_embed(:team_stats, with: &team_stats_changeset/2, required: false)

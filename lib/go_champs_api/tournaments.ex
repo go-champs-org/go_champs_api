@@ -27,7 +27,12 @@ defmodule GoChampsApi.Tournaments do
 
   """
   def list_tournaments do
-    Repo.all(Tournament)
+    query =
+      from t in Tournament,
+        order_by: [desc_nulls_last: t.last_relevant_update_at],
+        preload: [:organization]
+
+    Repo.all(query)
   end
 
   @doc """
@@ -40,10 +45,17 @@ defmodule GoChampsApi.Tournaments do
 
   """
   def list_tournaments(where) do
-    query = from t in Tournament, where: ^where
+    query =
+      from t in Tournament,
+        where: ^where,
+        order_by: [desc_nulls_last: t.last_relevant_update_at],
+        preload: [:organization]
+
     Repo.all(query)
   end
 
+  @spec get_tournament!(any()) ::
+          nil | [%{optional(atom()) => any()}] | %{optional(atom()) => any()}
   @doc """
   Gets a single tournament.
 
@@ -240,9 +252,11 @@ defmodule GoChampsApi.Tournaments do
       from t in Tournament,
         join: o in assoc(t, :organization),
         where:
-          ilike(t.name, ^search_term) or ilike(t.slug, ^search_term) or
-            ilike(o.name, ^search_term) or ilike(o.slug, ^search_term),
-        preload: [organization: o]
+          t.visibility == "public" and
+            (ilike(t.name, ^search_term) or ilike(t.slug, ^search_term) or
+               ilike(o.name, ^search_term) or ilike(o.slug, ^search_term)),
+        preload: [organization: o],
+        order_by: [desc_nulls_last: t.last_relevant_update_at]
     )
   end
 
@@ -255,6 +269,30 @@ defmodule GoChampsApi.Tournaments do
       |> Repo.get!(id)
 
     tournament = Ecto.Changeset.change(tournament, has_aggregated_player_stats: true)
+
+    Repo.update(tournament)
+  end
+
+  @doc """
+  Sets last_relevant_update_at to the current time for the given id tournament.
+
+  ## Examples
+
+      iex> set_last_relevant_update_at!(123)
+      {:ok, %Tournament{}}
+
+      iex> set_last_relevant_update_at!(456)
+      {:error, %Ecto.Changeset{}}
+  """
+  def set_last_relevant_update_at!(id) do
+    tournament =
+      Tournament
+      |> Repo.get!(id)
+
+    tournament =
+      Ecto.Changeset.change(tournament,
+        last_relevant_update_at: DateTime.truncate(DateTime.utc_now(), :second)
+      )
 
     Repo.update(tournament)
   end

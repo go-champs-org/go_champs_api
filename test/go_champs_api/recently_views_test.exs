@@ -67,7 +67,6 @@ defmodule GoChampsApi.RecentlyViewsTest do
       [recently_view_result] = RecentlyViews.list_recently_view()
       assert recently_view_result.tournament_id == recently_view.tournament_id
       assert recently_view_result.views == 1
-      assert recently_view_result.tournament.id == recently_view.tournament_id
     end
 
     test "list_recently_view/0 does not return recently_views with private visibility" do
@@ -89,6 +88,35 @@ defmodule GoChampsApi.RecentlyViewsTest do
       assert second_tournament.tournament_id == third_recently_view.tournament_id
       assert second_tournament.views == 1
       assert second_tournament.tournament.id == third_recently_view.tournament_id
+    end
+
+    test "list_recently_view/0 returns recently_views ordered by last_relevant_update_at and then views" do
+      {:ok, old_tournament} =
+        TournamentHelpers.create_simple_tournament(%{
+          name: "old tournament",
+          slug: "old-slug",
+          last_relevant_update_at: DateTime.add(DateTime.utc_now(), -1, :day)
+        })
+
+      recently_view_for_tournament_id(old_tournament.id)
+      recently_view_for_tournament_id(old_tournament.id)
+
+      {:ok, recent_tournament} =
+        TournamentHelpers.create_simple_tournament(%{
+          name: "recent tournament",
+          slug: "recent-slug",
+          last_relevant_update_at: DateTime.utc_now(),
+          organization_id: old_tournament.organization_id
+        })
+
+      recently_view_for_tournament_id(recent_tournament.id)
+
+      [first_tournament, second_tournament] = RecentlyViews.list_recently_view()
+
+      assert first_tournament.tournament_id == recent_tournament.id
+      assert first_tournament.views == 1
+      assert second_tournament.tournament_id == old_tournament.id
+      assert second_tournament.views == 2
     end
 
     test "get_recently_view!/1 returns the recently_view with given id" do

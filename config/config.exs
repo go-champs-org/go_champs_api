@@ -32,7 +32,8 @@ config :go_champs_api, Oban,
     generate_game_results: 1,
     generate_phase_results: 1,
     generate_team_stats_logs_for_game: 1,
-    process_registration_invite: 1
+    process_registration_invite: 1,
+    process_relevant_update: 1
   ]
 
 # config :go_champs_api, :phoenix_swagger,

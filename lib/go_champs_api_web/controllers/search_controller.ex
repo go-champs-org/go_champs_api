@@ -13,7 +13,7 @@ defmodule GoChampsApiWeb.SearchController do
           |> Tournaments.search_tournaments()
 
         _ ->
-          Tournaments.list_tournaments()
+          Tournaments.list_tournaments(visibility: "public")
       end
 
     render(conn, "index.json", tournaments: tournaments)
