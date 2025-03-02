@@ -1,4 +1,5 @@
 defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
+  alias GoChampsApi.Helpers.TeamHelpers
   use GoChampsApiWeb.ConnCase
 
   alias GoChampsApi.Registrations
@@ -26,6 +27,21 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
     registration_invite
   end
 
+  def fixture(:registration_invite_for_team) do
+    team = TeamHelpers.create_team()
+
+    {:ok, registration_invite} =
+      %{
+        invitee_id: team.id,
+        invitee_type: "team",
+        tournament_id: team.tournament_id
+      }
+      |> RegistrationHelpers.map_registration_id_in_attrs()
+      |> Registrations.create_registration_invite()
+
+    registration_invite
+  end
+
   def fixture(:registration_invite_with_different_member) do
     create_attrs =
       @create_attrs
@@ -40,7 +56,7 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
   end
 
   describe "get registration_invite" do
-    setup [:create_registration_invite]
+    setup [:create_registration_invite_for_team]
 
     test "renders registration_invite and its associated entities", %{
       conn: conn,
@@ -54,6 +70,7 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
           Routes.v1_registration_invite_path(conn, :show, id, include: include)
         )
 
+      invitee = Registrations.get_registration_invite_invitee(registration_invite)
       invitee_id = registration_invite.invitee_id
       registration_id = registration_invite.registration_id
 
@@ -63,7 +80,9 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
 
       assert response["id"] == id
       assert response["invitee_id"] == invitee_id
-      assert response["invitee_type"] == "some invitee_type"
+      assert response["invitee_type"] == "team"
+      assert response["invitee"]["id"] == invitee.id
+      assert response["invitee"]["name"] == invitee.name
       assert response["registration_id"] == registration_id
       assert response["registration"]["id"] == registration.id
       assert response["registration"]["title"] == registration.title
@@ -244,6 +263,11 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
 
   defp create_registration_invite(_) do
     registration_invite = fixture(:registration_invite)
+    %{registration_invite: registration_invite}
+  end
+
+  defp create_registration_invite_for_team(_) do
+    registration_invite = fixture(:registration_invite_for_team)
     %{registration_invite: registration_invite}
   end
 

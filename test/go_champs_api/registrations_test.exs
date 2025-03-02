@@ -263,8 +263,37 @@ defmodule GoChampsApi.RegistrationsTest do
       assert Registrations.get_registration_invite!(registration_invite.id) == registration_invite
     end
 
-    test "get_registration_invite!/1 returns the registration_invite with given id and preloads" do
-      registration_invite = registration_invite_fixture()
+    test "get_registration_invite/1 returns the registration_invite with invitee preloaded" do
+      team = TeamHelpers.create_team()
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          tournament_id: team.tournament_id
+        }
+        |> RegistrationHelpers.map_registration_id_in_attrs()
+        |> Registrations.create_registration_invite()
+
+      registration_invite = Registrations.get_registration_invite!(registration_invite.id)
+
+      assert registration_invite.invitee.name == team.name
+      assert registration_invite.invitee.tournament_id == team.tournament_id
+      assert registration_invite.invitee.id == registration_invite.invitee_id
+    end
+
+    test "get_registration_invite!/1 returns the registration_invite with given id and preloads and invitee" do
+      team = TeamHelpers.create_team()
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          tournament_id: team.tournament_id
+        }
+        |> RegistrationHelpers.map_registration_id_in_attrs()
+        |> Registrations.create_registration_invite()
+
       registration = Registrations.get_registration!(registration_invite.registration_id)
 
       result = Registrations.get_registration_invite!(registration_invite.id, [:registration])
@@ -277,6 +306,35 @@ defmodule GoChampsApi.RegistrationsTest do
       assert result.registration.start_date == registration.start_date
       assert result.registration.end_date == registration.end_date
       assert result.registration.type == registration.type
+      assert result.invitee.name == team.name
+      assert result.invitee.tournament_id == team.tournament_id
+      assert result.invitee.id == team.id
+    end
+
+    test "get_registration_invite_invitee/1 returns the invitee of the registration_invite" do
+      team = TeamHelpers.create_team()
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          tournament_id: team.tournament_id
+        }
+        |> RegistrationHelpers.map_registration_id_in_attrs()
+        |> Registrations.create_registration_invite()
+
+      invitee = Registrations.get_registration_invite_invitee(registration_invite)
+
+      assert invitee.name == team.name
+      assert invitee.tournament_id == team.tournament_id
+      assert invitee.id == team.id
+    end
+
+    test "get_registration_invite_invitee/1 returns nil if invitee_type is team but invitee_id is not found" do
+      registration_invite =
+        registration_invite_fixture(%{invitee_type: "team", invitee_id: Ecto.UUID.generate()})
+
+      assert Registrations.get_registration_invite_invitee(registration_invite) == nil
     end
 
     test "create_registration_invite/1 with valid data creates a registration_invite" do

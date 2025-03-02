@@ -17,6 +17,7 @@ defmodule GoChampsApiWeb.RegistrationInviteView do
       id: registration_invite.id,
       invitee_type: registration_invite.invitee_type,
       invitee_id: registration_invite.invitee_id,
+      invitee: render_invitee(registration_invite),
       registration_id: registration_invite.registration_id,
       registration: render_registration(registration_invite),
       registration_responses: render_registration_responses(registration_invite)
@@ -40,6 +41,20 @@ defmodule GoChampsApiWeb.RegistrationInviteView do
       )
     else
       []
+    end
+  end
+
+  defp render_invitee(registration_invite) do
+    case registration_invite.invitee_type do
+      "team" ->
+        render_one(
+          registration_invite.invitee,
+          GoChampsApiWeb.TeamView,
+          "team.json"
+        )
+
+      _ ->
+        nil
     end
   end
 end

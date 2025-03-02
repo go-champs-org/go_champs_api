@@ -9,6 +9,7 @@ defmodule GoChampsApi.Registrations do
   alias GoChampsApi.Registrations.Registration
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Players
+  alias GoChampsApi.Teams
 
   @doc """
   Returns the list of registrations.
@@ -226,27 +227,10 @@ defmodule GoChampsApi.Registrations do
 
   """
   def get_registration_invite!(id),
-    do: Repo.get!(RegistrationInvite, id)
+    do:
+      Repo.get!(RegistrationInvite, id)
+      |> may_put_invitee_in_registration_invite()
 
-  @doc """
-  Checks if a registration invite exists for a given registration id, invitee id and invitee type.
-
-  ## Examples
-
-      iex> registration_invite_not_exists?(%{
-      ...>   registration_id: "some-id",
-      ...>   invitee_id: "some-id",
-      ...>   invitee_type: "team"
-      ...> })
-      true
-
-      iex> registration_invite_not_exists?(%{
-      ...>   registration_id: "some-id",
-      ...>   invitee_id: "some-id",
-      ...>   invitee_type: "team"
-      ...> })
-      false
-  """
   @spec registration_invite_not_exists?(%{
           registration_id: Ecto.UUID.t(),
           invitee_id: Ecto.UUID.t(),
@@ -284,6 +268,46 @@ defmodule GoChampsApi.Registrations do
     do:
       Repo.get!(RegistrationInvite, id)
       |> Repo.preload(preload)
+      |> may_put_invitee_in_registration_invite()
+
+  defp may_put_invitee_in_registration_invite(registration_invite) do
+    case registration_invite do
+      %RegistrationInvite{} ->
+        registration_invite
+        |> Map.put(:invitee, get_registration_invite_invitee(registration_invite))
+
+      _ ->
+        registration_invite
+    end
+  end
+
+  @doc """
+  Gets the invitee of a registration_invite for a given registration invite.
+
+  Raises `Ecto.NoResultsError` if the Registration invite does not exist.
+
+  ## Examples
+
+      iex> get_registration_invite_invitee(%RegistrationInvite{})
+      %Team{}
+
+      iex> get_registration_invite_invitee(%RegistrationInvite{})
+      ** (Ecto.NoResultsError)
+  """
+  @spec get_registration_invite_invitee(%RegistrationInvite{}) :: any()
+  def get_registration_invite_invitee(%RegistrationInvite{} = registration_invite) do
+    case registration_invite.invitee_type do
+      "team" ->
+        try do
+          Teams.get_team!(registration_invite.invitee_id)
+        rescue
+          Ecto.NoResultsError -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
 
   @doc """
   Creates a registration_invite.

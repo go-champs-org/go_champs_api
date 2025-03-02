@@ -51,12 +51,16 @@ defmodule GoChampsApi.Infrastructure.Jobs.ProcessRegistrationInviteTest do
 
     team = Teams.get_team_preload!(team.id, [:players])
 
+    players =
+      team.players
+      |> Enum.sort_by(& &1.name)
+
     assert Enum.count(team.players) == 2
-    assert Enum.at(team.players, 0).name == "First Name"
-    assert Enum.at(team.players, 0).shirt_number == "8"
-    assert Enum.at(team.players, 0).shirt_name == "F Name"
-    assert Enum.at(team.players, 1).name == "Second Name"
-    assert Enum.at(team.players, 1).shirt_number == "10"
-    assert Enum.at(team.players, 1).shirt_name == "S Name"
+    assert Enum.at(players, 0).name == "First Name"
+    assert Enum.at(players, 0).shirt_number == "8"
+    assert Enum.at(players, 0).shirt_name == "F Name"
+    assert Enum.at(players, 1).name == "Second Name"
+    assert Enum.at(players, 1).shirt_number == "10"
+    assert Enum.at(players, 1).shirt_name == "S Name"
   end
 end

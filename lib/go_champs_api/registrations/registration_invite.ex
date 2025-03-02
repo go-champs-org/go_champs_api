@@ -9,6 +9,7 @@ defmodule GoChampsApi.Registrations.RegistrationInvite do
   schema "registration_invites" do
     field :invitee_id, Ecto.UUID
     field :invitee_type, :string
+    field :invitee, :map, virtual: true
 
     belongs_to :registration, Registration
     has_many :registration_responses, RegistrationResponse
