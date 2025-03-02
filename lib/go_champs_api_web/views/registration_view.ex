@@ -22,9 +22,20 @@ defmodule GoChampsApiWeb.RegistrationView do
       type: registration.type,
       auto_approve: registration.auto_approve,
       custom_fields: registration.custom_fields,
+      custom_fields:
+        render_many(registration.custom_fields, RegistrationView, "custom_field.json"),
       tournament_id: registration.tournament_id,
       tournament: render_tournament(registration),
       registration_invites: render_registration_invites(registration)
+    }
+  end
+
+  def render("custom_field.json", %{registration: custom_field}) do
+    %{
+      id: custom_field.id,
+      type: custom_field.type,
+      label: custom_field.label,
+      description: custom_field.description
     }
   end
 

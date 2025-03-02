@@ -12,7 +12,14 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
     end_date: "2010-04-17T14:00:00Z",
     start_date: "2010-04-17T14:00:00Z",
     title: "some title",
-    type: "team_roster_invites"
+    type: "team_roster_invites",
+    custom_fields: [
+      %{
+        type: "text",
+        label: "Team Name",
+        description: "The name of the team"
+      }
+    ]
   }
   @update_attrs %{
     auto_approve: false,
@@ -205,7 +212,10 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
       assert response["start_date"] == "2010-04-17T14:00:00Z"
       assert response["title"] == "some title"
       assert response["type"] == "team_roster_invites"
-      assert response["custom_fields"] == []
+      assert Enum.at(response["custom_fields"], 0)["description"] == "The name of the team"
+      assert Enum.at(response["custom_fields"], 0)["label"] == "Team Name"
+      assert Enum.at(response["custom_fields"], 0)["type"] == "text"
+
       assert response["tournament_id"] == tournament_id
 
       registration_invites = response["registration_invites"]
