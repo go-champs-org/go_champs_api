@@ -4,6 +4,7 @@ defmodule GoChampsApi.Players.Player do
   import Ecto.Changeset
   alias GoChampsApi.Teams.Team
   alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Registrations.RegistrationResponse
 
   schema "players" do
     field :facebook, :string
@@ -16,6 +17,7 @@ defmodule GoChampsApi.Players.Player do
 
     belongs_to :tournament, Tournament
     belongs_to :team, Team
+    belongs_to :registration_response, RegistrationResponse
 
     timestamps()
   end
@@ -32,7 +34,8 @@ defmodule GoChampsApi.Players.Player do
       :tournament_id,
       :team_id,
       :shirt_number,
-      :shirt_name
+      :shirt_name,
+      :registration_response_id
     ])
     |> validate_required([:name, :tournament_id])
   end

@@ -737,12 +737,13 @@ defmodule GoChampsApi.RegistrationsTest do
 
       [{:ok, _}] = Registrations.approve_registration_responses(registration_invite.id)
 
-      team = Teams.get_team_preload!(team.id, [:players])
+      team = Teams.get_team_preload!(team.id, players: :registration_response)
 
       assert Enum.count(team.players) == 1
       assert Enum.at(team.players, 0).name == "Player Name"
       assert Enum.at(team.players, 0).shirt_number == "8"
       assert Enum.at(team.players, 0).shirt_name == "P Name"
+      assert Enum.at(team.players, 0).registration_response_id == registration_response.id
 
       registration_response = Registrations.get_registration_response!(registration_response.id)
 
@@ -789,15 +790,17 @@ defmodule GoChampsApi.RegistrationsTest do
 
       [_, _] = Registrations.approve_registration_responses(registration_invite.id)
 
-      team = Teams.get_team_preload!(team.id, [:players])
+      team = Teams.get_team_preload!(team.id, players: :registration_response)
 
       assert Enum.count(team.players) == 2
       assert Enum.at(team.players, 0).name == "First Name"
       assert Enum.at(team.players, 0).shirt_number == "8"
       assert Enum.at(team.players, 0).shirt_name == "F Name"
+      assert Enum.at(team.players, 0).registration_response_id == first_registration_response.id
       assert Enum.at(team.players, 1).name == "Second Name"
       assert Enum.at(team.players, 1).shirt_number == "10"
       assert Enum.at(team.players, 1).shirt_name == "S Name"
+      assert Enum.at(team.players, 1).registration_response_id == second_registration_response.id
 
       first_registration_response =
         Registrations.get_registration_response!(first_registration_response.id)

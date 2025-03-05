@@ -666,7 +666,8 @@ defmodule GoChampsApi.Registrations do
       team_id: registration_response.registration_invite.invitee_id,
       name: registration_response.response["name"],
       shirt_number: registration_response.response["shirt_number"],
-      shirt_name: registration_response.response["shirt_name"]
+      shirt_name: registration_response.response["shirt_name"],
+      registration_response_id: registration_response.id
     }
 
     {Players.create_player(player_attrs), registration_response}
