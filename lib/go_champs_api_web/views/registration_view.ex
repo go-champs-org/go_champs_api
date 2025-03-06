@@ -21,7 +21,6 @@ defmodule GoChampsApiWeb.RegistrationView do
       end_date: registration.end_date,
       type: registration.type,
       auto_approve: registration.auto_approve,
-      custom_fields: registration.custom_fields,
       custom_fields:
         render_many(registration.custom_fields, RegistrationView, "custom_field.json"),
       tournament_id: registration.tournament_id,
