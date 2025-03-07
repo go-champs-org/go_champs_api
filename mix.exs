@@ -53,7 +53,9 @@ defmodule GoChampsApi.MixProject do
       {:quantum, "~> 3.0"},
       {:amqp, "~> 3.3"},
       {:amqp_client, "~> 3.12"},
-      {:oban, "~> 2.15.0"}
+      {:oban, "~> 2.15.0"},
+      {:ex_aws, "~> 2.1"},
+      {:ex_aws_s3, "~> 2.0"}
     ]
   end
 

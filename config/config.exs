@@ -64,6 +64,17 @@ config :recaptcha,
 
 config :recaptcha, :json_library, Jason
 
+config :ex_aws,
+  http_client: GoChampsApi.ExAwsHTTPoisonAdapter,
+  access_key_id: System.get_env("R2_ACCESS_KEY_ID"),
+  secret_access_key: System.get_env("R2_SECRET_ACCESS_KEY"),
+  region: "auto",
+  s3: [
+    scheme: "https://",
+    host: "a0186fb988e3bd8d1b9d4a5a398f9bd1.r2.cloudflarestorage.com",
+    region: "auto"
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

@@ -87,6 +87,8 @@ defmodule GoChampsApiWeb.Router do
     post "/accounts/recovery", UserController, :recovey_account
     post "/accounts/reset", UserController, :reset_password
 
+    post "/upload/presigned-url", UploadController, :presigned_url
+
     get "/version", VersionController, :index
   end
 
