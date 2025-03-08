@@ -34,7 +34,9 @@ defmodule GoChampsApiWeb.RegistrationView do
       id: custom_field.id,
       type: custom_field.type,
       label: custom_field.label,
-      description: custom_field.description
+      description: custom_field.description,
+      required: custom_field.required,
+      properties: custom_field.properties
     }
   end
 

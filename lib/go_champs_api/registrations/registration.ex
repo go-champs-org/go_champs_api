@@ -16,6 +16,8 @@ defmodule GoChampsApi.Registrations.Registration do
       field :type, :string
       field :label, :string
       field :description, :string
+      field :required, :boolean, default: false
+      field :properties, :map, default: %{}
     end
 
     belongs_to :tournament, Tournament
@@ -46,6 +48,7 @@ defmodule GoChampsApi.Registrations.Registration do
 
   defp custom_field_changeset(schema, params) do
     schema
-    |> cast(params, [:type, :label, :description])
+    |> cast(params, [:type, :label, :description, :required, :properties])
+    |> validate_required([:type, :label])
   end
 end
