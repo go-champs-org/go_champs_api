@@ -21,4 +21,9 @@ defmodule GoChampsApi.Infrastructure.R2.RegistrationConsents do
     ExAws.S3.put_object(@bucket, "uploads/#{filename}", content)
     |> ExAws.request()
   end
+
+  def delete_file(filename) do
+    ExAws.S3.delete_object(@bucket, "uploads/#{filename}")
+    |> ExAws.request()
+  end
 end

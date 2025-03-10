@@ -15,6 +15,23 @@ defmodule GoChampsApiWeb.UploadController do
     end
   end
 
+  def delete_file(conn, %{"url" => url}) do
+    filename =
+      String.split(url, "/")
+      |> List.last()
+      |> URI.decode()
+
+    IO.inspect(filename)
+    IO.inspect("filename")
+    IO.inspect(url)
+    IO.inspect("url")
+
+    case GoChampsApi.Infrastructure.R2.RegistrationConsents.delete_file(filename) do
+      {:ok, _} -> send_resp(conn, :no_content, "")
+      {:error, reason} -> handle_error(conn, reason)
+    end
+  end
+
   # Validation helpers
   defp validate_file_size(%{"size" => size}) do
     # 5MB

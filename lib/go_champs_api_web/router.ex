@@ -88,6 +88,7 @@ defmodule GoChampsApiWeb.Router do
     post "/accounts/reset", UserController, :reset_password
 
     post "/upload/presigned-url", UploadController, :presigned_url
+    delete "/upload", UploadController, :delete_file
 
     get "/version", VersionController, :index
   end
