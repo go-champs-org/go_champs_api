@@ -9,7 +9,7 @@ defmodule GoChampsApiWeb.UploadController do
              filename,
              content_type
            ) do
-      json(conn, %{url: presigned_url})
+      json(conn, %{data: %{url: presigned_url}})
     else
       {:error, reason} -> handle_error(conn, reason)
     end
@@ -17,8 +17,8 @@ defmodule GoChampsApiWeb.UploadController do
 
   # Validation helpers
   defp validate_file_size(%{"size" => size}) do
-    # 2MB
-    max_size = 2_000_000
+    # 5MB
+    max_size = 5_000_000
     if size > max_size, do: {:error, "File too large"}, else: {:ok, nil}
   end
 
