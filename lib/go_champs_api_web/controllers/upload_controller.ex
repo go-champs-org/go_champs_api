@@ -4,12 +4,12 @@ defmodule GoChampsApiWeb.UploadController do
   def presigned_url(conn, %{"filename" => filename, "content_type" => content_type}) do
     with {:ok, _} <- validate_file_size(conn.params),
          {:ok, _} <- validate_file_type(content_type),
-         {:ok, presigned_url} <-
+         {:ok, presigned_url, public_url} <-
            GoChampsApi.Infrastructure.R2.RegistrationConsents.generate_presigned_upload_url(
              filename,
              content_type
            ) do
-      json(conn, %{data: %{url: presigned_url}})
+      json(conn, %{data: %{filename: filename, url: presigned_url, public_url: public_url}})
     else
       {:error, reason} -> handle_error(conn, reason)
     end
@@ -20,11 +20,6 @@ defmodule GoChampsApiWeb.UploadController do
       String.split(url, "/")
       |> List.last()
       |> URI.decode()
-
-    IO.inspect(filename)
-    IO.inspect("filename")
-    IO.inspect(url)
-    IO.inspect("url")
 
     case GoChampsApi.Infrastructure.R2.RegistrationConsents.delete_file(filename) do
       {:ok, _} -> send_resp(conn, :no_content, "")
