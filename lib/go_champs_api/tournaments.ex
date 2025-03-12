@@ -14,6 +14,7 @@ defmodule GoChampsApi.Tournaments do
   alias GoChampsApi.Players.Player
   alias GoChampsApi.PlayerStatsLogs.PlayerStatsLog
   alias GoChampsApi.RecentlyViews.RecentlyView
+  alias GoChampsApi.ScoreboardSettings.ScoreboardSetting
 
   alias GoChampsApi.Organizations.Organization
 
@@ -104,6 +105,31 @@ defmodule GoChampsApi.Tournaments do
       |> Map.fetch(:organization)
 
     organization
+  end
+
+  @doc """
+  Gets a Scoreboard Setting for a give tournament id.
+
+  Raises `Ecto.NoResultsError` if the Tournament does not exist.
+
+  ## Examples
+
+      iex> get_tournament_scoreboard_setting!(123)
+      %ScoreboardSetting{}
+
+      iex> get_tournament_scoreboard_setting!(456)
+      ** (Ecto.NoResultsError)
+  """
+  @spec get_tournament_scoreboard_setting!(Ecto.UUID.t()) ::
+          %ScoreboardSetting{} | nil
+  def get_tournament_scoreboard_setting!(id) do
+    {:ok, scoreboard_setting} =
+      Tournament
+      |> Repo.get!(id)
+      |> Repo.preload([:scoreboard_setting])
+      |> Map.fetch(:scoreboard_setting)
+
+    scoreboard_setting
   end
 
   @doc """

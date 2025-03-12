@@ -53,6 +53,7 @@ defmodule GoChampsApiWeb.Router do
     resources "/fixed-player-stats-tables", FixedPlayerStatsTableController, only: [:index, :show]
 
     resources "/games", GameController, only: [:index, :show]
+    get "/games/:id/scoreboard-setting", GameController, :scoreboard_setting
 
     resources "/organizations", OrganizationController, only: [:index, :show]
 
@@ -69,6 +70,8 @@ defmodule GoChampsApiWeb.Router do
 
     resources "/registration-responses", RegistrationResponseController,
       only: [:create, :index, :show]
+
+    resources "/scoreboard-settings", ScoreboardSettingController, only: [:index, :show]
 
     get "/search", SearchController, :index
 
@@ -125,6 +128,9 @@ defmodule GoChampsApiWeb.Router do
       only: [:create, :update, :delete]
 
     resources "/registration-responses", RegistrationResponseController, only: [:update, :delete]
+
+    resources "/scoreboard-settings", ScoreboardSettingController,
+      only: [:create, :update, :delete]
 
     resources "/teams", TeamController, only: [:create, :update, :delete]
 

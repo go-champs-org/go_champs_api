@@ -1,4 +1,5 @@
 defmodule GoChampsApi.GamesTest do
+  alias GoChampsApi.ScoreboardSettings
   alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
   use Oban.Testing, repo: GoChampsApi.Repo
@@ -6,6 +7,7 @@ defmodule GoChampsApi.GamesTest do
   alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Games
   alias GoChampsApi.Phases
+  alias GoChampsApi.ScoreboardSettings
 
   describe "games" do
     alias GoChampsApi.Games.Game
@@ -54,6 +56,18 @@ defmodule GoChampsApi.GamesTest do
       assert organization.name == "some organization"
       assert organization.slug == "some-slug"
       assert organization.id == game_organization.id
+    end
+
+    test "get_game_scoreboard_setting!/1 returns the scoreboard settings with a give team id" do
+      game = game_fixture()
+
+      phase = Phases.get_phase!(game.phase_id)
+
+      {:ok, scoreboard_setting} =
+        %{view: "basketball-basic", tournament_id: phase.tournament_id}
+        |> ScoreboardSettings.create_scoreboard_setting()
+
+      assert Games.get_game_scoreboard_setting!(game.id) == scoreboard_setting
     end
 
     test "create_game/1 with valid data creates a game and queue side effects" do

@@ -8,6 +8,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
   alias GoChampsApi.Registrations.Registration
   alias GoChampsApi.Teams.Team
   alias GoChampsApi.Sports
+  alias GoChampsApi.ScoreboardSettings.ScoreboardSetting
 
   schema "tournaments" do
     field :name, :string
@@ -41,6 +42,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     has_many :players, Player
     has_many :teams, Team
     has_many :registrations, Registration
+    has_one :scoreboard_setting, ScoreboardSetting
 
     timestamps()
   end
