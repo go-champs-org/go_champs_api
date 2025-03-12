@@ -10,6 +10,8 @@ defmodule GoChampsApiWeb.UserController do
 
   plug GoChampsApiWeb.Plugs.AuthorizedUser when action in [:show]
 
+  require Logger
+
   def create(conn, %{"user" => user_params}) do
     with {:ok, _response} <- Recaptcha.verify(user_params["recaptcha"]) do
       with {:ok, %User{} = user} <- Accounts.create_user(user_params),
@@ -102,8 +104,10 @@ defmodule GoChampsApiWeb.UserController do
             {:ok, %HTTPoison.Response{status_code: 200, body: _body}} ->
               send_resp(conn, 200, "")
 
-            _ ->
-              send_resp(conn, :no_content, "")
+            error ->
+              Logger.error("Error sending email: #{inspect(error)}")
+              IO.inspect(error)
+              send_resp(conn, 500, "")
           end
         end
       end
