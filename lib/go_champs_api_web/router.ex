@@ -53,6 +53,7 @@ defmodule GoChampsApiWeb.Router do
     resources "/fixed-player-stats-tables", FixedPlayerStatsTableController, only: [:index, :show]
 
     resources "/games", GameController, only: [:index, :show]
+    get "/games/:id/scoreboard-setting", GameController, :scoreboard_setting
 
     resources "/organizations", OrganizationController, only: [:index, :show]
 

@@ -1,4 +1,5 @@
 defmodule GoChampsApiWeb.GameControllerTest do
+  alias GoChampsApi.ScoreboardSettings
   use GoChampsApiWeb.ConnCase
 
   alias GoChampsApi.Helpers.PhaseHelpers
@@ -275,6 +276,20 @@ defmodule GoChampsApiWeb.GameControllerTest do
     end
   end
 
+  describe "scoreboard setting" do
+    setup [:create_game_with_scoreboard_setting]
+
+    test "renders scoreboard_setting", %{conn: conn, game: %Game{id: id}} do
+      conn = get(conn, Routes.v1_game_path(conn, :scoreboard_setting, id))
+
+      assert %{
+               "view" => "basketball-basic",
+               "initial_period_time" => _,
+               "id" => _
+             } = json_response(conn, 200)["data"]
+    end
+  end
+
   defp create_game(_) do
     game = fixture(:game)
     {:ok, game: game}
@@ -308,5 +323,15 @@ defmodule GoChampsApiWeb.GameControllerTest do
       Games.update_game(game, %{away_team_id: away_team.id, home_team_id: home_team.id})
 
     {:ok, game: result_game}
+  end
+
+  defp create_game_with_scoreboard_setting(_) do
+    game = fixture(:game)
+    phase = Phases.get_phase!(game.phase_id)
+
+    %{view: "basketball-basic", tournament_id: phase.tournament_id}
+    |> ScoreboardSettings.create_scoreboard_setting()
+
+    {:ok, game: game}
   end
 end

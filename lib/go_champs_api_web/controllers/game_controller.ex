@@ -50,6 +50,14 @@ defmodule GoChampsApiWeb.GameController do
     render(conn, "show.json", game: game)
   end
 
+  def scoreboard_setting(conn, %{"id" => id}) do
+    scoreboard_setting = Games.get_game_scoreboard_setting!(id)
+
+    conn
+    |> put_view(GoChampsApiWeb.ScoreboardSettingView)
+    |> render(:show, scoreboard_setting: scoreboard_setting)
+  end
+
   def update(conn, %{"id" => id, "game" => game_params}) do
     game = Games.get_game!(id)
 
