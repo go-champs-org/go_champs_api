@@ -9,6 +9,7 @@ defmodule GoChampsApi.Games do
   alias GoChampsApi.Games.Game
   alias GoChampsApi.Phases
   alias GoChampsApi.Sports
+  alias GoChampsApi.Tournaments
 
   require Logger
 
@@ -65,6 +66,26 @@ defmodule GoChampsApi.Games do
       |> Map.fetch(:phase)
 
     Phases.get_phase_organization!(phase.id)
+  end
+
+  @doc """
+  Gets a ScoreboardSetting for a given game id.
+
+  Raises `Ecto.NoResultsError` if the Game does not exist.
+
+  ## Examples
+
+      iex> get_game_scoreboard_setting("some-id")
+      %ScoreboardSetting{}
+
+  """
+  def get_game_scoreboard_setting!(id) do
+    {:ok, phase} =
+      Repo.get!(Game, id)
+      |> Repo.preload([:phase])
+      |> Map.fetch(:phase)
+
+    Tournaments.get_tournament_scoreboard_setting!(phase.tournament_id)
   end
 
   @doc """

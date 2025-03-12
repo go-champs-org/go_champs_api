@@ -12,6 +12,7 @@ defmodule GoChampsApi.TournamentsTest do
   alias GoChampsApi.PlayerStatsLogs
   alias GoChampsApi.Organizations
   alias GoChampsApi.RecentlyViews
+  alias GoChampsApi.ScoreboardSettings
 
   describe "tournaments" do
     alias GoChampsApi.Tournaments.Tournament
@@ -203,6 +204,16 @@ defmodule GoChampsApi.TournamentsTest do
       tournament = tournament_fixture(%{sport_slug: nil, player_stats: []})
 
       assert Tournaments.get_tournament_default_player_stats_order_id!(tournament.id) == 0
+    end
+
+    test "get_tournament_scoreboard_setting!/1 returns the scoreboard setting with the given tournament id" do
+      tournament = tournament_fixture()
+
+      {:ok, scoreboard_setting} =
+        %{view: "basketball-basic", tournament_id: tournament.id}
+        |> ScoreboardSettings.create_scoreboard_setting()
+
+      assert Tournaments.get_tournament_scoreboard_setting!(tournament.id) == scoreboard_setting
     end
 
     test "create_tournament/1 with valid data creates a tournament" do
