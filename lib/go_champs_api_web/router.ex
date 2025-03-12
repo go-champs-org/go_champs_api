@@ -70,6 +70,8 @@ defmodule GoChampsApiWeb.Router do
     resources "/registration-responses", RegistrationResponseController,
       only: [:create, :index, :show]
 
+    resources "/scoreboard-settings", ScoreboardSettingController, only: [:index, :show]
+
     get "/search", SearchController, :index
 
     resources "/sports", SportsController, only: [:index, :show]
@@ -125,6 +127,9 @@ defmodule GoChampsApiWeb.Router do
       only: [:create, :update, :delete]
 
     resources "/registration-responses", RegistrationResponseController, only: [:update, :delete]
+
+    resources "/scoreboard-settings", ScoreboardSettingController,
+      only: [:create, :update, :delete]
 
     resources "/teams", TeamController, only: [:create, :update, :delete]
 
