@@ -1,4 +1,5 @@
 defmodule GoChampsApiWeb.TournamentView do
+  alias GoChampsApiWeb.ScoreboardSettingView
   use GoChampsApiWeb, :view
   alias GoChampsApiWeb.OrganizationView
   alias GoChampsApiWeb.TournamentView
@@ -6,6 +7,7 @@ defmodule GoChampsApiWeb.TournamentView do
   alias GoChampsApiWeb.PlayerView
   alias GoChampsApiWeb.RegistrationView
   alias GoChampsApiWeb.TeamView
+  alias GoChampsApiWeb.ScoreboardSettingView
 
   def render("index.json", %{tournaments: tournaments}) do
     %{data: render_many(tournaments, TournamentView, "tournament.json")}
@@ -31,6 +33,12 @@ defmodule GoChampsApiWeb.TournamentView do
         player_stats: render_many(tournament.player_stats, TournamentView, "player_stats.json"),
         registrations:
           render_many(tournament.registrations, RegistrationView, "registration.json"),
+        scoreboard_setting:
+          render_one(
+            tournament.scoreboard_setting,
+            ScoreboardSettingView,
+            "scoreboard_setting.json"
+          ),
         teams: render_many(tournament.teams, TeamView, "team.json"),
         team_stats: render_many(tournament.team_stats, TournamentView, "team_stats.json")
       }

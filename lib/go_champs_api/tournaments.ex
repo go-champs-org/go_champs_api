@@ -79,6 +79,7 @@ defmodule GoChampsApi.Tournaments do
       :phases,
       :registrations,
       :teams,
+      :scoreboard_setting,
       players: :registration_response
     ])
   end
