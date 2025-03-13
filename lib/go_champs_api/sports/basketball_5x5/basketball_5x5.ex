@@ -24,7 +24,14 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     Statistic.new("blocks", "Blocks", :manual, :game, :aggregate),
     Statistic.new("disqualifications", "Disqualifications", :manual, :game, :aggregate),
     Statistic.new("ejections", "Ejections", :manual, :game, :aggregate),
-    Statistic.new("efficiency", "Efficiency", :manual, :game, :aggregate),
+    Statistic.new(
+      "efficiency",
+      "Efficiency",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_efficiency/1
+    ),
     Statistic.new(
       "field_goal_percentage",
       "Field Goal Percentage",

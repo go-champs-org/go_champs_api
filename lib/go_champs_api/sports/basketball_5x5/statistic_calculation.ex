@@ -1,6 +1,23 @@
 defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
   alias GoChampsApi.TeamStatsLogs.TeamStatsLog
 
+  def calculate_efficiency(stats) do
+    points = stats |> calculate_points()
+    rebounds = stats |> calculate_rebounds()
+    assists = stats |> retrieve_stat_value("assists")
+    steals = stats |> retrieve_stat_value("steals")
+    blocks = stats |> retrieve_stat_value("blocks")
+    turnovers = stats |> retrieve_stat_value("turnovers")
+    free_throws_missed = stats |> retrieve_stat_value("free_throws_missed")
+    field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
+
+    three_point_field_goals_missed =
+      stats |> retrieve_stat_value("three_point_field_goals_missed")
+
+    points + rebounds + assists + steals + blocks - turnovers - free_throws_missed -
+      field_goals_missed - three_point_field_goals_missed
+  end
+
   def calculate_field_goal_percentage(stats) do
     field_goals_made = stats |> retrieve_stat_value("field_goals_made")
     field_goals_missed = stats |> retrieve_stat_value("field_goals_missed")
@@ -73,6 +90,10 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
 
   def calculate_disqualifications_per_game(stats) do
     stats |> calculate_stat_per_game("disqualifications")
+  end
+
+  def calculate_efficiency_per_game(stats) do
+    stats |> calculate_stat_per_game("efficiency")
   end
 
   def calculate_ejections_per_game(stats) do
@@ -280,17 +301,25 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
       stats
       |> Map.get(stat_slug, 0.0)
 
-    if is_float(stat_value) do
-      stat_value
-    else
-      {float_value, _} =
+    cond do
+      is_float(stat_value) ->
         stat_value
-        # Remove non digit and non decimal point characters
-        |> String.replace(~r/[^\d.]/, "")
-        |> String.trim()
-        |> Float.parse()
 
-      float_value
+      is_integer(stat_value) ->
+        stat_value = Integer.to_string(stat_value) <> ".0"
+
+        stat_value
+        |> String.to_float()
+
+      true ->
+        {float_value, _} =
+          stat_value
+          # Remove non digit and non decimal point characters
+          |> String.replace(~r/[^\d.]/, "")
+          |> String.trim()
+          |> Float.parse()
+
+        float_value
     end
   end
 

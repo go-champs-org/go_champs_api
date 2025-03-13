@@ -9,6 +9,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
     {"blocks", :calculate_blocks_per_game},
     {"disqualifications", :calculate_disqualifications_per_game},
     {"ejections", :calculate_ejections_per_game},
+    {"efficiency", :calculate_efficiency_per_game},
     {"field_goals_made", :calculate_field_goals_made_per_game},
     {"field_goals_attempted", :calculate_field_goals_attempted_per_game},
     {"field_goals_missed", :calculate_field_goals_missed_per_game},
@@ -153,6 +154,42 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
 
       assert StatisticCalculation.calculate_three_point_field_goal_percentage_per_game(stats) ==
                37.5
+    end
+  end
+
+  describe "calculate_efficiency/1" do
+    test "returns 15 when points is 20, rebounds is 5, assists is 3, steals is 2, blocks is 1, turnovers is 4, free_throws_missed is 2, field_goals_missed is 5, three_point_field_goals_missed is 5" do
+      stats = %{
+        "field_goals_made" => "5",
+        "free_throws_made" => "4",
+        "three_point_field_goals_made" => "2",
+        "rebounds_defensive" => "3",
+        "rebounds_offensive" => "2",
+        "assists" => "3",
+        "steals" => "2",
+        "blocks" => "1",
+        "turnovers" => "4",
+        "free_throws_missed" => "2",
+        "field_goals_missed" => "5",
+        "three_point_field_goals_missed" => "5"
+      }
+
+      assert StatisticCalculation.calculate_efficiency(stats) == 15
+    end
+
+    test "calculates efficiency with missing stats" do
+      stats = %{
+        "field_goals_made" => "5",
+        "free_throws_made" => "4",
+        "three_point_field_goals_made" => "2",
+        "rebounds_defensive" => "5",
+        "rebounds_offensive" => "3",
+        "assists" => "7",
+        "steals" => "2",
+        "blocks" => "1"
+      }
+
+      assert StatisticCalculation.calculate_efficiency(stats) == 38
     end
   end
 
@@ -402,6 +439,11 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
     test "returns 10.5 when stat is 10.5" do
       stats = %{"field_goals_made" => 10.5}
       assert StatisticCalculation.retrieve_stat_value(stats, "field_goals_made") == 10.5
+    end
+
+    test "returns 10.0 when stat is 10" do
+      stats = %{"field_goals_made" => 10}
+      assert StatisticCalculation.retrieve_stat_value(stats, "field_goals_made") == 10.0
     end
   end
 
