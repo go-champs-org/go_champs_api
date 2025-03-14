@@ -709,7 +709,7 @@ defmodule GoChampsApi.RegistrationsTest do
       assert %Ecto.Changeset{} = Registrations.change_registration_response(registration_response)
     end
 
-    test "approve_registration_responses/1 when registration type is team_roster_invites, create player on invitee team and mark registration_response as approved" do
+    test "approve_registration_responses_for_registration_invite/1 when registration type is team_roster_invites, create player on invitee team and mark registration_response as approved" do
       registration = registration_fixture(%{type: "team_roster_invites"})
 
       team =
@@ -735,7 +735,10 @@ defmodule GoChampsApi.RegistrationsTest do
         }
         |> Registrations.create_registration_response()
 
-      [{:ok, _}] = Registrations.approve_registration_responses(registration_invite.id)
+      [{:ok, _}] =
+        Registrations.approve_registration_responses_for_registration_invite(
+          registration_invite.id
+        )
 
       team = Teams.get_team_preload!(team.id, players: :registration_response)
 
@@ -750,7 +753,7 @@ defmodule GoChampsApi.RegistrationsTest do
       assert registration_response.status == "approved"
     end
 
-    test "approve_registration_responses/1 when registration type is team_roster_invites, create players on invitee team and mark as registration_responses as approved" do
+    test "approve_registration_responses_for_registration_invite/1 when registration type is team_roster_invites, create players on invitee team and mark as registration_responses as approved" do
       registration = registration_fixture(%{type: "team_roster_invites"})
 
       team =
@@ -788,7 +791,10 @@ defmodule GoChampsApi.RegistrationsTest do
         }
         |> Registrations.create_registration_response()
 
-      [_, _] = Registrations.approve_registration_responses(registration_invite.id)
+      [_, _] =
+        Registrations.approve_registration_responses_for_registration_invite(
+          registration_invite.id
+        )
 
       team = Teams.get_team_preload!(team.id, players: :registration_response)
 
@@ -812,7 +818,7 @@ defmodule GoChampsApi.RegistrationsTest do
       assert second_registration_response.status == "approved"
     end
 
-    test "approve_registration_responses/1 when registration type is team_roster_invites, does not create player on invitee team if response is approved" do
+    test "approve_registration_responses_for_registration_invite/1 when registration type is team_roster_invites, does not create player on invitee team if response is approved" do
       registration = registration_fixture(%{type: "team_roster_invites"})
 
       team =
@@ -839,7 +845,10 @@ defmodule GoChampsApi.RegistrationsTest do
         }
         |> Registrations.create_registration_response()
 
-      [] = Registrations.approve_registration_responses(registration_invite.id)
+      [] =
+        Registrations.approve_registration_responses_for_registration_invite(
+          registration_invite.id
+        )
 
       team = Teams.get_team_preload!(team.id, [:players])
 

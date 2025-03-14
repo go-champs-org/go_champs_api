@@ -395,7 +395,7 @@ defmodule GoChampsApi.Registrations do
     case registration.auto_approve do
       true ->
         registration_invite.id
-        |> approve_registration_responses()
+        |> approve_registration_responses_for_registration_invite()
 
         :ok
 
@@ -613,11 +613,13 @@ defmodule GoChampsApi.Registrations do
 
   ## Examples
 
-      iex> approve_registration_responses(registration_invite_id)
+      iex> approve_registration_responses_for_registration_invite(registration_invite_id)
       :ok
   """
-  @spec approve_registration_responses(registration_invite_id :: Ecto.UUID.t()) :: :ok
-  def approve_registration_responses(registration_invite_id) do
+  @spec approve_registration_responses_for_registration_invite(
+          registration_invite_id :: Ecto.UUID.t()
+        ) :: :ok
+  def approve_registration_responses_for_registration_invite(registration_invite_id) do
     registration_invite =
       Repo.get_by!(RegistrationInvite, id: registration_invite_id)
       |> Repo.preload([:registration, :registration_responses])
