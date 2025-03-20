@@ -433,13 +433,14 @@ defmodule GoChampsApi.RegistrationsTest do
 
       team = Teams.get_team_preload!(team.id, [:players])
 
-      assert Enum.count(team.players) == 2
-      assert Enum.at(team.players, 0).name == "First Name"
-      assert Enum.at(team.players, 0).shirt_number == "8"
-      assert Enum.at(team.players, 0).shirt_name == "F Name"
-      assert Enum.at(team.players, 1).name == "Second Name"
-      assert Enum.at(team.players, 1).shirt_number == "10"
-      assert Enum.at(team.players, 1).shirt_name == "S Name"
+      sorted_players = Enum.sort_by(team.players, & &1.name)
+      assert Enum.count(sorted_players) == 2
+      assert Enum.at(sorted_players, 0).name == "First Name"
+      assert Enum.at(sorted_players, 0).shirt_number == "8"
+      assert Enum.at(sorted_players, 0).shirt_name == "F Name"
+      assert Enum.at(sorted_players, 1).name == "Second Name"
+      assert Enum.at(sorted_players, 1).shirt_number == "10"
+      assert Enum.at(sorted_players, 1).shirt_name == "S Name"
     end
   end
 
@@ -707,6 +708,135 @@ defmodule GoChampsApi.RegistrationsTest do
     test "change_registration_response/1 returns a registration_response changeset" do
       registration_response = registration_response_fixture()
       assert %Ecto.Changeset{} = Registrations.change_registration_response(registration_response)
+    end
+
+    test "approve_registration_response/1 for a given registration_response id checks if registration is team_roster_invites, creates player and mark registration response as approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, registration_response} =
+        %{
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@test.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:ok, _} = Registrations.approve_registration_response(registration_response.id)
+
+      team = Teams.get_team_preload!(team.id, players: :registration_response)
+
+      assert Enum.count(team.players) == 1
+      assert Enum.at(team.players, 0).name == "Player Name"
+      assert Enum.at(team.players, 0).shirt_number == "8"
+      assert Enum.at(team.players, 0).shirt_name == "P Name"
+      assert Enum.at(team.players, 0).registration_response_id == registration_response.id
+
+      registration_response = Registrations.get_registration_response!(registration_response.id)
+
+      assert registration_response.status == "approved"
+    end
+
+    test "approve_registration_response/1 for a given registration_response id returns error if registration response is not pending" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, registration_response} =
+        %{
+          response: %{
+            "name" => "Player Name",
+            "shirt_number" => "8",
+            "shirt_name" => "P Name",
+            "email" => "test@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id,
+          status: "approved"
+        }
+        |> Registrations.create_registration_response()
+
+      assert Registrations.approve_registration_response(registration_response.id) ==
+               {:error, "Registration response is not pending"}
+    end
+
+    test "approve_registration_responses/1 for a given array of registration_response ids checks if registration is team_roster_invites, creates players and mark registration responses as approved" do
+      registration = registration_fixture(%{type: "team_roster_invites"})
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      {:ok, first_registration_response} =
+        %{
+          response: %{
+            "name" => "First Name",
+            "shirt_number" => "8",
+            "shirt_name" => "F Name",
+            "email" => "test@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:ok, second_registration_response} =
+        %{
+          response: %{
+            "name" => "Second Name",
+            "shirt_number" => "10",
+            "shirt_name" => "S Name",
+            "email" => "test1@go-champs.com"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      [{:ok, _}, {:ok, _}] =
+        Registrations.approve_registration_responses([
+          first_registration_response.id,
+          second_registration_response.id
+        ])
+
+      team = Teams.get_team_preload!(team.id, players: :registration_response)
+
+      assert Enum.count(team.players) == 2
+      assert Enum.at(team.players, 0).name == "First Name"
+      assert Enum.at(team.players, 0).shirt_number == "8"
+      assert Enum.at(team.players, 0).shirt_name == "F Name"
+      assert Enum.at(team.players, 0).registration_response_id == first_registration_response.id
+      assert Enum.at(team.players, 1).name == "Second Name"
+      assert Enum.at(team.players, 1).shirt_number == "10"
+      assert Enum.at(team.players, 1).shirt_name == "S Name"
+      assert Enum.at(team.players, 1).registration_response_id == second_registration_response.id
     end
 
     test "approve_registration_responses_for_registration_invite/1 when registration type is team_roster_invites, create player on invitee team and mark registration_response as approved" do

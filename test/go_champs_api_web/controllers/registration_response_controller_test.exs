@@ -5,6 +5,7 @@ defmodule GoChampsApiWeb.RegistrationResponseControllerTest do
   alias GoChampsApi.Registrations.RegistrationResponse
 
   alias GoChampsApi.Helpers.RegistrationHelpers
+  alias GoChampsApi.Helpers.TeamHelpers
 
   @create_attrs %{
     response: %{"name" => "P Name", "email" => "email@go-champs.com"}
@@ -191,6 +192,47 @@ defmodule GoChampsApiWeb.RegistrationResponseControllerTest do
     end
   end
 
+  describe "put registration_response approve" do
+    setup [:create_registration_response_for_team]
+
+    @tag :authenticated
+    test "approves registration_responses", %{
+      conn: conn,
+      registration_response: registration_response
+    } do
+      {:ok, second_registration_response} =
+        %{
+          response: %{"name" => "Q Name", "email" => "email1@go-champs.com"},
+          registration_invite_id: registration_response.registration_invite_id
+        }
+        |> Registrations.create_registration_response()
+
+      conn =
+        put(conn, "/v1/registration-responses/approve",
+          registration_responses: [registration_response.id, second_registration_response.id]
+        )
+
+      assert response(conn, 200)
+    end
+  end
+
+  describe "put registration_response approve with different member" do
+    setup [:create_registration_response_with_different_member]
+
+    @tag :authenticated
+    test "returns forbidden for an user that is not a member", %{
+      conn: conn,
+      registration_response: registration_response
+    } do
+      conn =
+        put(conn, "/v1/registration-responses/approve",
+          registration_responses: [registration_response.id]
+        )
+
+      assert text_response(conn, 403) == "Forbidden"
+    end
+  end
+
   defp create_registration_response(_) do
     registration_response = fixture(:registration_response)
     %{registration_response: registration_response}
@@ -198,6 +240,31 @@ defmodule GoChampsApiWeb.RegistrationResponseControllerTest do
 
   defp create_registration_response_with_different_member(_) do
     registration_response = fixture(:registration_response_with_different_member)
+    {:ok, registration_response: registration_response}
+  end
+
+  defp create_registration_response_for_team(_) do
+    registration = RegistrationHelpers.create_registration()
+
+    team =
+      TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+    {:ok, registration_invite} =
+      %{invitee_id: team.id, invitee_type: "team", registration_id: registration.id}
+      |> Registrations.create_registration_invite()
+
+    {:ok, registration_response} =
+      %{
+        response: %{
+          "name" => "First Name",
+          "shirt_number" => "8",
+          "shirt_name" => "F Name",
+          "email" => "email@go-champs.com"
+        },
+        registration_invite_id: registration_invite.id
+      }
+      |> Registrations.create_registration_response()
+
     {:ok, registration_response: registration_response}
   end
 end

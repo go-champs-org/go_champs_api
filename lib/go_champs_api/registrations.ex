@@ -609,6 +609,51 @@ defmodule GoChampsApi.Registrations do
   end
 
   @doc """
+  Approve registration responses for a given array of registration response id.
+
+  ## Examples
+
+      iex> approve_registration_responses([registration_response_id])
+      :ok
+  """
+  @spec approve_registration_responses([Ecto.UUID.t()]) :: :ok
+  def approve_registration_responses(registration_response_ids) do
+    Enum.map(registration_response_ids, &approve_registration_response/1)
+  end
+
+  @doc """
+  Approve registration response for a given registration response id.
+
+  ## Examples
+
+      iex> approve_registration_response(registration_response_id)
+      :ok
+  """
+  @spec approve_registration_response(Ecto.UUID.t()) :: :ok
+  def approve_registration_response(registration_response_id) do
+    registration_response =
+      Repo.get_by!(RegistrationResponse, id: registration_response_id)
+      |> Repo.preload(registration_invite: :registration)
+
+    case registration_response.status do
+      "pending" -> handle_pending_registration_response(registration_response)
+      _ -> {:error, "Registration response is not pending"}
+    end
+  end
+
+  defp handle_pending_registration_response(
+         %RegistrationResponse{
+           registration_invite: %{
+             registration: %{type: "team_roster_invites"}
+           }
+         } = registration_response
+       ) do
+    approve_team_roster_response(registration_response)
+  end
+
+  defp handle_pending_registration_response(_registration_response), do: :ok
+
+  @doc """
   Approve registration responses for a given registration invite id.
 
   ## Examples
@@ -622,18 +667,14 @@ defmodule GoChampsApi.Registrations do
   def approve_registration_responses_for_registration_invite(registration_invite_id) do
     registration_invite =
       Repo.get_by!(RegistrationInvite, id: registration_invite_id)
-      |> Repo.preload([:registration, :registration_responses])
+      |> Repo.preload([:registration_responses])
 
-    case registration_invite.registration.type do
-      "team_roster_invites" ->
-        Enum.filter(registration_invite.registration_responses, fn response ->
-          response.status == "pending"
-        end)
-        |> Enum.map(&approve_team_roster_response/1)
-
-      _ ->
-        :ok
-    end
+    Enum.filter(registration_invite.registration_responses, fn response ->
+      response.status == "pending"
+    end)
+    |> Enum.map(fn registration_response ->
+      approve_registration_response(registration_response.id)
+    end)
   end
 
   @doc """

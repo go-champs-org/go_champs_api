@@ -21,4 +21,24 @@ defmodule GoChampsApiWeb.Plugs.AuthorizedRegistrationResponse do
       |> halt
     end
   end
+
+  def call(conn, :registration_responses) do
+    {:ok, registration_responses} = Map.fetch(conn.params, "registration_responses")
+
+    registration_response_id =
+      registration_responses
+      |> List.first()
+
+    organization = Registrations.get_registration_response_organization!(registration_response_id)
+    current_user = Guardian.Plug.current_resource(conn)
+
+    if Enum.any?(organization.members, fn member -> member.username == current_user.username end) do
+      conn
+    else
+      conn
+      |> put_status(:forbidden)
+      |> text("Forbidden")
+      |> halt
+    end
+  end
 end

@@ -6,6 +6,9 @@ defmodule GoChampsApiWeb.RegistrationResponseController do
 
   action_fallback GoChampsApiWeb.FallbackController
 
+  plug GoChampsApiWeb.Plugs.AuthorizedRegistrationResponse,
+       :registration_responses when action in [:approve]
+
   plug GoChampsApiWeb.Plugs.AuthorizedRegistrationResponse, :id when action in [:delete, :update]
 
   def index(conn, _params) do
@@ -49,6 +52,19 @@ defmodule GoChampsApiWeb.RegistrationResponseController do
     with {:ok, %RegistrationResponse{}} <-
            Registrations.delete_registration_response(registration_response) do
       send_resp(conn, :no_content, "")
+    end
+  end
+
+  def approve(conn, %{"registration_responses" => registration_responses}) do
+    results = Registrations.approve_registration_responses(registration_responses)
+
+    if Enum.all?(results, fn
+         {:ok, _registration_response} -> true
+         _ -> false
+       end) do
+      json(conn, %{data: %{ok: true}})
+    else
+      send_resp(conn, :unprocessable_entity, "Some registration responses could not be approved")
     end
   end
 end
