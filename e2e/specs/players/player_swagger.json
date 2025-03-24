@@ -130,7 +130,10 @@
           "description": "Instagram link"
         },
         "team_id": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "Team ID",
           "nullable": true
         },
@@ -153,6 +156,10 @@
         "shirt_name": {
           "type": "string",
           "description": "Shirt name"
+        },
+        "state": {
+          "type": "string",
+          "description": "Player state, it could be 'available' or 'not_available'"
         },
         "inserted_at": {
           "type": "string",

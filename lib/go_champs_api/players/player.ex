@@ -14,6 +14,7 @@ defmodule GoChampsApi.Players.Player do
     field :username, :string
     field :shirt_number, :string
     field :shirt_name, :string
+    field :state, :string, default: "available"
 
     belongs_to :tournament, Tournament
     belongs_to :team, Team
@@ -35,8 +36,10 @@ defmodule GoChampsApi.Players.Player do
       :team_id,
       :shirt_number,
       :shirt_name,
-      :registration_response_id
+      :registration_response_id,
+      :state
     ])
     |> validate_required([:name, :tournament_id])
+    |> validate_inclusion(:state, ["available", "not_available"])
   end
 end

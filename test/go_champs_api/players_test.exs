@@ -24,7 +24,8 @@ defmodule GoChampsApi.PlayersTest do
       twitter: "some updated twitter",
       username: "some updated username",
       shirt_number: "20",
-      shirt_name: "some updated shirt name"
+      shirt_name: "some updated shirt name",
+      state: "not_available"
     }
     @invalid_attrs %{facebook: nil, instagram: nil, name: nil, twitter: nil, username: nil}
 
@@ -89,10 +90,17 @@ defmodule GoChampsApi.PlayersTest do
       assert player.username == "some username"
       assert player.shirt_number == "10"
       assert player.shirt_name == "some shirt name"
+      assert player.state == "available"
     end
 
     test "create_player/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Players.create_player(@invalid_attrs)
+    end
+
+    test "create_player/1 with random state returns error changeset" do
+      valid_attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
+      invalid_attrs = Map.put(valid_attrs, :state, "random_state")
+      assert {:error, %Ecto.Changeset{}} = Players.create_player(invalid_attrs)
     end
 
     test "update_player/2 with valid data updates the player" do
@@ -105,6 +113,7 @@ defmodule GoChampsApi.PlayersTest do
       assert player.username == "some updated username"
       assert player.shirt_number == "20"
       assert player.shirt_name == "some updated shirt name"
+      assert player.state == "not_available"
     end
 
     test "update_player/2 with invalid data returns error changeset" do

@@ -21,7 +21,8 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
     twitter: "some updated twitter",
     username: "some updated username",
     shirt_number: "20",
-    shirt_name: "some updated shirt name"
+    shirt_name: "some updated shirt name",
+    state: "not_available"
   }
   @invalid_attrs %{facebook: nil, instagram: nil, name: nil, twitter: nil, username: nil}
 
@@ -61,7 +62,8 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
                "twitter" => "some twitter",
                "username" => "some username",
                "shirt_number" => "10",
-               "shirt_name" => "some shirt name"
+               "shirt_name" => "some shirt name",
+               "state" => "available"
              } = json_response(conn, 200)["data"]
     end
 
@@ -102,7 +104,8 @@ defmodule GoChampsApiWeb.PlayerControllerTest do
                "twitter" => "some updated twitter",
                "username" => "some updated username",
                "shirt_number" => "20",
-               "shirt_name" => "some updated shirt name"
+               "shirt_name" => "some updated shirt name",
+               "state" => "not_available"
              } = json_response(conn, 200)["data"]
     end
 
