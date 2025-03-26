@@ -12,7 +12,13 @@ defmodule GoChampsApiWeb.TeamView do
   end
 
   def render("team.json", %{team: team}) do
-    %{id: team.id, name: team.name, players: render_players(team.players)}
+    %{
+      id: team.id,
+      name: team.name,
+      logo_url: team.logo_url,
+      tri_code: team.tri_code,
+      players: render_players(team.players)
+    }
   end
 
   defp render_players(%Ecto.Association.NotLoaded{}), do: []

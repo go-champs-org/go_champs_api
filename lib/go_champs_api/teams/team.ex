@@ -7,6 +7,8 @@ defmodule GoChampsApi.Teams.Team do
 
   schema "teams" do
     field :name, :string
+    field :logo_url, :string
+    field :tri_code, :string
 
     belongs_to :tournament, Tournament
     has_many :players, Player
@@ -17,7 +19,7 @@ defmodule GoChampsApi.Teams.Team do
   @doc false
   def changeset(tournament_team, attrs) do
     tournament_team
-    |> cast(attrs, [:name, :tournament_id])
+    |> cast(attrs, [:name, :tournament_id, :logo_url, :tri_code])
     |> validate_required([:name, :tournament_id])
   end
 end

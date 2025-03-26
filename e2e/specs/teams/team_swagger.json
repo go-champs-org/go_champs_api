@@ -121,6 +121,20 @@
           "type": "string",
           "description": "Team name"
         },
+        "logo_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Team logo URL"
+        },
+        "tri_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Team tri letter code"
+        },
         "tournament_id": {
           "type": "string",
           "description": "Organization ID"

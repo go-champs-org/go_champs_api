@@ -9,7 +9,11 @@ defmodule GoChampsApi.TeamsTest do
   describe "teams" do
     alias GoChampsApi.Teams.Team
 
-    @valid_attrs %{name: "some name"}
+    @valid_attrs %{
+      name: "some name",
+      logo_url: "https://www.example.com/logo.png",
+      tri_code: "TST"
+    }
     @update_attrs %{name: "some updated name"}
     @invalid_attrs %{name: nil}
 
@@ -44,6 +48,8 @@ defmodule GoChampsApi.TeamsTest do
       valid_attrs = TournamentHelpers.map_tournament_id(@valid_attrs)
       assert {:ok, %Team{} = team} = Teams.create_team(valid_attrs)
       assert team.name == "some name"
+      assert team.logo_url == "https://www.example.com/logo.png"
+      assert team.tri_code == "TST"
     end
 
     test "create_team/1 with invalid data returns error changeset" do

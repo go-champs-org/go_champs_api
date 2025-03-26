@@ -6,7 +6,9 @@ defmodule GoChampsApiWeb.TeamControllerTest do
   alias GoChampsApi.Teams.Team
 
   @create_attrs %{
-    name: "some name"
+    name: "some name",
+    logo_url: "https://www.example.com/logo.png",
+    tri_code: "TST"
   }
   @update_attrs %{
     name: "some updated name"
@@ -43,7 +45,9 @@ defmodule GoChampsApiWeb.TeamControllerTest do
 
       assert %{
                "id" => ^id,
-               "name" => "some name"
+               "name" => "some name",
+               "logo_url" => "https://www.example.com/logo.png",
+               "tri_code" => "TST"
              } = json_response(conn, 200)["data"]
     end
 
