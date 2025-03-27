@@ -23,7 +23,8 @@ defmodule GoChampsApiWeb.PlayerView do
       shirt_number: player.shirt_number,
       shirt_name: player.shirt_name,
       registration_response: render_player_registration_response(player.registration_response),
-      state: player.state
+      state: player.state,
+      photo_url: player.photo_url
     }
   end
 

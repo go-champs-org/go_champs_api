@@ -161,6 +161,13 @@
           "type": "string",
           "description": "Player state, it could be 'available' or 'not_available'"
         },
+        "photo_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Player photo URL"
+        },
         "inserted_at": {
           "type": "string",
           "format": "datetime",

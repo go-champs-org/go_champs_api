@@ -15,7 +15,8 @@ defmodule GoChampsApi.PlayersTest do
       twitter: "some twitter",
       username: "some username",
       shirt_number: "10",
-      shirt_name: "some shirt name"
+      shirt_name: "some shirt name",
+      photo_url: "some-photo-url"
     }
     @update_attrs %{
       facebook: "some updated facebook",
@@ -25,7 +26,8 @@ defmodule GoChampsApi.PlayersTest do
       username: "some updated username",
       shirt_number: "20",
       shirt_name: "some updated shirt name",
-      state: "not_available"
+      state: "not_available",
+      photo_url: "some-updated-photo-url"
     }
     @invalid_attrs %{facebook: nil, instagram: nil, name: nil, twitter: nil, username: nil}
 
@@ -91,6 +93,7 @@ defmodule GoChampsApi.PlayersTest do
       assert player.shirt_number == "10"
       assert player.shirt_name == "some shirt name"
       assert player.state == "available"
+      assert player.photo_url == "some-photo-url"
     end
 
     test "create_player/1 with invalid data returns error changeset" do
@@ -114,6 +117,7 @@ defmodule GoChampsApi.PlayersTest do
       assert player.shirt_number == "20"
       assert player.shirt_name == "some updated shirt name"
       assert player.state == "not_available"
+      assert player.photo_url == "some-updated-photo-url"
     end
 
     test "update_player/2 with invalid data returns error changeset" do
