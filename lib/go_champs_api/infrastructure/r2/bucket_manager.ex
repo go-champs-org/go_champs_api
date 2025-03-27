@@ -1,4 +1,5 @@
 defmodule GoChampsApi.Infrastructure.R2.BucketManager do
+  def select_bucket("player-photos"), do: "player-photos"
   def select_bucket("registration-consents"), do: "registration-consents"
   def select_bucket("team-logos"), do: "team-logos"
   def select_bucket(nil), do: "registration-consents"
