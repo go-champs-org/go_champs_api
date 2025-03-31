@@ -14,6 +14,8 @@ defmodule GoChampsApi.PlayerStatsLogs do
 
   alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament
 
+  require Logger
+
   @doc """
   Returns the list of player_stats_log.
 
@@ -154,23 +156,9 @@ defmodule GoChampsApi.PlayerStatsLogs do
         {:error, player_stats_logs_changeset}
 
       true ->
-        pending_aggregated_player_stats_by_tournament = %{
-          tournament_id: attrs.tournament_id
-        }
-
-        pending_aggregated_player_stats_by_tournament_changeset =
-          %PendingAggregatedPlayerStatsByTournament{}
-          |> PendingAggregatedPlayerStatsByTournament.changeset(
-            pending_aggregated_player_stats_by_tournament
-          )
-
         {:ok, %{player_stats_logs: player_stats_logs}} =
           Ecto.Multi.new()
           |> Ecto.Multi.insert(:player_stats_logs, player_stats_logs_changeset)
-          |> Ecto.Multi.insert(
-            :pending_aggregated_player_stats_by_tournament,
-            pending_aggregated_player_stats_by_tournament_changeset
-          )
           |> Repo.transaction()
 
         start_side_effect_tasks(player_stats_logs)
@@ -208,38 +196,15 @@ defmodule GoChampsApi.PlayerStatsLogs do
         Repo.transaction(multi_player_stats_logs)
 
       _ ->
-        first_changeset =
-          %PlayerStatsLog{}
-          |> PlayerStatsLog.changeset(List.first(player_stats_logs))
-
-        pending_aggregated_player_stats_by_tournament = %{
-          tournament_id: Ecto.Changeset.get_change(first_changeset, :tournament_id)
-        }
-
-        pending_aggregated_player_stats_by_tournament_changeset =
-          %PendingAggregatedPlayerStatsByTournament{}
-          |> PendingAggregatedPlayerStatsByTournament.changeset(
-            pending_aggregated_player_stats_by_tournament
-          )
-
-        multi_player_stats_logs_and_pending_aggregated_player_stats =
-          multi_player_stats_logs
-          |> Ecto.Multi.insert(
-            :pending_aggregated_player_stats_by_tournament,
-            pending_aggregated_player_stats_by_tournament_changeset
-          )
-
-        case Repo.transaction(multi_player_stats_logs_and_pending_aggregated_player_stats) do
+        case Repo.transaction(multi_player_stats_logs) do
           {:ok, transaction_result} ->
             first_player_stat_log = Map.get(transaction_result, 0)
             start_side_effect_tasks(first_player_stat_log)
 
-            {:ok,
-             transaction_result
-             |> Map.drop([:pending_aggregated_player_stats_by_tournament])}
+            {:ok, transaction_result}
 
           _ ->
-            Repo.transaction(multi_player_stats_logs_and_pending_aggregated_player_stats)
+            Logger.error("Error creating player stats logs")
         end
     end
   end
@@ -266,23 +231,9 @@ defmodule GoChampsApi.PlayerStatsLogs do
         {:error, player_stats_logs_changeset}
 
       true ->
-        pending_aggregated_player_stats_by_tournament = %{
-          tournament_id: player_stats_log.tournament_id
-        }
-
-        pending_aggregated_player_stats_by_tournament_changeset =
-          %PendingAggregatedPlayerStatsByTournament{}
-          |> PendingAggregatedPlayerStatsByTournament.changeset(
-            pending_aggregated_player_stats_by_tournament
-          )
-
         {:ok, %{player_stats_logs: player_stats_logs}} =
           Ecto.Multi.new()
           |> Ecto.Multi.update(:player_stats_logs, player_stats_logs_changeset)
-          |> Ecto.Multi.insert(
-            :pending_aggregated_player_stats_by_tournament,
-            pending_aggregated_player_stats_by_tournament_changeset
-          )
           |> Repo.transaction()
 
         start_side_effect_tasks(player_stats_logs)
@@ -318,38 +269,16 @@ defmodule GoChampsApi.PlayerStatsLogs do
         Repo.transaction(multi_player_stats_logs)
 
       _ ->
-        current_player_stats_log =
-          Repo.get_by!(PlayerStatsLog, id: List.first(player_stats_logs)["id"])
-
-        pending_aggregated_player_stats_by_tournament = %{
-          tournament_id: current_player_stats_log.tournament_id
-        }
-
-        pending_aggregated_player_stats_by_tournament_changeset =
-          %PendingAggregatedPlayerStatsByTournament{}
-          |> PendingAggregatedPlayerStatsByTournament.changeset(
-            pending_aggregated_player_stats_by_tournament
-          )
-
-        multi_player_stats_logs_and_pending_aggregated_player_stats =
-          multi_player_stats_logs
-          |> Ecto.Multi.insert(
-            :pending_aggregated_player_stats_by_tournament,
-            pending_aggregated_player_stats_by_tournament_changeset
-          )
-
-        case Repo.transaction(multi_player_stats_logs_and_pending_aggregated_player_stats) do
+        case Repo.transaction(multi_player_stats_logs) do
           {:ok, transaction_result} ->
             first_player_stat_id = List.first(MapSet.to_list(multi_player_stats_logs.names))
             first_player_stat = Map.get(transaction_result, first_player_stat_id)
             start_side_effect_tasks(first_player_stat)
 
-            {:ok,
-             transaction_result
-             |> Map.drop([:pending_aggregated_player_stats_by_tournament])}
+            {:ok, transaction_result}
 
           _ ->
-            Repo.transaction(multi_player_stats_logs_and_pending_aggregated_player_stats)
+            Logger.error("Error updating player stats logs")
         end
     end
   end
@@ -367,23 +296,9 @@ defmodule GoChampsApi.PlayerStatsLogs do
 
   """
   def delete_player_stats_log(%PlayerStatsLog{} = player_stats_log) do
-    pending_aggregated_player_stats_by_tournament = %{
-      tournament_id: player_stats_log.tournament_id
-    }
-
-    pending_aggregated_player_stats_by_tournament_changeset =
-      %PendingAggregatedPlayerStatsByTournament{}
-      |> PendingAggregatedPlayerStatsByTournament.changeset(
-        pending_aggregated_player_stats_by_tournament
-      )
-
     {:ok, %{player_stats_logs: player_stats_logs}} =
       Ecto.Multi.new()
       |> Ecto.Multi.delete(:player_stats_logs, player_stats_log)
-      |> Ecto.Multi.insert(
-        :pending_aggregated_player_stats_by_tournament,
-        pending_aggregated_player_stats_by_tournament_changeset
-      )
       |> Repo.transaction()
 
     start_side_effect_tasks(player_stats_logs)
@@ -508,12 +423,18 @@ defmodule GoChampsApi.PlayerStatsLogs do
       :ok
   """
   @spec start_side_effect_tasks(%PlayerStatsLog{}) :: :ok
-  def start_side_effect_tasks(%PlayerStatsLog{game_id: game_id}) do
+  def start_side_effect_tasks(%PlayerStatsLog{game_id: game_id, tournament_id: tournament_id}) do
     %{game_id: game_id}
     |> GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame.new()
     |> Oban.insert()
 
-    # Generate game stats
+    %{tournament_id: tournament_id}
+    |> GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats.new(
+      schedule_in: 60,
+      unique: [period: 60]
+    )
+    |> Oban.insert()
+
     :ok
   end
 end
