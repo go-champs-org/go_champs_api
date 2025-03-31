@@ -164,31 +164,9 @@ defmodule GoChampsApi.PendingAggregatedPlayerStatsByTournaments do
       iex> run_pending_aggregated_player_stats_generation()
 
   """
+  @deprecated "This function is deprecated and will be removed in future versions."
   def run_pending_aggregated_player_stats_generation() do
-    list_tournament_ids()
-    |> Enum.each(fn tournament_id ->
-      IO.inspect("Trigger aggregated player stats generation")
-      IO.inspect("Tournanment: #{tournament_id}")
-      IO.inspect(DateTime.to_string(DateTime.utc_now()))
-      from_date = DateTime.utc_now()
-
-      AggregatedPlayerStatsByTournaments.delete_aggregated_player_stats_for_tournament(
-        tournament_id
-      )
-
-      AggregatedPlayerStatsByTournaments.generate_aggregated_player_stats_for_tournament(
-        tournament_id
-      )
-
-      delete_by_tournament_id(tournament_id)
-
-      Tournaments.set_aggregated_player_stats!(tournament_id)
-
-      IO.inspect("Tournanment: #{tournament_id}")
-      IO.inspect(DateTime.to_string(DateTime.utc_now()))
-      to_date = DateTime.utc_now()
-      IO.inspect("Finish aggregated player stats generation")
-      IO.inspect("Duration: #{DateTime.diff(from_date, to_date)} seconds")
-    end)
+    IO.inspect("Running pending aggregated player stats generation...")
+    IO.inspect("Deprecated function: run_pending_aggregated_player_stats_generation")
   end
 end

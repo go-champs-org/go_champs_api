@@ -11,7 +11,6 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
   alias GoChampsApi.Helpers.PlayerHelpers
   alias GoChampsApi.Helpers.OrganizationHelpers
   alias GoChampsApi.Sports
-  alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments
   alias GoChampsApi.Phases
 
   describe "player_stats_log" do
@@ -141,7 +140,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert organization.id == tournament.organization_id
     end
 
-    test "create_player_stats_log/1 with valid data and creates a player_stats_log and add pending aggregated player stats" do
+    test "create_player_stats_log/1 with valid data and creates a player_stats_log and queue side effects" do
       valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(@valid_attrs)
 
       assert {:ok, %PlayerStatsLog{} = player_stats_log} =
@@ -151,15 +150,14 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                "some" => "some"
              }
 
-      [pending_aggregated_player_stats_by_tournament] =
-        PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-
-      assert pending_aggregated_player_stats_by_tournament.tournament_id ==
-               player_stats_log.tournament_id
-
       assert_enqueued(
         worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
         args: %{game_id: player_stats_log.game_id}
+      )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: player_stats_log.tournament_id}
       )
     end
 
@@ -199,15 +197,14 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert player_stats_log.stats[def_rebounds_player_stat.slug] == "10"
       assert player_stats_log.stats[assists_player_stat.slug] == "5"
 
-      [pending_aggregated_player_stats_by_tournament] =
-        PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-
-      assert pending_aggregated_player_stats_by_tournament.tournament_id ==
-               player_stats_log.tournament_id
-
       assert_enqueued(
         worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
         args: %{game_id: player_stats_log.game_id}
+      )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: player_stats_log.tournament_id}
       )
     end
 
@@ -223,7 +220,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert player_stats_log.stats["rebounds_offensive"] == "5"
     end
 
-    test "create_player_stats_log/1 with valid data that matches tournament player stats with no slug creates a player_stats_log with id stats and add pending aggregated player stats" do
+    test "create_player_stats_log/1 with valid data that matches tournament player stats with no slug creates a player_stats_log with id stats and queue side effects" do
       valid_attrs = PlayerHelpers.map_player_id_and_tournament_id(%{})
 
       tournament = Tournaments.get_tournament!(valid_attrs.tournament_id)
@@ -256,15 +253,14 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert player_stats_log.stats[def_rebounds_player_stat.id] == "10"
       assert player_stats_log.stats[assists_player_stat.id] == "5"
 
-      [pending_aggregated_player_stats_by_tournament] =
-        PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-
-      assert pending_aggregated_player_stats_by_tournament.tournament_id ==
-               player_stats_log.tournament_id
-
       assert_enqueued(
         worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
         args: %{game_id: player_stats_log.game_id}
+      )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: player_stats_log.tournament_id}
       )
     end
 
@@ -272,7 +268,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert {:error, %Ecto.Changeset{}} = PlayerStatsLogs.create_player_stats_log(@invalid_attrs)
     end
 
-    test "create_player_stats_logs/1 with valid data creates a player_stats_log and add pending aggregated player stats" do
+    test "create_player_stats_logs/1 with valid data creates a player_stats_log and add queue side effects" do
       first_valid_attrs = PlayerHelpers.map_player_id_and_tournament_id_and_game_id(@valid_attrs)
 
       second_valid_attrs =
@@ -300,19 +296,18 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                "some" => "some"
              }
 
-      [pending_aggregated_player_stats_by_tournament] =
-        PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-
-      assert pending_aggregated_player_stats_by_tournament.tournament_id ==
-               batch_results[0].tournament_id
-
       assert_enqueued(
         worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame,
         args: %{game_id: first_valid_attrs.game_id}
       )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: first_valid_attrs.tournament_id}
+      )
     end
 
-    test "update_player_stats_log/2 with valid data updates the player_stats_log and creates a player_stats_log and add pending aggregated player stats" do
+    test "update_player_stats_log/2 with valid data updates the player_stats_log and creates a player_stats_log and queue side effects" do
       player_stats_log = player_stats_log_fixture()
 
       assert {:ok, %PlayerStatsLog{} = player_stats_log} =
@@ -322,21 +317,15 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                "some" => "some updated"
              }
 
-      # In this test we are calling create_player_stats_log once to set
-      # the test up, that why we need to assert if only have 2 cause the
-      # update should only add it once.
-      assert Enum.count(
-               PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-             ) == 2
-
-      assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == [
-               player_stats_log.tournament_id
-             ]
-
       queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
       # It needs to be two because we are calling create_player_stats_log once
       assert Enum.count(queue) == 2
       assert Enum.fetch!(queue, 1).args == %{"game_id" => player_stats_log.game_id}
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: player_stats_log.tournament_id}
+      )
     end
 
     test "update_player_stats_log/2 with invalid data returns error changeset" do
@@ -348,7 +337,7 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
       assert player_stats_log == PlayerStatsLogs.get_player_stats_log!(player_stats_log.id)
     end
 
-    test "update_player_stats_logs/1 with valid data updates the player_stats_log and creates a player_stats_log and add pending aggregated player stats" do
+    test "update_player_stats_logs/1 with valid data updates the player_stats_log and creates a player_stats_log and queue side effects" do
       attrs = PlayerHelpers.map_player_id_and_tournament_id_and_game_id(@valid_attrs)
 
       {:ok, %PlayerStatsLog{} = first_player_stats_log} =
@@ -387,21 +376,15 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
                "some" => "some second updated"
              }
 
-      # In this test we are calling create_player_stats_log twice to set
-      # the test up, that why we need to assert if only have 3 cause the
-      # update should only add it once.
-      assert Enum.count(
-               PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-             ) == 3
-
-      assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == [
-               attrs.tournament_id
-             ]
-
       queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
       # It needs to be three because we are calling create_player_stats_log twice
       assert Enum.count(queue) == 3
       assert Enum.fetch!(queue, 2).args == %{"game_id" => attrs.game_id}
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: attrs.tournament_id}
+      )
     end
 
     test "delete_player_stats_log/1 deletes the player_stats_log" do
@@ -412,21 +395,15 @@ defmodule GoChampsApi.PlayerStatsLogsTest do
         PlayerStatsLogs.get_player_stats_log!(player_stats_log.id)
       end
 
-      # In this test we are calling create_player_stats_log once to set
-      # the test up, that why we need to assert if only have 2 cause the
-      # update should only add it once.
-      assert Enum.count(
-               PendingAggregatedPlayerStatsByTournaments.list_pending_aggregated_player_stats_by_tournament()
-             ) == 2
-
-      assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == [
-               player_stats_log.tournament_id
-             ]
-
       queue = all_enqueued(worker: GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGame)
       # It needs to be two because we are calling create_player_stats_log once
       assert Enum.count(queue) == 2
       assert Enum.fetch!(queue, 1).args == %{"game_id" => player_stats_log.game_id}
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GenerateAggregatedPlayerStats,
+        args: %{tournament_id: player_stats_log.tournament_id}
+      )
     end
 
     test "change_player_stats_log/1 returns a player_stats_log changeset" do
