@@ -28,6 +28,7 @@ config :go_champs_api, Oban,
   plugins: [Oban.Plugins.Pruner],
   queues: [
     default: 10,
+    after_tournament_creation: 1,
     generate_aggregated_player_stats: 1,
     generate_aggregated_team_stats: 1,
     generate_game_results: 1,

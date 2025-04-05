@@ -1,5 +1,6 @@
 defmodule GoChampsApi.TournamentsTest do
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.Helpers.OrganizationHelpers
   alias GoChampsApi.Tournaments
@@ -216,7 +217,7 @@ defmodule GoChampsApi.TournamentsTest do
       assert Tournaments.get_tournament_scoreboard_setting!(tournament.id) == scoreboard_setting
     end
 
-    test "create_tournament/1 with valid data creates a tournament" do
+    test "create_tournament/1 with valid data creates a tournament queues after tournament creation job" do
       valid_tournament = OrganizationHelpers.map_organization_id(@valid_attrs)
 
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_tournament)
@@ -250,6 +251,11 @@ defmodule GoChampsApi.TournamentsTest do
       assert fixed_source_stat.slug == "team_source_stat"
       assert team_stat.title == "team stat"
       assert team_stat.slug == nil
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.AfterTournamentCreation,
+        args: %{tournament_id: tournament.id}
+      )
     end
 
     test "create_tournament/1 with nil sport slug creates a tournament" do

@@ -3,6 +3,8 @@ defmodule GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregate
   use GoChampsApi.Schema
   import Ecto.Changeset
 
+  alias GoChampsApi.Tournaments.Tournament
+
   schema "pending_aggregated_player_stats_by_tournament" do
     belongs_to :tournament, Tournament
 

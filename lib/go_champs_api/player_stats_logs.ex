@@ -12,8 +12,6 @@ defmodule GoChampsApi.PlayerStatsLogs do
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Sports
 
-  alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament
-
   require Logger
 
   @doc """

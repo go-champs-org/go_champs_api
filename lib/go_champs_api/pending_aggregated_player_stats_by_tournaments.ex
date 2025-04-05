@@ -7,8 +7,6 @@ defmodule GoChampsApi.PendingAggregatedPlayerStatsByTournaments do
   alias GoChampsApi.Repo
 
   alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament
-  alias GoChampsApi.AggregatedPlayerStatsByTournaments
-  alias GoChampsApi.Tournaments
 
   @doc """
   Returns the list of pending_aggregated_player_stats_by_tournament.

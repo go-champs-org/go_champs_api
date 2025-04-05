@@ -178,10 +178,18 @@ defmodule GoChampsApi.Tournaments do
 
   """
   def create_tournament(attrs \\ %{}) do
-    %Tournament{}
-    |> Tournament.changeset(attrs)
-    |> map_organization_slug()
-    |> Repo.insert()
+    case %Tournament{}
+         |> Tournament.changeset(attrs)
+         |> map_organization_slug()
+         |> Repo.insert() do
+      {:ok, tournament} ->
+        trigger_after_tournament_creation_job(tournament.id)
+
+        {:ok, tournament}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   defp map_organization_slug(changeset) do
@@ -459,5 +467,16 @@ defmodule GoChampsApi.Tournaments do
       sport_slug ->
         Sports.apply_sport_package(sport_slug, tournament)
     end
+  end
+
+  @doc """
+  Trigger after tournament creation job.
+  """
+  @spec trigger_after_tournament_creation_job(id :: Ecto.UUID.t()) ::
+          {:ok, Tournament.t()} | {:error, Ecto.Changeset.t()}
+  def trigger_after_tournament_creation_job(id) do
+    %{tournament_id: id}
+    |> GoChampsApi.Infrastructure.Jobs.AfterTournamentCreation.new()
+    |> Oban.insert()
   end
 end
