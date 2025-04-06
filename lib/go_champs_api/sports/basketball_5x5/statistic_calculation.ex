@@ -229,6 +229,42 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     end
   end
 
+  @spec calculate_fiba_group_points(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
+  def calculate_fiba_group_points(nil, _) do
+    0
+  end
+
+  def calculate_fiba_group_points(_, nil) do
+    0
+  end
+
+  def calculate_fiba_group_points(team_stats_log_a, team_stats_log_b) do
+    team_stats_log_a_points =
+      (team_stats_log_a ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    team_stats_log_b_points =
+      (team_stats_log_b ||
+         %{})
+      |> Map.get(:stats, %{})
+      |> retrieve_stat_value("points")
+
+    case {team_stats_log_a_points, team_stats_log_b_points} do
+      {team_stats_log_a_points, team_stats_log_b_points}
+      when team_stats_log_a_points > team_stats_log_b_points ->
+        2
+
+      {team_stats_log_a_points, team_stats_log_b_points}
+      when team_stats_log_a_points < team_stats_log_b_points ->
+        1
+
+      _ ->
+        0
+    end
+  end
+
   @spec calculate_stat_per_game(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
   def calculate_wins(team_stats_log_a, team_stats_log_b) do
     team_stats_log_a_points =

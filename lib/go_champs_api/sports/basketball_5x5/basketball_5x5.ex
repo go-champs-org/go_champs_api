@@ -450,6 +450,14 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
 
   @team_log_against_team_statistics [
     Statistic.new(
+      "fiba_group_points",
+      "FIBA Group Points",
+      :calculated,
+      :game_against_team,
+      :aggregate,
+      &StatisticCalculation.calculate_fiba_group_points/2
+    ),
+    Statistic.new(
       "wins",
       "Wins",
       :calculated,

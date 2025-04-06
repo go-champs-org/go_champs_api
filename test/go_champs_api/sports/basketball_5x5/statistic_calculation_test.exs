@@ -447,6 +447,46 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
     end
   end
 
+  describe "calculate_fiba_group_points/2 given team stats log A and team stats log B" do
+    test "returns 0 when team stats log A and team stats log B are nil" do
+      assert StatisticCalculation.calculate_fiba_group_points(nil, nil) == 0
+    end
+
+    test "returns 0 when team stats log A is nil" do
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_fiba_group_points(nil, team_stats_log_b) == 0
+    end
+
+    test "returns 0 when team stats log B is nil" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      assert StatisticCalculation.calculate_fiba_group_points(team_stats_log_a, nil) == 0
+    end
+
+    test "returns 0 when team stats log A and team stats log B have the same points" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+
+      assert StatisticCalculation.calculate_fiba_group_points(team_stats_log_a, team_stats_log_b) ==
+               0
+    end
+
+    test "returns 2 when team stats log A has more points than team stats log B" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 10.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 5.0}}
+
+      assert StatisticCalculation.calculate_fiba_group_points(team_stats_log_a, team_stats_log_b) ==
+               2
+    end
+
+    test "returns 1 when team stats log A has less points than team stats log B" do
+      team_stats_log_a = %TeamStatsLog{stats: %{"points" => 5.0}}
+      team_stats_log_b = %TeamStatsLog{stats: %{"points" => 10.0}}
+
+      assert StatisticCalculation.calculate_fiba_group_points(team_stats_log_a, team_stats_log_b) ==
+               1
+    end
+  end
+
   describe "calculate_wins/2 given team stats log A and team stats log B" do
     test "returns 0 when team stats log A and team stats log B are nil" do
       assert StatisticCalculation.calculate_wins(nil, nil) == 0
