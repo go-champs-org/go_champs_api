@@ -137,7 +137,7 @@ defmodule GoChampsApi.PendingAggregatedTeamStatsByPhases do
   ## Examples
 
       iex> delete_by_tournament_id(pending_aggregated_team_stats_by_phase)
-      {:ok, %PendingAggregatedPlayerStatsByTournament{}}
+      {:ok, %PendingAggregatedTeamStatsByPhase{}}
 
       iex> delete_by_tournament_id(pending_aggregated_team_stats_by_phase)
       {:error, %Ecto.Changeset{}}

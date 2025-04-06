@@ -30,14 +30,6 @@ config :go_champs_api, GoChampsApi.Repo,
   ssl: true,
   url: System.get_env("DATABASE_URL")
 
-config :go_champs_api, GoChampsApi.Scheduler,
-  jobs: [
-    # Every minute
-    {"*/5 * * * *",
-     {GoChampsApi.PendingAggregatedPlayerStatsByTournaments,
-      :run_pending_aggregated_player_stats_generation, []}}
-  ]
-
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key
