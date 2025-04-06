@@ -1,4 +1,5 @@
 defmodule GoChampsApi.TeamStatsLogsTest do
+  alias GoChampsApi.Helpers.TournamentHelpers
   use GoChampsApi.DataCase
   use Oban.Testing, repo: GoChampsApi.Repo
 
@@ -371,6 +372,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
           team_id: first_player_stats_log.team_id
         )
 
+      assert team_stats_log.stats["game_played"] == 1
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
@@ -413,6 +415,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
           team_id: first_player_stats_log.team_id
         )
 
+      assert team_stats_log.stats["game_played"] == 1
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
@@ -457,6 +460,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         )
 
       # Assert the first creation
+      assert team_stats_log.stats["game_played"] == 1
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
@@ -484,6 +488,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         )
 
       # Assert the update of the team stats logs
+      assert team_stats_log.stats["game_played"] == 1
       assert team_stats_log.stats["rebounds"] == 28.0
       assert team_stats_log.stats["rebounds_defensive"] == 20.0
       assert team_stats_log.stats["rebounds_offensive"] == 8.0
@@ -528,6 +533,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         )
 
       # Assert the first creation
+      assert team_stats_log.stats["game_played"] == 1
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
@@ -555,6 +561,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         )
 
       # Assert the update of the team stats logs
+      assert team_stats_log.stats["game_played"] == 1
       assert team_stats_log.stats["rebounds"] == 28.0
       assert team_stats_log.stats["rebounds_defensive"] == 20.0
       assert team_stats_log.stats["rebounds_offensive"] == 8.0
@@ -622,6 +629,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
           team_id: against_team_player_stats.team_id
         )
 
+      assert home_team.stats["game_played"] == 1
       assert home_team.stats["field_goals_made"] == 6.0
       assert home_team.stats["points"] == 12.0
       assert home_team.stats["points_against"] == 6.0
@@ -629,6 +637,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert home_team.stats["losses"] == 0.0
       assert home_team.stats["points_balance"] == 6.0
 
+      assert away_team.stats["game_played"] == 1
       assert away_team.stats["field_goals_made"] == 3.0
       assert away_team.stats["points"] == 6.0
       assert away_team.stats["points_against"] == 12.0
@@ -701,6 +710,47 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert result["points_balance"] == 3.0
       assert result["wins"] == 1.0
       assert result["losses"] == 0.0
+    end
+
+    test "calculate_team_stats/2 returns a map with calculated team stats slug as key and the calculated value as value" do
+      first_team_stats_log =
+        TeamStatsLogHelper.create_team_stats_log_for_tournament_with_sport([
+          {"points", 6.0}
+        ])
+
+      basketball_statistics =
+        "basketball_5x5"
+        |> Sports.get_game_level_aggregated_calculated_statistics!()
+
+      result =
+        TeamStatsLogs.calculate_team_stats(
+          basketball_statistics,
+          first_team_stats_log
+        )
+
+      assert result["points"] == 6.0
+      assert result["game_played"] == 1.0
+    end
+
+    test "map_calculated_team_stats/1 returns team_stats_log with calculated sports stats" do
+      {:ok, basketball_tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      {:ok, team_stats_log} =
+        %{
+          stats: %{
+            "points" => 6.0
+          },
+          tournament_id: basketball_tournament.id
+        }
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamStatsLogs.create_team_stats_log()
+
+      team_stats_log = TeamStatsLogs.map_calculated_team_stats(team_stats_log)
+
+      assert team_stats_log.stats["points"] == 6.0
+      assert team_stats_log.stats["game_played"] == 1
     end
   end
 end

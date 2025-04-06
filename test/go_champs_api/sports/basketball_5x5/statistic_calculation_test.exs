@@ -487,6 +487,17 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculationTest do
     end
   end
 
+  describe "calculate_team_game_played/1 given team stats log" do
+    test "returns 0 when team stats log is nil" do
+      assert StatisticCalculation.calculate_team_game_played(nil) == 0
+    end
+
+    test "returns 1 when team stats log is not nil" do
+      team_stats_log = %TeamStatsLog{stats: %{}}
+      assert StatisticCalculation.calculate_team_game_played(team_stats_log) == 1
+    end
+  end
+
   describe "calculate_wins/2 given team stats log A and team stats log B" do
     test "returns 0 when team stats log A and team stats log B are nil" do
       assert StatisticCalculation.calculate_wins(nil, nil) == 0

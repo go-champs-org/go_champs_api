@@ -409,7 +409,14 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
     ),
     Statistic.new("free_throws_made", "Free Throws Made", :manual, :game, :aggregate),
     Statistic.new("free_throws_missed", "Free Throws Missed", :manual, :game, :aggregate),
-    Statistic.new("game_played", "Game Played", :manual, :game, :aggregate),
+    Statistic.new(
+      "game_played",
+      "Game Played",
+      :calculated,
+      :game,
+      :aggregate,
+      &StatisticCalculation.calculate_team_game_played/1
+    ),
     Statistic.new("points", "Points", :manual, :game, :aggregate),
     Statistic.new("rebounds", "Rebounds", :manual, :game, :aggregate),
     Statistic.new("rebounds_defensive", "Defensive Rebounds", :manual, :game, :aggregate),

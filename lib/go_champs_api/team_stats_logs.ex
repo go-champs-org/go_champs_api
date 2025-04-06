@@ -414,10 +414,12 @@ defmodule GoChampsApi.TeamStatsLogs do
         home_team_stats =
           base_team_stats_log
           |> map_aggregated_player_stats_and_team_id(game, game.home_team_id)
+          |> map_calculated_team_stats()
 
         away_team_stats =
           base_team_stats_log
           |> map_aggregated_player_stats_and_team_id(game, game.away_team_id)
+          |> map_calculated_team_stats()
 
         # Need to calculated against team stats after aggregating team stats
         home_team_stats =
@@ -486,6 +488,30 @@ defmodule GoChampsApi.TeamStatsLogs do
   end
 
   @doc """
+  Maps calculated statistics to the team stats log.
+  ## Examples
+
+      iex> map_calculated_team_stats(%TeamStatsLog{})
+      %{}
+
+  """
+  @spec map_calculated_team_stats(%TeamStatsLog{}) :: %{}
+  def map_calculated_team_stats(team_stats_log) do
+    case Tournaments.get_tournament!(team_stats_log.tournament_id) do
+      nil ->
+        team_stats_log
+
+      tournament ->
+        calculated_team_stats =
+          tournament.sport_slug
+          |> Sports.get_game_level_aggregated_calculated_statistics!()
+          |> calculate_team_stats(team_stats_log)
+
+        Map.put(team_stats_log, :stats, calculated_team_stats)
+    end
+  end
+
+  @doc """
   Calculate against team stats for a given array of statistics, team stats log A and team stats log B.
 
   ## Examples
@@ -498,6 +524,26 @@ defmodule GoChampsApi.TeamStatsLogs do
     statistics
     |> Enum.reduce(%{}, fn stat, acc ->
       Map.put(acc, stat.slug, stat.calculation_function.(team_stats_log, against_team_stats_log))
+    end)
+  end
+
+  @doc """
+  Calculate team stats for a given array of statistics and team stats log.
+
+  ## Examples
+
+      iex> calculate_team_stats([%Statistic], %TeamStatsLog{})
+      %{}
+  """
+  @spec calculate_team_stats([%Statistic{}], %TeamStatsLog{}) :: %{}
+  def calculate_team_stats(statistics, team_stats_log) do
+    base_stats =
+      team_stats_log
+      |> Map.get(:stats, %{})
+
+    statistics
+    |> Enum.reduce(base_stats, fn stat, acc ->
+      Map.put(acc, stat.slug, stat.calculation_function.(team_stats_log))
     end)
   end
 

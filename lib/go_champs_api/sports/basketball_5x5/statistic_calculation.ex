@@ -229,6 +229,17 @@ defmodule GoChampsApi.Sports.Basketball5x5.StatisticCalculation do
     end
   end
 
+  @spec calculate_team_game_played(%TeamStatsLog{}) :: number()
+  def calculate_team_game_played(team_stats_log) do
+    case team_stats_log do
+      nil ->
+        0
+
+      _ ->
+        1
+    end
+  end
+
   @spec calculate_fiba_group_points(%TeamStatsLog{}, %TeamStatsLog{}) :: number()
   def calculate_fiba_group_points(nil, _) do
     0
