@@ -8,7 +8,6 @@ defmodule GoChampsApi.Tournaments do
 
   alias GoChampsApi.Tournaments.Tournament
 
-  alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments.PendingAggregatedPlayerStatsByTournament
   alias GoChampsApi.AggregatedPlayerStatsByTournaments.AggregatedPlayerStatsByTournament
   alias GoChampsApi.Sports
   alias GoChampsApi.Players.Player
@@ -239,10 +238,6 @@ defmodule GoChampsApi.Tournaments do
       from a in AggregatedPlayerStatsByTournament,
         where: a.tournament_id == ^tournament.id
 
-    pending_aggregated_delete_query =
-      from p in PendingAggregatedPlayerStatsByTournament,
-        where: p.tournament_id == ^tournament.id
-
     player_delete_query =
       from p in Player,
         where: p.tournament_id == ^tournament.id
@@ -260,10 +255,6 @@ defmodule GoChampsApi.Tournaments do
       |> Ecto.Multi.delete_all(
         :aggregated_player_stats_by_tournament,
         aggregated_delete_query
-      )
-      |> Ecto.Multi.delete_all(
-        :pending_aggregated_player_stats_by_tournament,
-        pending_aggregated_delete_query
       )
       |> Ecto.Multi.delete_all(
         :player_stats_logs,

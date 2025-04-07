@@ -4,7 +4,6 @@ defmodule GoChampsApi.TournamentsTest do
 
   alias GoChampsApi.Helpers.OrganizationHelpers
   alias GoChampsApi.Tournaments
-  alias GoChampsApi.PendingAggregatedPlayerStatsByTournaments
   alias GoChampsApi.Helpers.PlayerHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.Players
@@ -372,16 +371,6 @@ defmodule GoChampsApi.TournamentsTest do
 
       assert {:ok, %Tournament{}} = Tournaments.delete_tournament(tournament)
       assert PlayerStatsLogs.list_player_stats_log() == []
-    end
-
-    test "delete_tournament/1 deletes the tournament and associated pending_aggregated_player_stats_by_tournament" do
-      tournament = tournament_fixture()
-
-      %{tournament_id: tournament.id}
-      |> PendingAggregatedPlayerStatsByTournaments.create_pending_aggregated_player_stats_by_tournament()
-
-      assert {:ok, %Tournament{}} = Tournaments.delete_tournament(tournament)
-      assert PendingAggregatedPlayerStatsByTournaments.list_tournament_ids() == []
     end
 
     test "delete_tournament/1 deletes the tournament and associated aggregated_player_stats_by_tournament" do
