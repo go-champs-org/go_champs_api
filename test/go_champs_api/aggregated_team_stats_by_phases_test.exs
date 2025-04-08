@@ -185,11 +185,13 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
 
       first_valid_attrs =
         TeamHelpers.map_team_id(tournament.id, first_base_valid_attrs)
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
 
       second_base_valid_attrs = %{
         tournament_id: tournament.id,
         team_id: first_valid_attrs.team_id,
+        against_team_id: first_valid_attrs.against_team_id,
         phase_id: first_valid_attrs.phase_id,
         stats: %{
           first_team_stat.id => 4,
@@ -238,11 +240,13 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhasesTest do
 
       first_valid_attrs =
         TeamHelpers.map_team_id(tournament.id, first_base_valid_attrs)
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
 
       second_base_valid_attrs = %{
         tournament_id: tournament.id,
         team_id: first_valid_attrs.team_id,
+        against_team_id: first_valid_attrs.against_team_id,
         phase_id: first_valid_attrs.phase_id,
         stats: %{
           first_team_stat.id => 4,

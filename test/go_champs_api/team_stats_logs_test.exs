@@ -30,6 +30,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         attrs
         |> Enum.into(@valid_attrs)
         |> TeamHelpers.map_team_id_and_tournament_id()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> TeamStatsLogs.create_team_stats_log()
 
@@ -44,6 +45,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
     test "list_team_stats_log/1 returns all team_stats_log pertaining to some game id" do
       first_valid_attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
 
       phase_attrs = %{
@@ -60,6 +62,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         @valid_attrs
         |> Map.merge(%{
           team_id: first_valid_attrs.team_id,
+          against_team_id: first_valid_attrs.against_team_id,
           tournament_id: first_valid_attrs.tournament_id,
           phase_id: phase.id
         })
@@ -96,6 +99,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
     test "create_team_stats_log/1 with valid data creates a team_stats_log" do
       valid_attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
 
       assert {:ok, %TeamStatsLog{} = team_stats_log} =
@@ -132,6 +136,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
     test "create_team_stats_logs/1 with valid data creates a team_stats_log and creates a team_stats_log and add pending aggregated team stats" do
       first_valid_attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
 
@@ -140,6 +145,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         |> Map.merge(%{
           phase_id: first_valid_attrs.phase_id,
           team_id: first_valid_attrs.team_id,
+          against_team_id: first_valid_attrs.against_team_id,
           tournament_id: first_valid_attrs.tournament_id
         })
 
@@ -230,6 +236,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
     test "update_team_stats_logs/1 with valid data updates the team_stats_log and creates a team_stats_log and add pending aggregated team stats" do
       attrs =
         TeamHelpers.map_team_id_and_tournament_id(@valid_attrs)
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
 
@@ -362,6 +369,8 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       Games.get_game!(first_player_stats_log.game_id)
       |> GameHelpers.set_home_team_id(first_player_stats_log.team_id)
+      |> elem(1)
+      |> GameHelpers.set_away_team_id(first_player_stats_log.team_id)
 
       assert :ok =
                TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
@@ -405,6 +414,8 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       Games.get_game!(first_player_stats_log.game_id)
       |> GameHelpers.set_away_team_id(first_player_stats_log.team_id)
+      |> elem(1)
+      |> GameHelpers.set_home_team_id(first_player_stats_log.team_id)
 
       assert :ok =
                TeamStatsLogs.generate_team_stats_log_from_game_id(first_player_stats_log.game_id)
@@ -448,6 +459,8 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       Games.get_game!(first_player_stats_log.game_id)
       |> GameHelpers.set_home_team_id(first_player_stats_log.team_id)
+      |> elem(1)
+      |> GameHelpers.set_away_team_id(first_player_stats_log.team_id)
 
       # First creation
       assert :ok =
@@ -521,6 +534,8 @@ defmodule GoChampsApi.TeamStatsLogsTest do
 
       Games.get_game!(first_player_stats_log.game_id)
       |> GameHelpers.set_away_team_id(first_player_stats_log.team_id)
+      |> elem(1)
+      |> GameHelpers.set_home_team_id(first_player_stats_log.team_id)
 
       # First creation
       assert :ok =
@@ -659,9 +674,10 @@ defmodule GoChampsApi.TeamStatsLogsTest do
           },
           tournament_id: first_team_stats_log.tournament_id,
           phase_id: first_team_stats_log.phase_id,
-          game_id: first_team_stats_log.game_id
+          game_id: first_team_stats_log.game_id,
+          team_id: first_team_stats_log.against_team_id,
+          against_team_id: first_team_stats_log.team_id
         }
-        |> TeamHelpers.map_team_id_in_attrs()
         |> TeamStatsLogs.create_team_stats_log()
 
       resulted_first_team =
@@ -690,9 +706,10 @@ defmodule GoChampsApi.TeamStatsLogsTest do
           },
           tournament_id: first_team_stats_log.tournament_id,
           phase_id: first_team_stats_log.phase_id,
-          game_id: first_team_stats_log.game_id
+          game_id: first_team_stats_log.game_id,
+          team_id: first_team_stats_log.against_team_id,
+          against_team_id: first_team_stats_log.team_id
         }
-        |> TeamHelpers.map_team_id_in_attrs()
         |> TeamStatsLogs.create_team_stats_log()
 
       basketball_statistics =
@@ -743,6 +760,7 @@ defmodule GoChampsApi.TeamStatsLogsTest do
           tournament_id: basketball_tournament.id
         }
         |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
         |> TeamStatsLogs.create_team_stats_log()

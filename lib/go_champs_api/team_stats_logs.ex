@@ -413,13 +413,22 @@ defmodule GoChampsApi.TeamStatsLogs do
 
         home_team_stats =
           base_team_stats_log
-          |> map_aggregated_player_stats_and_team_id(game, game.home_team_id)
+          |> map_aggregated_player_stats_and_team_id_and_against_team_id(
+            game,
+            game.home_team_id,
+            game.away_team_id
+          )
           |> map_calculated_team_stats()
 
         away_team_stats =
           base_team_stats_log
-          |> map_aggregated_player_stats_and_team_id(game, game.away_team_id)
+          |> map_aggregated_player_stats_and_team_id_and_against_team_id(
+            game,
+            game.away_team_id,
+            game.home_team_id
+          )
           |> map_calculated_team_stats()
+          |> Map.put(:against_team_id, game.home_team_id)
 
         # Need to calculated against team stats after aggregating team stats
         home_team_stats =
@@ -437,25 +446,29 @@ defmodule GoChampsApi.TeamStatsLogs do
     end
   end
 
-  @spec map_aggregated_player_stats_and_team_id(base_attrs :: %{}, %Game{}, team_id :: String.t()) ::
-          %{}
-  @spec map_aggregated_player_stats_and_team_id(
-          map(),
-          atom() | %{:id => any(), optional(any()) => any()},
-          any()
+  @spec map_aggregated_player_stats_and_team_id_and_against_team_id(
+          base_attrs :: %{},
+          %Game{},
+          team_id :: String.t(),
+          against_team_id :: String.t()
         ) ::
-          %{:team_id => any(), optional(any()) => any()}
-  def map_aggregated_player_stats_and_team_id(base_attrs, game, team_id) do
+          %{}
+  def map_aggregated_player_stats_and_team_id_and_against_team_id(
+        base_attrs,
+        game,
+        team_id,
+        against_team_id
+      ) do
     case PlayerStatsLogs.list_player_stats_log(game_id: game.id, team_id: team_id) do
       [] ->
-        Map.merge(base_attrs, %{team_id: team_id})
+        Map.merge(base_attrs, %{team_id: team_id, against_team_id: against_team_id})
 
       player_stats_logs ->
         stats =
           player_stats_logs
           |> PlayerStatsLogs.aggregate_and_calculate_player_stats_from_player_stats_logs()
 
-        Map.merge(base_attrs, %{team_id: team_id, stats: stats})
+        Map.merge(base_attrs, %{team_id: team_id, against_team_id: against_team_id, stats: stats})
     end
   end
 

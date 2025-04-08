@@ -22,6 +22,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
     {:ok, team_stats_log} =
       @create_attrs
       |> TeamHelpers.map_team_id_and_tournament_id()
+      |> TeamHelpers.map_against_team_id()
       |> PhaseHelpers.map_phase_id_for_tournament()
       |> TeamStatsLogs.create_team_stats_log()
 
@@ -32,6 +33,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
     {:ok, team_stats_log} =
       @create_attrs
       |> TeamHelpers.map_team_id_and_tournament_id_with_other_member()
+      |> TeamHelpers.map_against_team_id()
       |> PhaseHelpers.map_phase_id_for_tournament()
       |> TeamStatsLogs.create_team_stats_log()
 
@@ -55,6 +57,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
       create_attrs =
         @create_attrs
         |> TeamHelpers.map_team_id_and_tournament_id()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
 
       conn =
@@ -89,6 +92,7 @@ defmodule GoChampsApiWeb.TeamStatsLogControllerTest do
       create_attrs =
         @create_attrs
         |> TeamHelpers.map_team_id_and_tournament_id_with_other_member()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
 
       conn =

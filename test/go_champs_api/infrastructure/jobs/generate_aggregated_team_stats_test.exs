@@ -17,6 +17,7 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
     {:ok, first_team_stats} =
       %{tournament_id: basketball_tournament.id, stats: %{"points" => 10}}
       |> TeamHelpers.map_team_id_in_attrs()
+      |> TeamHelpers.map_against_team_id()
       |> PhaseHelpers.map_phase_id_for_tournament()
       |> GameHelpers.map_game_id()
       |> TeamStatsLogs.create_team_stats_log()
@@ -25,6 +26,7 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
       %{
         stats: %{"points" => 20},
         team_id: first_team_stats.team_id,
+        against_team_id: first_team_stats.against_team_id,
         tournament_id: first_team_stats.tournament_id,
         phase_id: first_team_stats.phase_id
       }
@@ -52,6 +54,7 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
     {:ok, first_team_stats} =
       %{tournament_id: basketball_tournament.id, stats: %{"points" => 10}}
       |> TeamHelpers.map_team_id_in_attrs()
+      |> TeamHelpers.map_against_team_id()
       |> PhaseHelpers.map_phase_id_for_tournament()
       |> GameHelpers.map_game_id()
       |> TeamStatsLogs.create_team_stats_log()
@@ -60,6 +63,7 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
       %{
         stats: %{"points" => 20},
         team_id: first_team_stats.team_id,
+        against_team_id: first_team_stats.against_team_id,
         tournament_id: first_team_stats.tournament_id,
         phase_id: first_team_stats.phase_id
       }

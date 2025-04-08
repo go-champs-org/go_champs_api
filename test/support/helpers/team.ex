@@ -37,6 +37,15 @@ defmodule GoChampsApi.Helpers.TeamHelpers do
     Map.merge(attrs, %{team_id: team.id, tournament_id: team.tournament_id})
   end
 
+  def map_against_team_id(attrs \\ %{}) do
+    {:ok, team} =
+      %{name: "against team"}
+      |> create_or_use_tournament_id(attrs)
+      |> Teams.create_team()
+
+    Map.merge(attrs, %{against_team_id: team.id})
+  end
+
   defp create_or_use_tournament_id(team_attrs, additional_attrs) do
     case Map.fetch(additional_attrs, :tournament_id) do
       {:ok, tournament_id} ->

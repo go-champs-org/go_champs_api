@@ -96,6 +96,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       {:ok, home_team_stats_log} =
         %{stats: %{"points" => 100.0}}
         |> TeamHelpers.map_team_id_and_tournament_id()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
         |> TeamStatsLogs.create_team_stats_log()
@@ -103,6 +104,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       {:ok, game} =
         Games.get_game!(home_team_stats_log.game_id)
         |> GameHelpers.set_home_team_id(home_team_stats_log.team_id)
+        |> elem(1)
+        |> GameHelpers.set_away_team_id(home_team_stats_log.against_team_id)
 
       {:ok, result_game} = Basketball5x5.update_game_results(game)
 
@@ -114,6 +117,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       {:ok, away_team_stats_log} =
         %{stats: %{"points" => 100.0}}
         |> TeamHelpers.map_team_id_and_tournament_id()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
         |> TeamStatsLogs.create_team_stats_log()
@@ -121,6 +125,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       {:ok, game} =
         Games.get_game!(away_team_stats_log.game_id)
         |> GameHelpers.set_away_team_id(away_team_stats_log.team_id)
+        |> elem(1)
+        |> GameHelpers.set_home_team_id(away_team_stats_log.against_team_id)
 
       {:ok, result_game} = Basketball5x5.update_game_results(game)
 
@@ -132,6 +138,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
       {:ok, home_team_stats_log} =
         %{stats: %{"points" => 100.0}}
         |> TeamHelpers.map_team_id_and_tournament_id()
+        |> TeamHelpers.map_against_team_id()
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
         |> TeamStatsLogs.create_team_stats_log()
@@ -141,9 +148,10 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
           tournament_id: home_team_stats_log.tournament_id,
           phase_id: home_team_stats_log.phase_id,
           game_id: home_team_stats_log.game_id,
+          team_id: home_team_stats_log.against_team_id,
+          against_team_id: home_team_stats_log.team_id,
           stats: %{"points" => 90.0}
         }
-        |> TeamHelpers.map_team_id_in_attrs()
         |> TeamStatsLogs.create_team_stats_log()
 
       {:ok, game} =
