@@ -17,6 +17,8 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateTeamStatsLogsForGameTest do
 
     Games.get_game!(player_stats_log.game_id)
     |> GameHelpers.set_home_team_id(player_stats_log.team_id)
+    |> elem(1)
+    |> GameHelpers.set_away_team_id(player_stats_log.team_id)
 
     {:ok, _} =
       GenerateTeamStatsLogsForGame.perform(%Oban.Job{

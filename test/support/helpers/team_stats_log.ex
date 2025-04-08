@@ -19,6 +19,7 @@ defmodule GoChampsApi.Helpers.TeamStatsLogHelper do
         stats: team_stats
       }
       |> TeamHelpers.map_team_id_in_attrs()
+      |> TeamHelpers.map_against_team_id()
       |> PhaseHelpers.map_phase_id()
       |> GameHelpers.map_game_id()
       |> TeamStatsLogs.create_team_stats_log()

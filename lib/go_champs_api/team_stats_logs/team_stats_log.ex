@@ -13,6 +13,7 @@ defmodule GoChampsApi.TeamStatsLogs.TeamStatsLog do
     belongs_to :game, Game
     belongs_to :tournament, Tournament
     belongs_to :team, Team
+    belongs_to :against_team, Team
     belongs_to :phase, Phase
 
     timestamps()
@@ -26,8 +27,9 @@ defmodule GoChampsApi.TeamStatsLogs.TeamStatsLog do
       :game_id,
       :phase_id,
       :team_id,
+      :against_team_id,
       :tournament_id
     ])
-    |> validate_required([:stats, :phase_id, :team_id, :tournament_id])
+    |> validate_required([:stats, :phase_id, :team_id, :against_team_id, :tournament_id])
   end
 end

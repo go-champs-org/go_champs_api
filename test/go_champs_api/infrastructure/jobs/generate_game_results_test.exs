@@ -17,6 +17,7 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateGameResultsTest do
     {:ok, home_team_stats_log} =
       %{tournament_id: basketball_tournament.id, stats: %{"points" => 100.0}}
       |> TeamHelpers.map_team_id_in_attrs()
+      |> TeamHelpers.map_against_team_id()
       |> PhaseHelpers.map_phase_id_for_tournament()
       |> GameHelpers.map_game_id()
       |> TeamStatsLogs.create_team_stats_log()

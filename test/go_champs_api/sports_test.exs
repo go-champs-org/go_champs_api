@@ -127,11 +127,14 @@ defmodule GoChampsApi.SportsTest do
         |> PhaseHelpers.map_phase_id_for_tournament()
         |> GameHelpers.map_game_id()
         |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamHelpers.map_against_team_id()
         |> TeamStatsLogs.create_team_stats_log()
 
       {:ok, game} =
         Games.get_game!(home_team_stats_log.game_id)
         |> GameHelpers.set_home_team_id(home_team_stats_log.team_id)
+        |> elem(1)
+        |> GameHelpers.set_away_team_id(home_team_stats_log.against_team_id)
 
       {:ok, result_game} = Sports.update_game_results(game.id)
 
