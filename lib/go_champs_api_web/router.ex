@@ -46,6 +46,10 @@ defmodule GoChampsApiWeb.Router do
               AggregatedTeamStatsByPhaseController,
               only: [:index, :show]
 
+    resources "/aggregated-team-head-to-head-stats-by-phase",
+              AggregatedTeamHeadToHeadStatsByPhaseController,
+              only: [:index, :show]
+
     resources "/draws", DrawController, only: [:show]
 
     resources "/eliminations", EliminationController, only: [:show]
