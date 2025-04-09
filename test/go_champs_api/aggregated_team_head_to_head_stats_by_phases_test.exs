@@ -1,5 +1,6 @@
 defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhasesTest do
   use GoChampsApi.DataCase
+  use Oban.Testing, repo: GoChampsApi.Repo
 
   alias GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases
   alias GoChampsApi.Tournaments
@@ -102,6 +103,11 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhasesTest do
 
       assert aggregated_team_head_to_head_stats_by_phase.tournament_id ==
                "7488a646-e31f-11e4-aace-600308960662"
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_head_to_head_stats_by_phase.phase_id}
+      )
     end
 
     test "create_aggregated_team_head_to_head_stats_by_phase/1 with invalid data returns error changeset" do
@@ -136,6 +142,11 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhasesTest do
 
       assert aggregated_team_head_to_head_stats_by_phase.tournament_id ==
                "7488a646-e31f-11e4-aace-600308960668"
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_head_to_head_stats_by_phase.phase_id}
+      )
     end
 
     test "update_aggregated_team_head_to_head_stats_by_phase/2 with invalid data returns error changeset" do
@@ -163,6 +174,11 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhasesTest do
                  aggregated_team_head_to_head_stats_by_phase
                )
 
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_head_to_head_stats_by_phase.phase_id}
+      )
+
       assert_raise Ecto.NoResultsError, fn ->
         AggregatedTeamHeadToHeadStatsByPhases.get_aggregated_team_head_to_head_stats_by_phase!(
           aggregated_team_head_to_head_stats_by_phase.id
@@ -176,6 +192,11 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhasesTest do
 
       AggregatedTeamHeadToHeadStatsByPhases.delete_aggregated_team_head_to_head_stats_by_phase_id(
         aggregated_team_head_to_head_stats_by_phase.phase_id
+      )
+
+      assert_enqueued(
+        worker: GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults,
+        args: %{phase_id: aggregated_team_head_to_head_stats_by_phase.phase_id}
       )
 
       assert_raise Ecto.NoResultsError, fn ->

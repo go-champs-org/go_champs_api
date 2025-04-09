@@ -71,9 +71,17 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases do
 
   """
   def create_aggregated_team_head_to_head_stats_by_phase(attrs \\ %{}) do
-    %AggregatedTeamHeadToHeadStatsByPhase{}
-    |> AggregatedTeamHeadToHeadStatsByPhase.changeset(attrs)
-    |> Repo.insert()
+    case %AggregatedTeamHeadToHeadStatsByPhase{}
+         |> AggregatedTeamHeadToHeadStatsByPhase.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, aggregated_team_head_to_head_stats_by_phase} ->
+        start_side_effect_tasks(aggregated_team_head_to_head_stats_by_phase)
+
+        {:ok, aggregated_team_head_to_head_stats_by_phase}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -92,9 +100,17 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases do
         %AggregatedTeamHeadToHeadStatsByPhase{} = aggregated_team_head_to_head_stats_by_phase,
         attrs
       ) do
-    aggregated_team_head_to_head_stats_by_phase
-    |> AggregatedTeamHeadToHeadStatsByPhase.changeset(attrs)
-    |> Repo.update()
+    case aggregated_team_head_to_head_stats_by_phase
+         |> AggregatedTeamHeadToHeadStatsByPhase.changeset(attrs)
+         |> Repo.update() do
+      {:ok, aggregated_team_head_to_head_stats_by_phase} ->
+        start_side_effect_tasks(aggregated_team_head_to_head_stats_by_phase)
+
+        {:ok, aggregated_team_head_to_head_stats_by_phase}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -112,7 +128,15 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases do
   def delete_aggregated_team_head_to_head_stats_by_phase(
         %AggregatedTeamHeadToHeadStatsByPhase{} = aggregated_team_head_to_head_stats_by_phase
       ) do
-    Repo.delete(aggregated_team_head_to_head_stats_by_phase)
+    case Repo.delete(aggregated_team_head_to_head_stats_by_phase) do
+      {:ok, _} ->
+        start_side_effect_tasks(aggregated_team_head_to_head_stats_by_phase)
+
+        {:ok, aggregated_team_head_to_head_stats_by_phase}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -133,7 +157,15 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases do
       from t in AggregatedTeamHeadToHeadStatsByPhase,
         where: t.phase_id == ^phase_id
 
-    Repo.delete_all(aggregated_team_head_to_head_stats_by_phase_query)
+    case Repo.delete_all(aggregated_team_head_to_head_stats_by_phase_query) do
+      {0, _} ->
+        {:error, "No data found for the given phase id"}
+
+      result ->
+        start_side_effect_tasks(%AggregatedTeamHeadToHeadStatsByPhase{phase_id: phase_id})
+
+        {:ok, result}
+    end
   end
 
   @doc """
@@ -213,5 +245,20 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases do
         })
       end)
     end)
+  end
+
+  @doc """
+  Start side-effect task to generate results that depend on aggregated_team_stats.
+  ## Examples
+      iex> start_side_effect_tasks(aggregated_team_stats_by_phase)
+      :ok
+  """
+  @spec start_side_effect_tasks(%AggregatedTeamHeadToHeadStatsByPhase{}) :: :ok
+  def start_side_effect_tasks(%AggregatedTeamHeadToHeadStatsByPhase{phase_id: phase_id}) do
+    %{phase_id: phase_id}
+    |> GoChampsApi.Infrastructure.Jobs.GeneratePhaseResults.new()
+    |> Oban.insert()
+
+    :ok
   end
 end
