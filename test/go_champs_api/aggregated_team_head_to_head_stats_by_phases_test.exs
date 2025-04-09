@@ -170,6 +170,21 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhasesTest do
       end
     end
 
+    test "delete_aggregated_team_head_to_head_stats_by_phase_id/1 deletes the aggregated_team_head_to_head_stats_by_phase" do
+      aggregated_team_head_to_head_stats_by_phase =
+        aggregated_team_head_to_head_stats_by_phase_fixture()
+
+      AggregatedTeamHeadToHeadStatsByPhases.delete_aggregated_team_head_to_head_stats_by_phase_id(
+        aggregated_team_head_to_head_stats_by_phase.phase_id
+      )
+
+      assert_raise Ecto.NoResultsError, fn ->
+        AggregatedTeamHeadToHeadStatsByPhases.get_aggregated_team_head_to_head_stats_by_phase!(
+          aggregated_team_head_to_head_stats_by_phase.id
+        )
+      end
+    end
+
     test "change_aggregated_team_head_to_head_stats_by_phase/1 returns a aggregated_team_head_to_head_stats_by_phase changeset" do
       aggregated_team_head_to_head_stats_by_phase =
         aggregated_team_head_to_head_stats_by_phase_fixture()

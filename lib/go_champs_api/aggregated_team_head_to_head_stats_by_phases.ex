@@ -116,6 +116,27 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases do
   end
 
   @doc """
+  Deletes all aggregated_team_head_to_head_stats_by_phase for a give phase id.
+
+  ## Examples
+
+      iex> delete_aggregated_team_head_to_head_stats_by_phase_id("7488a646-e31f-11e4-aace-600308960668")
+      {:ok, %Ecto.Changeset{}}
+
+      iex> delete_aggregated_team_head_to_head_stats_by_phase_id("invalid-id")
+      {:error, "No data found for the given phase id"}
+  """
+  @spec delete_aggregated_team_head_to_head_stats_by_phase_id(Ecto.UUID.t()) ::
+          {:ok, list(AggregatedTeamHeadToHeadStatsByPhase.t())} | {:error, String.t()}
+  def delete_aggregated_team_head_to_head_stats_by_phase_id(phase_id) do
+    aggregated_team_head_to_head_stats_by_phase_query =
+      from t in AggregatedTeamHeadToHeadStatsByPhase,
+        where: t.phase_id == ^phase_id
+
+    Repo.delete_all(aggregated_team_head_to_head_stats_by_phase_query)
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking aggregated_team_head_to_head_stats_by_phase changes.
 
   ## Examples
