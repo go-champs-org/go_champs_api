@@ -1,10 +1,10 @@
 defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
   alias GoChampsApi.Helpers.TournamentHelpers
-  alias GoChampsApi.AggregatedTeamStatsByPhases
   use GoChampsApi.DataCase
   alias GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStats
 
   alias GoChampsApi.AggregatedTeamStatsByPhases
+  alias GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases
   alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.Helpers.TeamHelpers
@@ -44,8 +44,20 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
         "points"
       )
 
+    [aggregated_team_head_to_head_stats] =
+      AggregatedTeamHeadToHeadStatsByPhases.list_aggregated_team_head_to_head_stats_by_phase(
+        phase_id: first_team_stats.phase_id
+      )
+
     assert aggregated_team_stats.team_id == first_team_stats.team_id
     assert aggregated_team_stats.stats["points"] == 30
+    assert aggregated_team_head_to_head_stats.team_id == first_team_stats.team_id
+
+    assert aggregated_team_head_to_head_stats.against_team_id ==
+             first_team_stats.against_team_id
+
+    assert aggregated_team_head_to_head_stats.stats["points"] == 30
+    assert aggregated_team_head_to_head_stats.phase_id == first_team_stats.phase_id
   end
 
   test "perform/1 does't not duplicated records for same phase" do
@@ -86,7 +98,19 @@ defmodule GoChampsApi.Infrastructure.Jobs.GenerateAggregatedTeamStatsTest do
         "points"
       )
 
+    [aggregated_team_head_to_head_stats] =
+      AggregatedTeamHeadToHeadStatsByPhases.list_aggregated_team_head_to_head_stats_by_phase(
+        phase_id: first_team_stats.phase_id
+      )
+
     assert aggregated_team_stats.team_id == first_team_stats.team_id
     assert aggregated_team_stats.stats["points"] == 30
+    assert aggregated_team_head_to_head_stats.team_id == first_team_stats.team_id
+
+    assert aggregated_team_head_to_head_stats.against_team_id ==
+             first_team_stats.against_team_id
+
+    assert aggregated_team_head_to_head_stats.stats["points"] == 30
+    assert aggregated_team_head_to_head_stats.phase_id == first_team_stats.phase_id
   end
 end
