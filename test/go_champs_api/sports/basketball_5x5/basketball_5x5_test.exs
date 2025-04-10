@@ -3,6 +3,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
   use GoChampsApi.DataCase
   use ExUnit.Case
 
+  alias GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases
+  alias GoChampsApi.Draws
   alias GoChampsApi.Games
   alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Helpers.TeamHelpers
@@ -88,6 +90,146 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5Test do
         |> Enum.map(fn statistic -> statistic.slug end)
 
       assert resulted_statistics_slugs == expected_statistics
+    end
+  end
+
+  describe "update_draw_results/1" do
+    test "updates draw results with aggregated head to head team stats" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      {:ok, first_team_head_to_head_stats_log} =
+        %{tournament_id: tournament.id, stats: %{"wins" => 1}}
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamHelpers.map_against_team_id()
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      {:ok, second_team_head_to_head_stats_log} =
+        %{
+          tournament_id: tournament.id,
+          stats: %{"wins" => 2},
+          phase_id: first_team_head_to_head_stats_log.phase_id,
+          team_id: first_team_head_to_head_stats_log.against_team_id,
+          against_team_id: first_team_head_to_head_stats_log.team_id
+        }
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      {:ok, draw} =
+        %{
+          phase_id: first_team_head_to_head_stats_log.phase_id,
+          matches: [
+            %{
+              first_team_id: first_team_head_to_head_stats_log.team_id,
+              first_team_score: "0",
+              info: "Match Info",
+              name: "Match Name",
+              second_team_id: second_team_head_to_head_stats_log.team_id,
+              second_team_score: "0"
+            }
+          ]
+        }
+        |> Draws.create_draw()
+
+      {:ok, result_draw} = Basketball5x5.update_draw_results(draw)
+
+      [result_match] = result_draw.matches
+
+      assert result_match.first_team_score == "1"
+      assert result_match.second_team_score == "2"
+    end
+
+    test "does not update when match has no team id" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      {:ok, draw} =
+        %{
+          tournament_id: tournament.id,
+          matches: [
+            %{
+              first_team_id: nil,
+              first_team_score: "0",
+              first_team_placeholder: "Placeholder",
+              info: "Match Info",
+              name: "Match Name",
+              second_team_id: nil,
+              second_team_score: "0",
+              second_team_placeholder: "Placeholder"
+            }
+          ]
+        }
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> Draws.create_draw()
+
+      {:ok, result_draw} = Basketball5x5.update_draw_results(draw)
+
+      [result_match] = result_draw.matches
+
+      assert result_match.first_team_score == "0"
+      assert result_match.second_team_score == "0"
+    end
+  end
+
+  describe "team_wins_from_aggregated_team_head_to_head_stats/1" do
+    test "returns wins value from aggregated team head to head stats" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      {:ok, team_head_to_head_stats_log} =
+        %{tournament_id: tournament.id, stats: %{"wins" => 1}}
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamHelpers.map_against_team_id()
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      assert Basketball5x5.team_wins_from_aggregated_team_head_to_head_stats(
+               team_head_to_head_stats_log.phase_id,
+               team_head_to_head_stats_log.team_id,
+               team_head_to_head_stats_log.against_team_id
+             ) == 1
+    end
+
+    test "returns 0 if no aggregated team head to head stats found" do
+      assert Basketball5x5.team_wins_from_aggregated_team_head_to_head_stats(
+               Ecto.UUID.generate(),
+               Ecto.UUID.generate(),
+               Ecto.UUID.generate()
+             ) == 0
+    end
+
+    test "returns 0 when team_id is nil" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      phase = PhaseHelpers.create_phase(%{tournament_id: tournament.id, type: "draw"})
+
+      assert Basketball5x5.team_wins_from_aggregated_team_head_to_head_stats(
+               phase.id,
+               nil,
+               Ecto.UUID.generate()
+             ) == 0
+    end
+
+    test "returns 0 when against_team_id is nil" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      phase = PhaseHelpers.create_phase(%{tournament_id: tournament.id, type: "draw"})
+
+      assert Basketball5x5.team_wins_from_aggregated_team_head_to_head_stats(
+               phase.id,
+               Ecto.UUID.generate(),
+               nil
+             ) == 0
+    end
+
+    test "returns 0 when team_id and against_team_id are nil" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      phase = PhaseHelpers.create_phase(%{tournament_id: tournament.id, type: "draw"})
+
+      assert Basketball5x5.team_wins_from_aggregated_team_head_to_head_stats(
+               phase.id,
+               nil,
+               nil
+             ) == 0
     end
   end
 

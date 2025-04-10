@@ -171,4 +171,26 @@ defmodule GoChampsApi.Draws do
   def change_draw(%Draw{} = draw) do
     Draw.changeset(draw, %{})
   end
+
+  @doc """
+  Update draws matches from team head to head stats for a give draw id.
+
+  ## Examples
+
+      iex> update_matches_from_aggregated_team_head_to_head_stats_by_phase(draw_id)
+      {:ok, %Draw{}}
+
+      iex> update_matches_from_aggregated_team_head_to_head_stats_by_phase(draw_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_matches_from_aggregated_team_head_to_head_stats_by_phase(draw_id) do
+    draw = Repo.get!(Draw, draw_id)
+
+    # Enum.each(draw.matches, fn match ->
+    #   Sports.update_match_result(match.id)
+    # end)
+
+    {:ok, draw}
+  end
 end

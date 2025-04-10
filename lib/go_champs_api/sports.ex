@@ -4,6 +4,7 @@ defmodule GoChampsApi.Sports do
   """
   alias GoChampsApi.Sports.Basketball5x5.Basketball5x5
   alias GoChampsApi.Games.Game
+  alias GoChampsApi.Draws.Draw
   alias GoChampsApi.Repo
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Registry
@@ -165,6 +166,34 @@ defmodule GoChampsApi.Sports do
   @spec update_game_result_for_sport(String.t(), Game.t()) :: {:ok, Game.t()}
   defp update_game_result_for_sport(_, game) do
     {:ok, game}
+  end
+
+  @doc """
+  Returns {:ok, updated_draw} for a given draw id if generated results successfully, otherwise {:error, reason}.
+  When no sport is found, it returns {:ok, %Draw{}} the match without updating it.
+  ## Examples
+
+      iex> update_draw_results("some-match-id")
+      {:ok, %Draw{}} | {:error, any()}
+  """
+  @spec update_draw_results(String.t()) ::
+          {:ok, %GoChampsApi.Draws.Draw{}} | {:error, any()}
+  def update_draw_results(draw_id) do
+    draw =
+      Repo.get!(Draw, draw_id)
+      |> Repo.preload(phase: :tournament)
+
+    try do
+      draw.phase.tournament.sport_slug
+      |> update_draw_result_for_sport(draw)
+    rescue
+      _ -> {:ok, draw}
+    end
+  end
+
+  @spec update_draw_result_for_sport(String.t(), Draw.t()) :: {:ok, Draw.t()}
+  defp update_draw_result_for_sport("basketball_5x5", draw) do
+    Basketball5x5.update_draw_results(draw)
   end
 
   @spec apply_sport_package(String.t(), Tournament.t()) ::

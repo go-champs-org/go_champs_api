@@ -8,6 +8,7 @@ defmodule GoChampsApi.Phases do
 
   alias GoChampsApi.Eliminations
   alias GoChampsApi.Phases.Phase
+  alias GoChampsApi.Sports
 
   require Logger
 
@@ -217,6 +218,16 @@ defmodule GoChampsApi.Phases do
         |> Enum.each(fn elimination ->
           Eliminations.update_team_stats_from_aggregated_team_stats_by_phase(elimination.id)
           Eliminations.sort_team_stats_based_on_phase_criteria(elimination.id)
+        end)
+
+        Logger.info("Phase results has been generated for phase #{phase_id}")
+
+        :ok
+
+      "draw" ->
+        phase.draws
+        |> Enum.each(fn draw ->
+          Sports.update_draw_results(draw.id)
         end)
 
         Logger.info("Phase results has been generated for phase #{phase_id}")

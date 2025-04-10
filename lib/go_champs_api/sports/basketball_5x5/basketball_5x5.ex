@@ -1,6 +1,10 @@
 defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   @behaviour GoChampsApi.Sports.SportBehavior
 
+  alias GoChampsApi.Draws
+  alias GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases
+  alias GoChampsApi.Draws
+  alias GoChampsApi.Draws.Draw
   alias GoChampsApi.Games
   alias GoChampsApi.Games.Game
   alias GoChampsApi.TeamStatsLogs
@@ -518,6 +522,56 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
 
     game
     |> Games.update_game(%{home_score: home_score, away_score: away_score})
+  end
+
+  @impl true
+  @spec update_draw_results(%Draw{}) :: {:ok, %Draw{}} | {:error, any()}
+  def update_draw_results(%Draw{} = draw) do
+    updated_matches =
+      Enum.map(draw.matches, fn match ->
+        first_team_score =
+          team_wins_from_aggregated_team_head_to_head_stats(
+            draw.phase_id,
+            match.first_team_id,
+            match.second_team_id
+          )
+          |> Integer.to_string()
+
+        second_team_score =
+          team_wins_from_aggregated_team_head_to_head_stats(
+            draw.phase_id,
+            match.second_team_id,
+            match.first_team_id
+          )
+          |> Integer.to_string()
+
+        match
+        |> Map.put(:first_team_score, first_team_score)
+        |> Map.put(:second_team_score, second_team_score)
+        |> Map.from_struct()
+      end)
+
+    Draws.update_draw(draw, %{
+      matches: updated_matches
+    })
+  end
+
+  def team_wins_from_aggregated_team_head_to_head_stats(_phase_id, nil, _against_team_id), do: 0
+  def team_wins_from_aggregated_team_head_to_head_stats(_phase_id, _team_id, nil), do: 0
+  def team_wins_from_aggregated_team_head_to_head_stats(_phase_id, nil, nil), do: 0
+
+  def team_wins_from_aggregated_team_head_to_head_stats(phase_id, team_id, against_team_id) do
+    case AggregatedTeamHeadToHeadStatsByPhases.list_aggregated_team_head_to_head_stats_by_phase(
+           phase_id: phase_id,
+           team_id: team_id,
+           against_team_id: against_team_id
+         ) do
+      [team_stats] ->
+        team_stats.stats["wins"]
+
+      _ ->
+        0
+    end
   end
 
   @impl true

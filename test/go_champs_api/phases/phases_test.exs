@@ -8,6 +8,8 @@ defmodule GoChampsApi.PhasesTest do
   alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.AggregatedTeamStatsByPhases
+  alias GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases
+  alias GoChampsApi.Draws
   alias GoChampsApi.Eliminations
   alias GoChampsApi.Organizations
   alias GoChampsApi.Tournaments
@@ -347,6 +349,51 @@ defmodule GoChampsApi.PhasesTest do
       assert second_team_stats.stats[wins_stat.id] == 7
       assert second_team_stats.stats[losses_stat.id] == 3
       assert second_team_stats.stats[points_stat.id] == 40
+    end
+
+    test "for draw, returns :ok and update draw matches" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      phase = PhaseHelpers.create_phase(%{tournament_id: tournament.id, type: "draw"})
+
+      {:ok, first_team_head_to_head_stats_log} =
+        %{tournament_id: tournament.id, phase_id: phase.id, stats: %{"wins" => 3}}
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamHelpers.map_against_team_id()
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      {:ok, second_team_head_to_head_stats_log} =
+        %{
+          tournament_id: tournament.id,
+          phase_id: phase.id,
+          stats: %{"wins" => 2},
+          team_id: first_team_head_to_head_stats_log.against_team_id,
+          against_team_id: first_team_head_to_head_stats_log.team_id
+        }
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      {:ok, draw} =
+        %{
+          phase_id: phase.id,
+          matches: [
+            %{
+              first_team_id: first_team_head_to_head_stats_log.team_id,
+              first_team_score: "0",
+              info: "Match Info",
+              name: "Match Name",
+              second_team_id: second_team_head_to_head_stats_log.team_id,
+              second_team_score: "0"
+            }
+          ]
+        }
+        |> Draws.create_draw()
+
+      assert :ok = Phases.generate_phase_results(phase.id)
+
+      updated_draw = Draws.get_draw!(draw.id)
+      [match] = updated_draw.matches
+      assert match.first_team_score == "3"
+      assert match.second_team_score == "2"
     end
   end
 end

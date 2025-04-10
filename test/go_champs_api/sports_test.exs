@@ -7,8 +7,10 @@ defmodule GoChampsApi.SportsTest do
   alias GoChampsApi.Helpers.PhaseHelpers
   alias GoChampsApi.Helpers.TeamHelpers
   alias GoChampsApi.Helpers.TournamentHelpers
+  alias GoChampsApi.Draws
   alias GoChampsApi.Games
   alias GoChampsApi.TeamStatsLogs
+  alias GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases
   alias GoChampsApi.Sports.Basketball5x5.Basketball5x5
 
   describe "list_sports/0" do
@@ -140,6 +142,69 @@ defmodule GoChampsApi.SportsTest do
 
       assert result_game.home_score == 100
       assert result_game.away_score == 0
+    end
+  end
+
+  describe "update_draw_results/1" do
+    test "does not update draw results when sport is not found" do
+      {:ok, tournament} = TournamentHelpers.create_simple_tournament()
+
+      phase =
+        %{tournament_id: tournament.id, type: "draw"}
+        |> PhaseHelpers.create_phase()
+
+      {:ok, draw} =
+        %{phase_id: phase.id, matches: [%{first_team_id: "team1", second_team_id: "team2"}]}
+        |> Draws.create_draw()
+
+      {:ok, result_draw} = Sports.update_draw_results(draw.id)
+      assert result_draw.id == draw.id
+      assert result_draw.updated_at == draw.updated_at
+    end
+
+    test "updates draw results when sport is basketball_5x5" do
+      {:ok, tournament} = TournamentHelpers.create_tournament_basketball_5x5()
+
+      {:ok, first_team_head_to_head_stats_log} =
+        %{tournament_id: tournament.id, stats: %{"wins" => 1}}
+        |> PhaseHelpers.map_phase_id_for_tournament()
+        |> GameHelpers.map_game_id()
+        |> TeamHelpers.map_team_id_in_attrs()
+        |> TeamHelpers.map_against_team_id()
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      {:ok, second_team_head_to_head_stats_log} =
+        %{
+          tournament_id: tournament.id,
+          stats: %{"wins" => 2},
+          phase_id: first_team_head_to_head_stats_log.phase_id,
+          team_id: first_team_head_to_head_stats_log.against_team_id,
+          against_team_id: first_team_head_to_head_stats_log.team_id
+        }
+        |> AggregatedTeamHeadToHeadStatsByPhases.create_aggregated_team_head_to_head_stats_by_phase()
+
+      {:ok, draw} =
+        %{
+          phase_id: first_team_head_to_head_stats_log.phase_id,
+          matches: [
+            %{
+              first_team_id: first_team_head_to_head_stats_log.team_id,
+              first_team_score: "0",
+              info: "Match Info",
+              name: "Match Name",
+              second_team_id: second_team_head_to_head_stats_log.team_id,
+              second_team_score: "0"
+            }
+          ]
+        }
+        |> Draws.create_draw()
+
+      {:ok, result_draw} = Sports.update_draw_results(draw.id)
+
+      [result_match] = result_draw.matches
+
+      assert result_match.first_team_score == "1"
+      assert result_match.second_team_score == "2"
     end
   end
 end
