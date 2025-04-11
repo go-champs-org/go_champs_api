@@ -113,7 +113,7 @@ defmodule GoChampsApi.ScoreboardSettings do
 
   """
   def delete_scoreboard_setting(%ScoreboardSetting{} = scoreboard_setting) do
-    Repo.delete(scoreboard_setting)
+    Repo.soft_delete(scoreboard_setting)
   end
 
   @doc """

@@ -151,7 +151,7 @@ defmodule GoChampsApi.Games do
 
   """
   def delete_game(%Game{} = game) do
-    case Repo.delete(game) do
+    case Repo.soft_delete(game) do
       {:ok, _deleted_game} ->
         start_side_effect_tasks(game)
         {:ok, game}

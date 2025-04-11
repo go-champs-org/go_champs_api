@@ -140,7 +140,7 @@ defmodule GoChampsApi.Players do
 
   """
   def delete_player(%Player{} = player) do
-    Repo.delete(player)
+    Repo.soft_delete(player)
   end
 
   @doc """

@@ -156,7 +156,7 @@ defmodule GoChampsApi.Draws do
 
   """
   def delete_draw(%Draw{} = draw) do
-    Repo.delete(draw)
+    Repo.soft_delete(draw)
   end
 
   @doc """

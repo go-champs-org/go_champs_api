@@ -159,7 +159,7 @@ defmodule GoChampsApi.Eliminations do
 
   """
   def delete_elimination(%Elimination{} = elimination) do
-    Repo.delete(elimination)
+    Repo.soft_delete(elimination)
   end
 
   @doc """

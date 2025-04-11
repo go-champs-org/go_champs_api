@@ -179,7 +179,7 @@ defmodule GoChampsApi.Phases do
 
   """
   def delete_phase(%Phase{} = phase) do
-    Repo.delete(phase)
+    Repo.soft_delete(phase)
   end
 
   @doc """
