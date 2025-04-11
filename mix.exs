@@ -38,6 +38,7 @@ defmodule GoChampsApi.MixProject do
       {:phoenix_ecto, "~> 4.0"},
       {:poison, "~> 3.1"},
       {:ecto_sql, "~> 3.10.0"},
+      {:ecto_soft_delete, "~> 2.1.0"},
       {:postgrex, ">= 0.17.5"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
