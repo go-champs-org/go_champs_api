@@ -44,6 +44,7 @@ defmodule GoChampsApi.Tournaments.Tournament do
     has_many :registrations, Registration
     has_one :scoreboard_setting, ScoreboardSetting
 
+    soft_delete_schema()
     timestamps()
   end
 

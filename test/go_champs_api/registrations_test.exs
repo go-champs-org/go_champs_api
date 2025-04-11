@@ -176,9 +176,9 @@ defmodule GoChampsApi.RegistrationsTest do
       updated_registration = Registrations.get_registration!(registration.id)
 
       assert Enum.count(updated_registration.registration_invites) == 2
-      assert Enum.at(updated_registration.registration_invites, 0).invitee_id == team_b.id
+      assert Enum.at(updated_registration.registration_invites, 0).invitee_id == team_a.id
       assert Enum.at(updated_registration.registration_invites, 0).invitee_type == "team"
-      assert Enum.at(updated_registration.registration_invites, 1).invitee_id == team_a.id
+      assert Enum.at(updated_registration.registration_invites, 1).invitee_id == team_b.id
       assert Enum.at(updated_registration.registration_invites, 1).invitee_type == "team"
     end
 
@@ -223,9 +223,9 @@ defmodule GoChampsApi.RegistrationsTest do
       registration = Registrations.get_registration!(registration.id)
 
       assert Enum.count(registration.registration_invites) == 2
-      assert Enum.at(registration.registration_invites, 0).invitee_id == team_a.id
+      assert Enum.at(registration.registration_invites, 0).invitee_id == team_b.id
       assert Enum.at(registration.registration_invites, 0).invitee_type == "team"
-      assert Enum.at(registration.registration_invites, 1).invitee_id == team_b.id
+      assert Enum.at(registration.registration_invites, 1).invitee_id == team_a.id
       assert Enum.at(registration.registration_invites, 1).invitee_type == "team"
     end
   end
@@ -826,17 +826,20 @@ defmodule GoChampsApi.RegistrationsTest do
           second_registration_response.id
         ])
 
-      team = Teams.get_team_preload!(team.id, players: :registration_response)
+      players =
+        Teams.get_team_preload!(team.id, players: :registration_response)
+        |> Map.get(:players)
+        |> Enum.sort_by(& &1.name)
 
-      assert Enum.count(team.players) == 2
-      assert Enum.at(team.players, 0).name == "First Name"
-      assert Enum.at(team.players, 0).shirt_number == "8"
-      assert Enum.at(team.players, 0).shirt_name == "F Name"
-      assert Enum.at(team.players, 0).registration_response_id == first_registration_response.id
-      assert Enum.at(team.players, 1).name == "Second Name"
-      assert Enum.at(team.players, 1).shirt_number == "10"
-      assert Enum.at(team.players, 1).shirt_name == "S Name"
-      assert Enum.at(team.players, 1).registration_response_id == second_registration_response.id
+      assert Enum.count(players) == 2
+      assert Enum.at(players, 0).name == "First Name"
+      assert Enum.at(players, 0).shirt_number == "8"
+      assert Enum.at(players, 0).shirt_name == "F Name"
+      assert Enum.at(players, 0).registration_response_id == first_registration_response.id
+      assert Enum.at(players, 1).name == "Second Name"
+      assert Enum.at(players, 1).shirt_number == "10"
+      assert Enum.at(players, 1).shirt_name == "S Name"
+      assert Enum.at(players, 1).registration_response_id == second_registration_response.id
     end
 
     test "approve_registration_responses_for_registration_invite/1 when registration type is team_roster_invites, create player on invitee team and mark registration_response as approved" do

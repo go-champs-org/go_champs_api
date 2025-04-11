@@ -7,6 +7,7 @@ defmodule GoChampsApi.RecentlyViews.RecentlyView do
   schema "recently_view" do
     belongs_to :tournament, Tournament
 
+    soft_delete_schema()
     timestamps()
   end
 

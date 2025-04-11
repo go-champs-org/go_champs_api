@@ -11,6 +11,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments.AggregatedPlayerStatsBy
     belongs_to :player, Player
     belongs_to :tournament, Tournament
 
+    soft_delete_schema()
     timestamps()
   end
 

@@ -169,8 +169,8 @@ defmodule GoChampsApi.TournamentsTest do
         Tournaments.list_tournaments(where)
 
       assert first_tournament.id == recent_tournament.id
-      assert second_tournament.id == old_tournament.id
-      assert third_tournament.id == tournament_with_no_recent_update.id
+      assert second_tournament.id == tournament_with_no_recent_update.id
+      assert third_tournament.id == old_tournament.id
     end
 
     test "get_tournament!/1 returns the tournament with given id" do

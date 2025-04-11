@@ -14,6 +14,7 @@ defmodule GoChampsApi.Organizations.Organization do
 
     has_many :tournaments, Tournament
 
+    soft_delete_schema()
     timestamps()
   end
 

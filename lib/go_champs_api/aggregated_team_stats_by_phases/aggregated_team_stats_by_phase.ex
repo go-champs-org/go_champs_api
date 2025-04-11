@@ -13,6 +13,7 @@ defmodule GoChampsApi.AggregatedTeamStatsByPhases.AggregatedTeamStatsByPhase do
     belongs_to :phase, Phase
     belongs_to :tournament, Tournament
 
+    soft_delete_schema()
     timestamps()
   end
 

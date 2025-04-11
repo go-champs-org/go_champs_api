@@ -11,6 +11,7 @@ defmodule GoChampsApi.Accounts.User do
     field :recovery_token, :string
     field :facebook_id, :string
 
+    soft_delete_schema()
     timestamps()
   end
 

@@ -29,6 +29,7 @@ defmodule GoChampsApi.Phases.Phase do
     has_many :draws, Draw
     has_many :eliminations, Elimination
 
+    soft_delete_schema()
     timestamps()
   end
 
