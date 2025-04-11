@@ -16,6 +16,7 @@ defmodule GoChampsApi.TeamStatsLogs.TeamStatsLog do
     belongs_to :against_team, Team
     belongs_to :phase, Phase
 
+    soft_delete_schema()
     timestamps()
   end
 

@@ -23,6 +23,7 @@ defmodule GoChampsApi.Registrations.Registration do
     belongs_to :tournament, Tournament
     has_many :registration_invites, RegistrationInvite
 
+    soft_delete_schema()
     timestamps()
   end
 

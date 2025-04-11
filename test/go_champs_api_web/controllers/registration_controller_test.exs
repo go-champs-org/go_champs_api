@@ -221,12 +221,18 @@ defmodule GoChampsApiWeb.RegistrationControllerTest do
       registration_invites = response["registration_invites"]
 
       assert length(registration_invites) == 2
-      assert Enum.at(registration_invites, 0)["registration_id"] == registration_id
-      assert Enum.at(registration_invites, 0)["invitee_id"] == team_b_id
-      assert Enum.at(registration_invites, 0)["invitee_type"] == "team"
-      assert Enum.at(registration_invites, 1)["registration_id"] == registration_id
-      assert Enum.at(registration_invites, 1)["invitee_id"] == team_a_id
-      assert Enum.at(registration_invites, 1)["invitee_type"] == "team"
+
+      assert Enum.any?(registration_invites, fn invite ->
+               invite["registration_id"] == registration_id and
+                 invite["invitee_id"] == team_b_id and
+                 invite["invitee_type"] == "team"
+             end)
+
+      assert Enum.any?(registration_invites, fn invite ->
+               invite["registration_id"] == registration_id and
+                 invite["invitee_id"] == team_a_id and
+                 invite["invitee_type"] == "team"
+             end)
     end
   end
 

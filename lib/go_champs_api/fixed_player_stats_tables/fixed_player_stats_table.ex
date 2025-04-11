@@ -14,6 +14,7 @@ defmodule GoChampsApi.FixedPlayerStatsTables.FixedPlayerStatsTable do
 
     belongs_to :tournament, Tournament
 
+    soft_delete_schema()
     timestamps()
   end
 

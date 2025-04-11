@@ -14,6 +14,7 @@ defmodule GoChampsApi.AggregatedTeamHeadToHeadStatsByPhases.AggregatedTeamHeadTo
     belongs_to :tournament, Tournament
     belongs_to :against_team, Team
 
+    soft_delete_schema()
     timestamps()
   end
 

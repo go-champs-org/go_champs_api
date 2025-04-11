@@ -14,6 +14,7 @@ defmodule GoChampsApi.Registrations.RegistrationInvite do
     belongs_to :registration, Registration
     has_many :registration_responses, RegistrationResponse
 
+    soft_delete_schema()
     timestamps()
   end
 

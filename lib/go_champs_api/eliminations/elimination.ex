@@ -17,6 +17,7 @@ defmodule GoChampsApi.Eliminations.Elimination do
 
     belongs_to :phase, Phase
 
+    soft_delete_schema()
     timestamps()
   end
 

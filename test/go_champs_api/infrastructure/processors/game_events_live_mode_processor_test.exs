@@ -168,7 +168,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       message = set_game_id_in_event(@valid_end_message, game.id)
       message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
 
-      [player_1, player_2, player_3, player_4] = Players.list_players()
+      [player_1, player_2, player_3, player_4] =
+        Players.list_players()
+        |> Enum.sort_by(& &1.name)
 
       message =
         put_in(
@@ -209,7 +211,9 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
       message = set_game_id_in_event(@valid_end_message, game.id)
       message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
 
-      [player_1, player_2, player_3, player_4] = Players.list_players()
+      [player_1, player_2, player_3, player_4] =
+        Players.list_players()
+        |> Enum.sort_by(& &1.name)
 
       message =
         put_in(
