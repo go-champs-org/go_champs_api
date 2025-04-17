@@ -16,13 +16,22 @@ defmodule GoChampsApiWeb.SportsControllerTest do
           }
         )
 
+      expected_coach_types =
+        Basketball5x5.sport().coach_types
+        |> Enum.map(
+          &%{
+            "type" => to_string(&1.type)
+          }
+        )
+
       conn = get(conn, Routes.v1_sports_path(conn, :index))
 
       assert json_response(conn, 200)["data"] == [
                %{
                  "name" => "Basketball 5x5",
                  "slug" => "basketball_5x5",
-                 "player_statistics" => expected_player_statistics
+                 "player_statistics" => expected_player_statistics,
+                 "coach_types" => expected_coach_types
                }
              ]
     end
@@ -44,10 +53,19 @@ defmodule GoChampsApiWeb.SportsControllerTest do
           }
         )
 
+      expected_coach_types =
+        Basketball5x5.sport().coach_types
+        |> Enum.map(
+          &%{
+            "type" => to_string(&1.type)
+          }
+        )
+
       assert json_response(conn, 200)["data"] == %{
                "name" => "Basketball 5x5",
                "slug" => "basketball_5x5",
-               "player_statistics" => expected_player_statistics
+               "player_statistics" => expected_player_statistics,
+               "coach_types" => expected_coach_types
              }
     end
   end
