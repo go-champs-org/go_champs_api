@@ -12,9 +12,17 @@ defmodule GoChampsApi.TeamsTest do
     @valid_attrs %{
       name: "some name",
       logo_url: "https://www.example.com/logo.png",
-      tri_code: "TST"
+      tri_code: "TST",
+      coaches: [
+        %{
+          name: "Some Coach",
+          type: "head_coach"
+        }
+      ]
     }
-    @update_attrs %{name: "some updated name"}
+    @update_attrs %{
+      name: "some updated name"
+    }
     @invalid_attrs %{name: nil}
 
     def team_fixture(attrs \\ %{}) do
@@ -50,6 +58,10 @@ defmodule GoChampsApi.TeamsTest do
       assert team.name == "some name"
       assert team.logo_url == "https://www.example.com/logo.png"
       assert team.tri_code == "TST"
+
+      [coach] = team.coaches
+      assert coach.name == "Some Coach"
+      assert coach.type == "head_coach"
     end
 
     test "create_team/1 with invalid data returns error changeset" do
@@ -59,8 +71,24 @@ defmodule GoChampsApi.TeamsTest do
 
     test "update_team/2 with valid data updates the team" do
       team = team_fixture()
-      assert {:ok, %Team{} = team} = Teams.update_team(team, @update_attrs)
+      [current_coach] = team.coaches
+
+      update_attrs =
+        @update_attrs
+        |> Map.put(:coaches, [
+          %{
+            id: current_coach.id,
+            name: "Updated Coach",
+            type: "assistant_coach"
+          }
+        ])
+
+      assert {:ok, %Team{} = team} = Teams.update_team(team, update_attrs)
       assert team.name == "some updated name"
+      [coach] = team.coaches
+      assert coach.id == current_coach.id
+      assert coach.name == "Updated Coach"
+      assert coach.type == "assistant_coach"
     end
 
     test "update_team/2 with invalid data returns error changeset" do
