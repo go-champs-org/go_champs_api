@@ -556,7 +556,7 @@ defmodule GoChampsApi.TeamStatsLogs do
 
     statistics
     |> Enum.reduce(base_stats, fn stat, acc ->
-      Map.put(acc, stat.slug, stat.calculation_function.(team_stats_log))
+      Map.put(acc, stat.slug, stat.calculation_function.(acc))
     end)
   end
 
