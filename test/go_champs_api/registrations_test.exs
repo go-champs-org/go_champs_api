@@ -311,6 +311,82 @@ defmodule GoChampsApi.RegistrationsTest do
       assert result.invitee.id == team.id
     end
 
+    test "get_registration_invite_to_export!/1 returns the registration_invite headers containing all custom field labels, and as data all registration responsee" do
+      registration =
+        registration_fixture(%{
+          custom_fields: [
+            %{label: "Custom Field 1", type: "text", description: "Custom Field 1"},
+            %{label: "Custom Field 2", type: "text", description: "Custom Field 2"}
+          ]
+        })
+
+      team =
+        TeamHelpers.create_team(%{name: "Team Name", tournament_id: registration.tournament_id})
+
+      {:ok, registration_invite} =
+        %{
+          invitee_id: team.id,
+          invitee_type: "team",
+          registration_id: registration.id
+        }
+        |> Registrations.create_registration_invite()
+
+      [custom_field_1, custom_field_2] = registration.custom_fields
+
+      {:ok, _first_registration_response} =
+        %{
+          response: %{
+            "name" => "First Name",
+            "shirt_number" => "8",
+            "shirt_name" => "F Name",
+            "email" => "test@go-champs.com",
+            custom_field_1.id => "First Custom Field 1 Value",
+            custom_field_2.id => "First Custom Field 2 Value"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      {:ok, _second_registration_response} =
+        %{
+          response: %{
+            "name" => "Second Name",
+            "shirt_number" => "10",
+            "shirt_name" => "S Name",
+            "email" => "test1@go-champs.com",
+            custom_field_1.id => "Second Custom Field 1 Value",
+            custom_field_2.id => "Second Custom Field 2 Value"
+          },
+          registration_invite_id: registration_invite.id
+        }
+        |> Registrations.create_registration_response()
+
+      result = Registrations.get_registration_invite_to_export!(registration_invite.id)
+
+      assert result.headers == [
+               "Name",
+               "Shirt Number",
+               "Shirt Name",
+               "Email",
+               custom_field_1.label,
+               custom_field_2.label
+             ]
+
+      assert Enum.count(result.data) == 2
+      assert Enum.at(Enum.at(result.data, 0), 0) == "First Name"
+      assert Enum.at(Enum.at(result.data, 0), 1) == "8"
+      assert Enum.at(Enum.at(result.data, 0), 2) == "F Name"
+      assert Enum.at(Enum.at(result.data, 0), 3) == "test@go-champs.com"
+      assert Enum.at(Enum.at(result.data, 0), 4) == "First Custom Field 1 Value"
+      assert Enum.at(Enum.at(result.data, 0), 5) == "First Custom Field 2 Value"
+      assert Enum.at(Enum.at(result.data, 1), 0) == "Second Name"
+      assert Enum.at(Enum.at(result.data, 1), 1) == "10"
+      assert Enum.at(Enum.at(result.data, 1), 2) == "S Name"
+      assert Enum.at(Enum.at(result.data, 1), 3) == "test1@go-champs.com"
+      assert Enum.at(Enum.at(result.data, 1), 4) == "Second Custom Field 1 Value"
+      assert Enum.at(Enum.at(result.data, 1), 5) == "Second Custom Field 2 Value"
+    end
+
     test "get_registration_invite_invitee/1 returns the invitee of the registration_invite" do
       team = TeamHelpers.create_team()
 

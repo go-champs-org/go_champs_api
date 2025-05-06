@@ -282,6 +282,54 @@ defmodule GoChampsApi.Registrations do
   end
 
   @doc """
+  Gets the registration_invite data in the format to generate a CSV.
+  """
+  @spec get_registration_invite_to_export!(id :: Ecto.UUID.t()) :: %{
+          data: list(list(String.t())),
+          headers: list(String.t())
+        }
+  def get_registration_invite_to_export!(id) do
+    registration_invite =
+      Repo.get_by!(RegistrationInvite, id: id)
+      |> Repo.preload([:registration, :registration_responses])
+
+    %{
+      headers: build_export_headers(registration_invite),
+      data: build_export_data(registration_invite)
+    }
+  end
+
+  defp build_export_headers(registration_invite) do
+    base_headers = ["Name", "Shirt Number", "Shirt Name", "Email"]
+
+    custom_field_headers =
+      registration_invite.registration.custom_fields
+      |> Enum.map(& &1.label)
+
+    base_headers ++ custom_field_headers
+  end
+
+  defp build_export_data(registration_invite) do
+    registration_invite.registration_responses
+    |> Enum.map(&build_response_row(&1, registration_invite.registration.custom_fields))
+  end
+
+  defp build_response_row(response, custom_fields) do
+    base_data = [
+      response.response["name"],
+      response.response["shirt_number"],
+      response.response["shirt_name"],
+      response.response["email"]
+    ]
+
+    custom_fields_data =
+      custom_fields
+      |> Enum.map(&Map.get(response.response, &1.id))
+
+    base_data ++ custom_fields_data
+  end
+
+  @doc """
   Gets the invitee of a registration_invite for a given registration invite.
 
   Raises `Ecto.NoResultsError` if the Registration invite does not exist.

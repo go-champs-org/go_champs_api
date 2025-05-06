@@ -55,7 +55,8 @@ defmodule GoChampsApi.MixProject do
       {:amqp_client, "~> 3.12"},
       {:oban, "~> 2.15.0"},
       {:ex_aws, "~> 2.1"},
-      {:ex_aws_s3, "~> 2.0"}
+      {:ex_aws_s3, "~> 2.0"},
+      {:csv, "~> 3.2"}
     ]
   end
 

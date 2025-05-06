@@ -131,6 +131,8 @@ defmodule GoChampsApiWeb.Router do
     resources "/registration-invites", RegistrationInviteController,
       only: [:create, :update, :delete]
 
+    get "/registration-invites/:id/export", RegistrationInviteController, :export
+
     put "/registration-responses/approve", RegistrationResponseController, :approve
     resources "/registration-responses", RegistrationResponseController, only: [:update, :delete]
 

@@ -7,7 +7,8 @@ defmodule GoChampsApiWeb.RegistrationInviteController do
 
   action_fallback GoChampsApiWeb.FallbackController
 
-  plug GoChampsApiWeb.Plugs.AuthorizedRegistrationInvite, :id when action in [:delete, :update]
+  plug GoChampsApiWeb.Plugs.AuthorizedRegistrationInvite,
+       :id when action in [:delete, :update, :export]
 
   plug GoChampsApiWeb.Plugs.AuthorizedRegistrationInvite,
        :registration_invite when action in [:create]
@@ -57,5 +58,18 @@ defmodule GoChampsApiWeb.RegistrationInviteController do
            Registrations.delete_registration_invite(registration_invite) do
       send_resp(conn, :no_content, "")
     end
+  end
+
+  def export(conn, %{"id" => id}) do
+    %{headers: headers, data: rows} = Registrations.get_registration_invite_to_export!(id)
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> put_resp_header(
+      "content-disposition",
+      ~s(attachment; filename="registration_invite_#{id}.csv")
+    )
+    |> put_view(GoChampsApiWeb.CSVView)
+    |> render("csv.csv", headers: headers, data: rows)
   end
 end
