@@ -21,6 +21,7 @@ defmodule GoChampsApi.Players.Player do
     belongs_to :team, Team
     belongs_to :registration_response, RegistrationResponse
 
+    soft_delete_schema()
     timestamps()
   end
 

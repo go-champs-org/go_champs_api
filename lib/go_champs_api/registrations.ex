@@ -118,7 +118,7 @@ defmodule GoChampsApi.Registrations do
 
   """
   def delete_registration(%Registration{} = registration) do
-    Repo.delete(registration)
+    Repo.soft_delete(registration)
   end
 
   @doc """
@@ -406,7 +406,7 @@ defmodule GoChampsApi.Registrations do
 
   """
   def delete_registration_invite(%RegistrationInvite{} = registration_invite) do
-    Repo.delete(registration_invite)
+    Repo.soft_delete(registration_invite)
   end
 
   @doc """
@@ -620,7 +620,7 @@ defmodule GoChampsApi.Registrations do
 
   """
   def delete_registration_response(%RegistrationResponse{} = registration_response) do
-    Repo.delete(registration_response)
+    Repo.soft_delete(registration_response)
   end
 
   @doc """

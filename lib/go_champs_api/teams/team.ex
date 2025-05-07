@@ -18,6 +18,7 @@ defmodule GoChampsApi.Teams.Team do
     belongs_to :tournament, Tournament
     has_many :players, Player
 
+    soft_delete_schema()
     timestamps()
   end
 

@@ -23,6 +23,7 @@ defmodule GoChampsApi.Games.Game do
     belongs_to :away_team, Team
     belongs_to :home_team, Team
 
+    soft_delete_schema()
     timestamps()
   end
 

@@ -25,6 +25,7 @@ defmodule GoChampsApi.Draws.Draw do
 
     belongs_to :phase, Phase
 
+    soft_delete_schema()
     timestamps()
   end
 
