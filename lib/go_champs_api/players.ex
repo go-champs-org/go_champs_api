@@ -7,6 +7,7 @@ defmodule GoChampsApi.Players do
   alias GoChampsApi.Repo
 
   alias GoChampsApi.Players.Player
+  alias GoChampsApi.PlayerStatsLogs
 
   @doc """
   Returns the list of players.
@@ -140,7 +141,24 @@ defmodule GoChampsApi.Players do
 
   """
   def delete_player(%Player{} = player) do
-    Repo.delete(player)
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:player_stats_log, fn _repo, _changes ->
+      PlayerStatsLogs.list_player_stats_log(
+        tournament_id: player.tournament_id,
+        player_id: player.id
+      )
+      |> Enum.each(fn player_stats_log ->
+        PlayerStatsLogs.delete_player_stats_log(player_stats_log)
+      end)
+
+      {:ok, :deleted}
+    end)
+    |> Ecto.Multi.delete(:player, player)
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} -> {:ok, player}
+      {:error, _} -> {:error, :delete_failed}
+    end
   end
 
   @doc """
