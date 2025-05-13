@@ -17,7 +17,16 @@ defmodule GoChampsApiWeb.TeamView do
       name: team.name,
       logo_url: team.logo_url,
       tri_code: team.tri_code,
-      players: render_players(team.players)
+      players: render_players(team.players),
+      coaches: render_many(team.coaches, TeamView, "coach.json", as: :coach)
+    }
+  end
+
+  def render("coach.json", %{coach: coach}) do
+    %{
+      id: coach.id,
+      name: coach.name,
+      type: coach.type
     }
   end
 

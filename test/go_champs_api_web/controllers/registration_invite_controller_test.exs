@@ -261,6 +261,40 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
     end
   end
 
+  describe "export registration_invite to CSV" do
+    setup [:create_registration_invite_with_responses]
+
+    @tag :authenticated
+    test "returns CSV data when requested", %{
+      conn: conn,
+      registration_invite: %RegistrationInvite{id: id}
+    } do
+      conn = get(conn, Routes.v1_registration_invite_path(conn, :export, id))
+
+      # Assert content type is CSV
+      assert get_content_type(conn) =~ "text/csv"
+
+      # Assert filename in content-disposition header
+      assert Plug.Conn.get_resp_header(conn, "content-disposition") ==
+               [~s(attachment; filename="registration_invite_#{id}.csv")]
+
+      # Assert CSV content structure (headers and data)
+      csv_content = response(conn, 200)
+
+      # Split CSV content into lines
+      [headers | rows] = csv_content |> String.split("\r\n") |> Enum.filter(&(&1 != ""))
+
+      # Verify headers
+      assert headers =~ "Name"
+      assert headers =~ "Email"
+      assert headers =~ "Shirt Number"
+      assert headers =~ "Shirt Name"
+
+      # Verify we have data rows
+      assert length(rows) > 0
+    end
+  end
+
   defp create_registration_invite(_) do
     registration_invite = fixture(:registration_invite)
     %{registration_invite: registration_invite}
@@ -274,5 +308,59 @@ defmodule GoChampsApiWeb.RegistrationInviteControllerTest do
   defp create_registration_invite_with_different_member(_) do
     registration_invite = fixture(:registration_invite_with_different_member)
     {:ok, registration_invite: registration_invite}
+  end
+
+  defp create_registration_invite_with_responses(_) do
+    registration_invite = fixture(:registration_invite_for_team)
+
+    # Add some registration responses for testing
+    custom_fields = [
+      %{label: "Position", type: "text"},
+      %{label: "Age", type: "number"}
+    ]
+
+    # Update registration with custom fields
+    {:ok, registration} =
+      Registrations.update_registration(
+        Registrations.get_registration!(registration_invite.registration_id),
+        %{custom_fields: custom_fields}
+      )
+
+    [custom_field1, custom_field2] = registration.custom_fields
+
+    # Create some responses
+    {:ok, _response1} =
+      Registrations.create_registration_response(%{
+        registration_invite_id: registration_invite.id,
+        response: %{
+          "name" => "John Doe",
+          "email" => "john@example.com",
+          "shirt_number" => "23",
+          "shirt_name" => "JOHN",
+          custom_field1.id => "Guard",
+          custom_field2.id => "25"
+        }
+      })
+
+    {:ok, _response2} =
+      Registrations.create_registration_response(%{
+        registration_invite_id: registration_invite.id,
+        response: %{
+          "name" => "Jane Smith",
+          "email" => "jane@example.com",
+          "shirt_number" => "10",
+          "shirt_name" => "JANE",
+          custom_field1.id => "Forward",
+          custom_field2.id => "24"
+        }
+      })
+
+    %{registration_invite: registration_invite}
+  end
+
+  # Helper function to extract content type
+  defp get_content_type(conn) do
+    [content_type] = Plug.Conn.get_resp_header(conn, "content-type")
+    content_type
   end
 end

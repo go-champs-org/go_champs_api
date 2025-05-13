@@ -19,7 +19,9 @@ defmodule GoChampsApiWeb.SportsView do
       player_statistics:
         render_many(sport.player_statistics, SportsView, "player_statistic.json",
           as: :player_statistic
-        )
+        ),
+      coach_types:
+        render_many(sport.coach_types, SportsView, "coachs_type.json", as: :coachs_type)
     }
   end
 
@@ -30,6 +32,12 @@ defmodule GoChampsApiWeb.SportsView do
       value_type: player_statistic.value_type,
       level: player_statistic.level,
       scope: player_statistic.scope
+    }
+  end
+
+  def render("coachs_type.json", %{coachs_type: coachs_type}) do
+    %{
+      type: coachs_type.type
     }
   end
 end

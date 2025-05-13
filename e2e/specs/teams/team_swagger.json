@@ -135,6 +135,26 @@
           ],
           "description": "Team tri letter code"
         },
+        "coaches": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Coach name"
+              },
+              "type": {
+                "type": "string",
+                "description": "Coach type"
+              }
+            }
+          },
+          "description": "Team coaches"
+        },
         "tournament_id": {
           "type": "string",
           "description": "Organization ID"

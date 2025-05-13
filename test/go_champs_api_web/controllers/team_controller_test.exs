@@ -8,10 +8,22 @@ defmodule GoChampsApiWeb.TeamControllerTest do
   @create_attrs %{
     name: "some name",
     logo_url: "https://www.example.com/logo.png",
-    tri_code: "TST"
+    tri_code: "TST",
+    coaches: [
+      %{
+        name: "Some Coach",
+        type: "head_coach"
+      }
+    ]
   }
   @update_attrs %{
-    name: "some updated name"
+    name: "some updated name",
+    coaches: [
+      %{
+        name: "Replaced Coach",
+        type: "head_coach"
+      }
+    ]
   }
   @invalid_attrs %{name: nil}
 
@@ -43,12 +55,15 @@ defmodule GoChampsApiWeb.TeamControllerTest do
 
       conn = get(conn, Routes.v1_team_path(conn, :show, id))
 
-      assert %{
-               "id" => ^id,
-               "name" => "some name",
-               "logo_url" => "https://www.example.com/logo.png",
-               "tri_code" => "TST"
-             } = json_response(conn, 200)["data"]
+      response = json_response(conn, 200)["data"]
+      [coach] = response["coaches"]
+
+      assert response["id"] == id
+      assert response["name"] == "some name"
+      assert response["logo_url"] == "https://www.example.com/logo.png"
+      assert response["tri_code"] == "TST"
+      assert coach["name"] == "Some Coach"
+      assert coach["type"] == "head_coach"
     end
 
     @tag :authenticated
@@ -80,10 +95,14 @@ defmodule GoChampsApiWeb.TeamControllerTest do
 
       conn = get(conn, Routes.v1_team_path(conn, :show, id))
 
-      assert %{
-               "id" => ^id,
-               "name" => "some updated name"
-             } = json_response(conn, 200)["data"]
+      response = json_response(conn, 200)["data"]
+      [coach] = response["coaches"]
+      assert response["id"] == id
+      assert response["name"] == "some updated name"
+      assert response["logo_url"] == "https://www.example.com/logo.png"
+      assert response["tri_code"] == "TST"
+      assert coach["name"] == "Replaced Coach"
+      assert coach["type"] == "head_coach"
     end
 
     @tag :authenticated

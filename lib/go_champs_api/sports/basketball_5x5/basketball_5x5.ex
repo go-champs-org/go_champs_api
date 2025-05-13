@@ -10,6 +10,7 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
   alias GoChampsApi.TeamStatsLogs
   alias GoChampsApi.Tournaments
   alias GoChampsApi.Tournaments.Tournament
+  alias GoChampsApi.Sports.Coach
   alias GoChampsApi.Sports.Sport
   alias GoChampsApi.Sports.Statistic
   alias GoChampsApi.Sports.Basketball5x5.StatisticCalculation
@@ -507,7 +508,8 @@ defmodule GoChampsApi.Sports.Basketball5x5.Basketball5x5 do
            "Basketball 5x5",
            @player_log_statistics ++ @calculated_player_statistics,
            @team_log_statistics ++ @team_log_against_team_statistics,
-           @default_player_statistic_to_order_by
+           @default_player_statistic_to_order_by,
+           [Coach.new(:head_coach), Coach.new(:assistant_coach)]
          )
 
   @impl true

@@ -9,8 +9,22 @@ defmodule GoChampsApiWeb.TeamStatsLogController do
   plug GoChampsApiWeb.Plugs.AuthorizedTeamStatsLog, :team_stats_log when action in [:create]
   plug GoChampsApiWeb.Plugs.AuthorizedTeamStatsLog, :id when action in [:delete, :update]
 
-  def index(conn, _params) do
-    team_stats_log = TeamStatsLogs.list_team_stats_log()
+  defp map_to_keyword(map) do
+    Enum.map(map, fn {key, value} -> {String.to_atom(key), value} end)
+  end
+
+  def index(conn, params) do
+    team_stats_log =
+      case params do
+        %{"where" => where} ->
+          where
+          |> map_to_keyword()
+          |> TeamStatsLogs.list_team_stats_log()
+
+        _ ->
+          TeamStatsLogs.list_team_stats_log()
+      end
+
     render(conn, "index.json", team_stats_log: team_stats_log)
   end
 

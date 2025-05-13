@@ -351,7 +351,9 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       first_player_stats_log =
         PlayerStatsLogHelper.create_player_stats_log_for_tournament_with_sport([
           {"rebounds_defensive", "10"},
-          {"rebounds_offensive", "5"}
+          {"rebounds_offensive", "5"},
+          {"field_goals_made", "2"},
+          {"field_goals_missed", "5"}
         ])
 
       %{
@@ -361,7 +363,9 @@ defmodule GoChampsApi.TeamStatsLogsTest do
         team_id: first_player_stats_log.team_id,
         stats: %{
           "rebounds_defensive" => "4",
-          "rebounds_offensive" => "1"
+          "rebounds_offensive" => "1",
+          "field_goals_made" => "1",
+          "field_goals_missed" => "2"
         }
       }
       |> PlayerHelpers.map_player_id_in_attrs()
@@ -385,6 +389,11 @@ defmodule GoChampsApi.TeamStatsLogsTest do
       assert team_stats_log.stats["rebounds"] == 20.0
       assert team_stats_log.stats["rebounds_defensive"] == 14.0
       assert team_stats_log.stats["rebounds_offensive"] == 6.0
+      assert team_stats_log.stats["field_goals_made"] == 3.0
+      assert team_stats_log.stats["field_goals_missed"] == 7.0
+      assert team_stats_log.stats["points"] == 6.0
+      assert team_stats_log.stats["field_goals_attempted"] == 10.0
+      assert team_stats_log.stats["field_goal_percentage"] == 30.0
 
       assert_enqueued(
         worker: GoChampsApi.Infrastructure.Jobs.GenerateGameResults,
