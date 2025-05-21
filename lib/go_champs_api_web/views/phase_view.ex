@@ -1,4 +1,5 @@
 defmodule GoChampsApiWeb.PhaseView do
+  alias GoChampsApiWeb.TournamentView
   use GoChampsApiWeb, :view
   alias GoChampsApiWeb.DrawView
   alias GoChampsApiWeb.EliminationView
@@ -47,7 +48,8 @@ defmodule GoChampsApiWeb.PhaseView do
         render_many(phase.elimination_stats, PhaseView, "elimination_stats.json"),
       is_in_progress: phase.is_in_progress,
       title: phase.title,
-      type: phase.type
+      type: phase.type,
+      tournament: render_tournament_if_loaded(phase.tournament)
     }
   end
 
@@ -59,4 +61,10 @@ defmodule GoChampsApiWeb.PhaseView do
       ranking_order: elimination_stats.ranking_order
     }
   end
+
+  defp render_tournament_if_loaded(nil), do: nil
+  defp render_tournament_if_loaded(%Ecto.Association.NotLoaded{}), do: nil
+
+  defp render_tournament_if_loaded(tournament),
+    do: render_one(tournament, TournamentView, "tournament.json")
 end

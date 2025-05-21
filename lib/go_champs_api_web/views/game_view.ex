@@ -2,6 +2,7 @@ defmodule GoChampsApiWeb.GameView do
   use GoChampsApiWeb, :view
   alias GoChampsApiWeb.GameView
   alias GoChampsApiWeb.TeamView
+  alias GoChampsApiWeb.PhaseView
 
   def render("index.json", %{games: games}) do
     %{data: render_many(games, GameView, "game.json")}
@@ -28,7 +29,12 @@ defmodule GoChampsApiWeb.GameView do
       live_started_at: game.live_started_at,
       live_ended_at: game.live_ended_at,
       location: game.location,
+      phase: render_phase_if_loaded(game.phase),
       youtube_code: game.youtube_code
     }
   end
+
+  defp render_phase_if_loaded(nil), do: nil
+  defp render_phase_if_loaded(%Ecto.Association.NotLoaded{}), do: nil
+  defp render_phase_if_loaded(phase), do: render_one(phase, PhaseView, "phase.json")
 end

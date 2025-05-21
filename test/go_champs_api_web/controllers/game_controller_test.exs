@@ -231,7 +231,14 @@ defmodule GoChampsApiWeb.GameControllerTest do
                "live_state" => "not_started",
                "live_ended_at" => nil,
                "live_started_at" => nil,
-               "location" => "some location"
+               "location" => "some location",
+               "phase" => %{
+                 "title" => "some phase",
+                 "type" => _,
+                 "tournament" => %{
+                   "name" => "some tournament"
+                 }
+               }
              } = json_response(conn, 200)["data"]
     end
   end
