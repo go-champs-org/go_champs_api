@@ -42,6 +42,8 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
     if decoded_payload["metadata"]["sender"] == @accepted_sender &&
          decoded_payload["metadata"]["env"] == accepted_env do
       Logger.info("Received message from accepted sender")
+      # Temporary solution to avoid duplicate messages
+      AMQP.Basic.ack(state.channel, tag)
 
       case GameEventsLiveModeProcessor.process(decoded_payload) do
         :ok -> :ok = AMQP.Basic.ack(state.channel, tag)
