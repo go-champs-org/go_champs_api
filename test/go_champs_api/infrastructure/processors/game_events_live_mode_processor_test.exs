@@ -319,6 +319,52 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessorTest 
         assert player_stats_log.stats["rebounds"] == to_string(player["stats_values"]["rebounds"])
       end)
     end
+
+    test "does not create player stats logs when game is not in progress" do
+      game = game_fixture()
+
+      message = set_game_id_in_event(@valid_end_message, game.id)
+      message = put_in(message["body"]["event"]["key"], "end-game-live-mode")
+
+      [player_1, player_2, player_3, player_4] = Players.list_players()
+
+      message =
+        put_in(
+          message["body"]["game_state"]["away_team"]["players"],
+          put_in_players(message["body"]["game_state"]["away_team"]["players"], [
+            player_1,
+            player_2
+          ])
+        )
+
+      message =
+        put_in(
+          message["body"]["game_state"]["home_team"]["players"],
+          put_in_players(message["body"]["game_state"]["home_team"]["players"], [
+            player_3,
+            player_4
+          ])
+        )
+
+      assert :ok == GameEventsLiveModeProcessor.process(message)
+
+      updated_game = Games.get_game!(game.id)
+
+      assert updated_game.live_state == :not_started
+      assert updated_game.live_ended_at == nil
+
+      message["body"]["game_state"]["away_team"]["players"]
+      |> Enum.each(fn player ->
+        assert PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: player["id"]) ==
+                 []
+      end)
+
+      message["body"]["game_state"]["home_team"]["players"]
+      |> Enum.each(fn player ->
+        assert PlayerStatsLogs.list_player_stats_log(game_id: game.id, player_id: player["id"]) ==
+                 []
+      end)
+    end
   end
 
   describe "process/1 with not found game" do

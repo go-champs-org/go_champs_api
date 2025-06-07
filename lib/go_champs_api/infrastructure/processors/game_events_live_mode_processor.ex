@@ -63,41 +63,47 @@ defmodule GoChampsApi.Infrastructure.Processors.GameEventsLiveModeProcessor do
   defp end_game_live_mode(game_id, game_state) do
     Logger.info("Ending live mode for game #{game_id}", game_id: game_id)
 
-    case Games.get_game!(game_id)
-         |> Games.update_game(%{
-           live_state: :ended
-         }) do
-      {:ok, updated_game} ->
-        away_team_id = updated_game.away_team_id
-        phase_id = updated_game.phase_id
-        home_team_id = updated_game.home_team_id
-        phase = Phases.get_phase!(phase_id)
-        tournament_id = phase.tournament_id
+    game = Games.get_game!(game_id)
 
-        {:ok, _} =
-          create_team_player_stats_logs(
-            game_state.away_team,
-            updated_game.id,
-            phase_id,
-            away_team_id,
-            tournament_id
-          )
+    if game.live_state != :in_progress do
+      :ok
+    else
+      case Games.get_game!(game_id)
+           |> Games.update_game(%{
+             live_state: :ended
+           }) do
+        {:ok, updated_game} ->
+          away_team_id = updated_game.away_team_id
+          phase_id = updated_game.phase_id
+          home_team_id = updated_game.home_team_id
+          phase = Phases.get_phase!(phase_id)
+          tournament_id = phase.tournament_id
 
-        {:ok, _} =
-          create_team_player_stats_logs(
-            game_state.home_team,
-            updated_game.id,
-            phase_id,
-            home_team_id,
-            tournament_id
-          )
+          {:ok, _} =
+            create_team_player_stats_logs(
+              game_state.away_team,
+              updated_game.id,
+              phase_id,
+              away_team_id,
+              tournament_id
+            )
 
-        :ok
+          {:ok, _} =
+            create_team_player_stats_logs(
+              game_state.home_team,
+              updated_game.id,
+              phase_id,
+              home_team_id,
+              tournament_id
+            )
 
-      {:error, error} ->
-        Logger.error("Error updating game #{game_id}")
-        IO.inspect(error)
-        :error
+          :ok
+
+        {:error, error} ->
+          Logger.error("Error updating game #{game_id}")
+          IO.inspect(error)
+          :error
+      end
     end
   end
 
