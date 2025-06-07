@@ -46,7 +46,7 @@ defmodule GoChampsApi.Infrastructure.RabbitMQ do
       AMQP.Basic.ack(state.channel, tag)
 
       case GameEventsLiveModeProcessor.process(decoded_payload) do
-        :ok -> :ok = AMQP.Basic.ack(state.channel, tag)
+        :ok -> Logger.info("Message processed successfully")
         :error -> :ok = AMQP.Basic.reject(state.channel, tag, requeue: true)
       end
 
