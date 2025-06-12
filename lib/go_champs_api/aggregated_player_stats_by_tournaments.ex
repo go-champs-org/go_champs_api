@@ -34,7 +34,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournaments do
       [%AggregatedPlayerStatsByTournament{}, ...]
 
   """
-  def list_aggregated_player_stats_by_tournament(where, sort_stat_id, page \\ 0) do
+  def list_aggregated_player_stats_by_tournament(where, sort_stat_id \\ "", page \\ 0) do
     select_stat = "#{sort_stat_id}"
 
     query =

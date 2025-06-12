@@ -93,10 +93,7 @@ defmodule GoChampsApi.AggregatedPlayerStatsByTournamentsTest do
 
       where = [tournament_id: another_tournament.id]
 
-      assert AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament(
-               where,
-               "some"
-             ) ==
+      assert AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament(where) ==
                [another_aggregated_player_stats_by_tournament]
     end
 

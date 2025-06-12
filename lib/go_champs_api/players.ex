@@ -8,6 +8,7 @@ defmodule GoChampsApi.Players do
 
   alias GoChampsApi.Players.Player
   alias GoChampsApi.PlayerStatsLogs
+  alias GoChampsApi.AggregatedPlayerStatsByTournaments
 
   @doc """
   Returns the list of players.
@@ -142,6 +143,18 @@ defmodule GoChampsApi.Players do
   """
   def delete_player(%Player{} = player) do
     Ecto.Multi.new()
+    |> Ecto.Multi.run(:aggregated_player_stats_log, fn _repo, _changes ->
+      AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament(
+        player_id: player.id
+      )
+      |> Enum.each(fn aggregated_player_stats_log ->
+        AggregatedPlayerStatsByTournaments.delete_aggregated_player_stats_by_tournament(
+          aggregated_player_stats_log
+        )
+      end)
+
+      {:ok, :deleted}
+    end)
     |> Ecto.Multi.run(:player_stats_log, fn _repo, _changes ->
       PlayerStatsLogs.list_player_stats_log(
         tournament_id: player.tournament_id,

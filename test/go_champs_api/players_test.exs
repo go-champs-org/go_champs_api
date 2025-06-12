@@ -1,10 +1,11 @@
 defmodule GoChampsApi.PlayersTest do
-  alias GoChampsApi.PlayerStatsLogs
   use GoChampsApi.DataCase
 
   alias GoChampsApi.Helpers.TournamentHelpers
   alias GoChampsApi.Players
   alias GoChampsApi.Tournaments
+  alias GoChampsApi.AggregatedPlayerStatsByTournaments
+  alias GoChampsApi.PlayerStatsLogs
 
   describe "players" do
     alias GoChampsApi.Players.Player
@@ -149,6 +150,28 @@ defmodule GoChampsApi.PlayersTest do
       assert {:ok, %Player{}} = Players.delete_player(player)
       assert_raise Ecto.NoResultsError, fn -> Players.get_player!(player.id) end
       assert [] = PlayerStatsLogs.list_player_stats_log(player_id: player.id)
+    end
+
+    test "delete_player/1 and associated aggregated_player_stats_log" do
+      player = player_fixture()
+
+      {:ok, _aggregated_player_stats_log} =
+        AggregatedPlayerStatsByTournaments.create_aggregated_player_stats_by_tournament(%{
+          player_id: player.id,
+          tournament_id: player.tournament_id,
+          stats: %{
+            "kills" => 10,
+            "deaths" => 5
+          }
+        })
+
+      assert {:ok, %Player{}} = Players.delete_player(player)
+      assert_raise Ecto.NoResultsError, fn -> Players.get_player!(player.id) end
+
+      assert [] =
+               AggregatedPlayerStatsByTournaments.list_aggregated_player_stats_by_tournament(
+                 player_id: player.id
+               )
     end
 
     test "change_player/1 returns a player changeset" do
