@@ -52,6 +52,6 @@ config :go_champs_api, GoChampsApi.Repo,
   username: System.get_env("DATABASE_USERNAME") || "postgres",
   password: System.get_env("DATABASE_PASSWORD") || "admin",
   database: System.get_env("DATABASE_NAME") || "go_champs_db",
-  hostname: System.get_env("DATABASE_HOST") || "localhost",
+  hostname: System.get_env("DATABASE_HOST") || "api-db",
   port: System.get_env("DATABASE_PORT") || "5432",
   pool_size: 10

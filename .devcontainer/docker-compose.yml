@@ -1,4 +1,7 @@
-version: '3'
+networks:
+  shared-network:
+    name: go-champs-shared-network
+    external: true
 
 services:
   app:
@@ -15,16 +18,17 @@ services:
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
 
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-    network_mode: service:db
-
+    # Connect to shared network to communicate with Kafka and other services
+    networks:
+      - default
+      - shared-network
     # Uncomment the next line to use a non-root user for all processes.
     # user: node
 
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
-  db:
+  api-db:
     image: postgres:10-alpine
     restart: unless-stopped
     volumes:
@@ -33,6 +37,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: go_champs_db
+    ports:
+      - "5433:5432" # Host port 5433 -> Container port 5432
 
 volumes:
   postgres-data:
