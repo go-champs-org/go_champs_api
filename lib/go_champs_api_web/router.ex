@@ -50,6 +50,9 @@ defmodule GoChampsApiWeb.Router do
               AggregatedTeamHeadToHeadStatsByPhaseController,
               only: [:index, :show]
 
+    resources "/athlete-profiles", AthleteProfileController, only: [:index, :show]
+    get "/athlete-profiles/username/:username", AthleteProfileController, :show_by_username
+
     resources "/draws", DrawController, only: [:show]
 
     resources "/eliminations", EliminationController, only: [:show]
@@ -102,6 +105,8 @@ defmodule GoChampsApiWeb.Router do
 
   scope "/v1", GoChampsApiWeb, as: :v1 do
     pipe_through [:api, :auth]
+
+    resources "/athlete-profiles", AthleteProfileController, only: [:create, :update, :delete]
 
     resources "/draws", DrawController, only: [:create, :update, :delete]
     patch "/draws", DrawController, :batch_update
